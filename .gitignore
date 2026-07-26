@@ -9,10 +9,12 @@ kwork-api-storage/
 .DS_Store
 Thumbs.db
 
-# Local-only and obsolete public artifacts
-assets/gist/
-assets/indexnow-key.txt
-views/app_1.5.html
-views/test.html
-
 # mcp/dist is published on purpose (clone → run without local tsc)
+
+mcp/registry.local.json
+mcp/.adapter-pack/
+assets/indexnow-key.txt
+assets/gist/
+views/test.html
+views/app_1.5.html
+

@@ -1,16 +1,16 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join } from "node:path";
 import { loadEnv } from "../env.js";
-import { jobId } from "../store.js";
+import { dataDir, jobId } from "../store.js";
 import type { Job } from "../types.js";
 
 const GRAPHQL = "https://api.upwork.com/graphql";
 const TOKEN_URL = "https://www.upwork.com/api/v3/oauth2/token";
 const AUTH_URL = "https://www.upwork.com/ab/account-security/oauth2/authorize";
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), "../..");
-const TOKEN_FILE = join(ROOT, "data", "upwork-tokens.json");
+function tokenFile(): string {
+  return join(dataDir(), "upwork-tokens.json");
+}
 
 interface TokenCache {
   access_token: string;
@@ -35,17 +35,19 @@ export function upworkConfigured(): boolean {
 
 function loadTokenFile(): TokenCache | null {
   try {
-    if (!existsSync(TOKEN_FILE)) return null;
-    return JSON.parse(readFileSync(TOKEN_FILE, "utf8")) as TokenCache;
+    const path = tokenFile();
+    if (!existsSync(path)) return null;
+    return JSON.parse(readFileSync(path, "utf8")) as TokenCache;
   } catch {
     return null;
   }
 }
 
 function saveTokenFile(t: TokenCache): void {
-  mkdirSync(join(ROOT, "data"), { recursive: true });
+  const dir = dataDir();
+  mkdirSync(dir, { recursive: true });
   writeFileSync(
-    TOKEN_FILE,
+    tokenFile(),
     JSON.stringify({ ...t, updated_at: new Date().toISOString() }, null, 2),
     "utf8",
   );

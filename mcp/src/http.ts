@@ -31,7 +31,6 @@ export async function fetchText(
   opts?: {
     headers?: Record<string, string>;
     proxy?: string | false;
-    method?: "GET" | "POST";
     timeoutMs?: number;
     retries?: number;
     maxProxies?: number;
@@ -50,17 +49,12 @@ export async function fetchText(
   };
 
   if (opts?.proxy === false) {
-    return once(url, {
-      headers: opts?.headers,
-      method: opts?.method,
-      timeoutMs,
-    });
+    return once(url, { headers: opts?.headers, timeoutMs });
   }
 
   if (typeof opts?.proxy === "string") {
     return once(url, {
       headers: opts.headers,
-      method: opts.method,
       proxy: opts.proxy,
       timeoutMs,
     });
@@ -82,7 +76,6 @@ export async function fetchText(
 
     last = await once(url, {
       headers: opts?.headers,
-      method: opts?.method,
       proxy: useProxy,
       timeoutMs,
     });
@@ -106,7 +99,6 @@ function once(
   url: string,
   opts: {
     headers?: Record<string, string>;
-    method?: "GET" | "POST";
     proxy?: string;
     timeoutMs: number;
   },
@@ -120,7 +112,7 @@ function once(
       const req = lib.request(
         url,
         {
-          method: opts.method ?? "GET",
+          method: "GET",
           agent,
           headers: {
             "User-Agent": DEFAULT_UA,
@@ -196,7 +188,6 @@ export async function fetchJson<T = unknown>(
   opts?: {
     headers?: Record<string, string>;
     proxy?: string | false;
-    method?: "GET" | "POST";
   },
 ): Promise<{ data?: T; error?: string; status: number; ms: number }> {
   const res = await fetchText(url, opts);

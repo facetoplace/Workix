@@ -1,4 +1,4 @@
-import { upworkAuthUrl, upworkCompanySelector, upworkConfigured, upworkExchangeCode, } from "../adapters/upwork.js";
+import { getAdapter } from "../adapterLoader.js";
 import { loadEnv } from "../env.js";
 export async function runUpworkAuthUrl() {
     loadEnv();
@@ -12,9 +12,17 @@ export async function runUpworkAuthUrl() {
             ],
         };
     }
+    const mod = await getAdapter("upwork");
+    if (!mod) {
+        return { error: "Upwork adapter module failed to install from registry" };
+    }
+    const configured = typeof mod.configured === "function" ? mod.configured() : false;
+    const authUrl = mod.authUrl;
+    if (!authUrl)
+        return { error: "adapter missing authUrl()" };
     return {
-        configured_tokens: upworkConfigured(),
-        ...upworkAuthUrl(),
+        configured_tokens: configured,
+        ...authUrl(),
         next: [
             "Открой url в браузере, разреши доступ.",
             "Из redirect скопируй code.",
@@ -27,10 +35,18 @@ export async function runUpworkExchangeCode(args) {
     const code = args.code?.trim();
     if (!code)
         return { error: "code обязателен" };
-    const r = await upworkExchangeCode(code);
+    const mod = await getAdapter("upwork");
+    if (!mod) {
+        return { ok: false, error: "Upwork adapter unavailable" };
+    }
+    const exchangeCode = mod.exchangeCode;
+    const companySelector = mod.companySelector;
+    if (!exchangeCode)
+        return { ok: false, error: "adapter missing exchangeCode" };
+    const r = await exchangeCode(code);
     if (!r.ok)
         return { ok: false, error: r.error };
-    const orgs = await upworkCompanySelector();
+    const orgs = companySelector ? await companySelector() : null;
     return {
         ok: true,
         expires_in: r.expires_in,

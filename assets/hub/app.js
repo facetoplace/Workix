@@ -333,7 +333,25 @@
       let deferredPwaPrompt = null;
       const displayCurrency = ref(localStorage.getItem('workix_display_cur') || 'USDT');
       const fxRates = reactive({});
-      const appVersion = '0.1.7.2';
+      const appVersion = (() => {
+        // Same source as legacy: <!-- Works Version x.y.z --> before <!DOCTYPE>
+        try {
+          const fromDom = document.body?.parentElement?.previousSibling?.previousSibling?.data;
+          if (fromDom) {
+            const part = String(fromDom).trim().split(/\s+/)[3];
+            if (part) return part;
+          }
+        } catch (_) { /* fall through */ }
+        try {
+          for (const n of document.childNodes) {
+            if (n.nodeType === 8 && /Works\s+Version/i.test(n.data || '')) {
+              const m = String(n.data).match(/Works\s+Version\s+([\d.]+)/i);
+              if (m) return m[1];
+            }
+          }
+        } catch (_) { /* fall through */ }
+        return '1.2.10';
+      })();
       const footerYear = new Date().getFullYear();
       const apiMeta = computed(() => WorkixAPI.getState());
       const authStore = computed(() => WorkixAuth.get());

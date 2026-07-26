@@ -3,8 +3,6 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import { loadEnv } from "./env.js";
-import { loadPlatforms } from "./platforms.js";
-import { loadPresets } from "./presets.js";
 import { runPrepareBrowserApply } from "./tools/browser_apply.js";
 import { runDigest } from "./tools/digest.js";
 import { runDraftProposal } from "./tools/draft.js";
@@ -13,7 +11,8 @@ import { runSearch } from "./tools/search.js";
 import { runSourcesStatus } from "./tools/sources_status.js";
 import { runSubmitProposal } from "./tools/submit.js";
 import { runUpworkAuthUrl, runUpworkExchangeCode, } from "./tools/upwork_auth.js";
-import { listWatchSources, runOpenWatchSource, WATCH_SOURCE_IDS, } from "./tools/watch.js";
+import { runOpenWatchSource, WATCH_SOURCE_IDS } from "./tools/watch.js";
+import { runEnsurePlatforms, runInstallPlatform, runListPlatforms, runRemovePlatform, } from "./tools/adapters.js";
 import { hubApply, hubCreateRole, hubCreateStartup, hubFeedback, hubGetProfile, hubGetStartup, hubHealth, hubListMyStartups, hubListRoles, hubListStartups, hubMe, hubRegister, hubUpdateProfile, hubUpdateRole, hubUpdateStartup, } from "./tools/hub.js";
 import { HUB_FIELD_GUIDE, zApplyDefaults, zDisplayCurrency, zEmailSoft, zInfoLinks, zPayment, zRoleKind, zSlug, zStatus, zTags, zTelegram, zUrlSoft, } from "./hubSchemas.js";
 loadEnv();
@@ -84,11 +83,19 @@ server.tool("workix_sources_status", "Ping RSS/Kwork/Freelancehunt/Upwork + PROX
 server.tool("workix_open_watch_source", "Полуручной watch: Profi, Radar, Fellows, YC/CoFoundersLab, Wellfound, Contra, BotPool, Arc, Habr, LinkedIn, TG, Magier, Feltsense, PH.", {
     source: z.enum(WATCH_SOURCE_IDS),
 }, async (args) => textResult(await runOpenWatchSource(args)));
-server.tool("workix_list_platforms", "Каталог platforms.json + watch sources + presets.", {}, async () => textResult({
-    platforms: loadPlatforms(),
-    watch: listWatchSources(),
-    presets: loadPresets(),
-}));
+server.tool("workix_list_platforms", "Каталог площадок + статус downloadable-модулей (installed/available) + watch + presets.", {}, async () => textResult(await runListPlatforms()));
+server.tool("workix_ensure_platforms", "Докачать адаптеры площадок из реестра хаба (кэш локально). Вызывается и автоматически из digest/search.", {
+    platforms: z.array(z.string()).optional(),
+    modules: z.array(z.string()).optional(),
+}, async (args) => textResult(await runEnsurePlatforms(args)));
+server.tool("workix_install_platform", "Явно установить/обновить один адаптер (platform id или module id).", {
+    platform: z.string().optional(),
+    module: z.string().optional(),
+}, async (args) => textResult(await runInstallPlatform(args)));
+server.tool("workix_remove_platform", "Удалить скачанный адаптер из локального кэша.", {
+    platform: z.string().optional(),
+    module: z.string().optional(),
+}, async (args) => textResult(await runRemovePlatform(args)));
 // --- Hub platform tools (central Workix API; not freelance adapters) ---
 server.tool("workix_hub_health", "Ping Workix hub API (WORKIX_API).", {}, async () => textResult(await hubHealth()));
 server.tool("workix_hub_register", "Register key-first identity on hub. Returns agentApiKey once — save to WORKIX_AGENT_KEY.", {}, async () => textResult(await hubRegister()));

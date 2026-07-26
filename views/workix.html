@@ -1,3 +1,4 @@
+<!-- Works Version 1.2.10 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -28,8 +29,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Workix" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
+  <!-- data-cfasync: skip Cloudflare Rocket Loader (breaks Vue mount on CNAME mirrors) -->
+  <script data-cfasync="false" src="https://cdn.tailwindcss.com"></script>
+  <script data-cfasync="false">
     tailwind.config = {
       theme: {
         extend: {
@@ -40,7 +42,7 @@
       }
     };
   </script>
-  <link rel="stylesheet" href="/hub/styles.css?v=0.1.45" />
+  <link rel="stylesheet" href="/hub/styles.css?v=0.1.46" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta20/dist/css/tabler-flags.min.css" />
   <style>
     /* Critical: prevent nav FOUC left of language switcher before styles.css */
@@ -51,8 +53,8 @@
       .wx-nav-mobile { display: none; }
     }
   </style>
-  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
-  <script src="https://mvse.ws/web3.js" defer></script>
+  <script data-cfasync="false" src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script data-cfasync="false" src="https://mvse.ws/web3.js" defer></script>
 </head>
 <body>
   <!--wx-seo-fallback-->
@@ -1277,11 +1279,11 @@
     >↑</button>
   </div>
 
-  <script src="/hub/i18n.js?v=0.1.37"></script>
-  <script src="/hub/stories.js?v=0.1.2"></script>
-  <script src="/hub/mock-db.js?v=0.1.17"></script>
-  <script src="/hub/auth.js?v=0.1.16"></script>
-  <script src="/hub/api.js?v=0.1.27"></script>
-  <script src="/hub/app.js?v=0.1.46"></script>
+  <script data-cfasync="false" src="/hub/i18n.js?v=0.1.37"></script>
+  <script data-cfasync="false" src="/hub/stories.js?v=0.1.2"></script>
+  <script data-cfasync="false" src="/hub/mock-db.js?v=0.1.17"></script>
+  <script data-cfasync="false" src="/hub/auth.js?v=0.1.16"></script>
+  <script data-cfasync="false" src="/hub/api.js?v=0.1.28"></script>
+  <script data-cfasync="false" src="/hub/app.js?v=1.2.10"></script>
 </body>
 </html>

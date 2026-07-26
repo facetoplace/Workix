@@ -34,4 +34,6 @@ export interface PlatformConfig {
     rss?: string;
     note?: string;
     refs?: string[];
+    /** Downloadable MCP adapter module id (omit for core RSS). */
+    module?: string;
 }

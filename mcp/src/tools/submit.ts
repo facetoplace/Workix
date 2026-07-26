@@ -1,17 +1,9 @@
-import { kworkConfigured, kworkGetMe } from "../adapters/kwork.js";
-import { freelancehuntBid, freelancehuntConfigured } from "../adapters/freelancehunt.js";
-import {
-  freelancerConfigured,
-  freelancerPlaceBid,
-  freelancerProjectId,
-} from "../adapters/freelancer.js";
-import {
-  upworkConfigured,
-  upworkCreateProposal,
-  upworkJobReference,
-} from "../adapters/upwork.js";
+import { getAdapter, getAdapterContext, moduleIdForPlatform } from "../adapterLoader.js";
 import { getJob, getLatestDraft } from "../store.js";
+import type { Job } from "../types.js";
 import { runPrepareBrowserApply } from "./browser_apply.js";
+
+type BidResult = { ok: boolean; error?: string; raw?: unknown };
 
 export async function runSubmitProposal(args: {
   job_id: string;
@@ -39,7 +31,13 @@ export async function runSubmitProposal(args: {
     };
   }
 
-  if (job.platform === "freelancehunt" && freelancehuntConfigured()) {
+  const moduleId = moduleIdForPlatform(job.platform);
+  const mod = moduleId ? await getAdapter(moduleId) : null;
+  const ctx = getAdapterContext();
+  const configured =
+    typeof mod?.configured === "function" ? mod.configured() : false;
+
+  if (job.platform === "freelancehunt" && mod && configured) {
     const raw = job.raw as { id?: number } | undefined;
     const projectId = raw?.id;
     if (!projectId) {
@@ -52,7 +50,29 @@ export async function runSubmitProposal(args: {
         }),
       };
     }
-    const bid = await freelancehuntBid({
+    const bidFn = mod.bid as
+      | ((
+          c: typeof ctx,
+          o: {
+            projectId: number;
+            days: number;
+            amount: number;
+            currency: string;
+            comment: string;
+          },
+        ) => Promise<BidResult>)
+      | undefined;
+    if (!bidFn) {
+      return {
+        status: "need_browser",
+        message: "adapter has no bid()",
+        fallback: await runPrepareBrowserApply({
+          job_id: job.id,
+          proposal_text: text,
+        }),
+      };
+    }
+    const bid = await bidFn(ctx, {
       projectId,
       days: args.days ?? 7,
       amount: args.amount ?? 1000,
@@ -72,8 +92,9 @@ export async function runSubmitProposal(args: {
     };
   }
 
-  if (job.platform === "freelancer_com" && freelancerConfigured()) {
-    const projectId = freelancerProjectId(job);
+  if (job.platform === "freelancer_com" && mod && configured) {
+    const projectIdFn = mod.projectId as ((j: Job) => number | undefined) | undefined;
+    const projectId = projectIdFn?.(job);
     if (!projectId) {
       return {
         status: "need_browser",
@@ -84,7 +105,27 @@ export async function runSubmitProposal(args: {
         }),
       };
     }
-    const bid = await freelancerPlaceBid({
+    const placeBid = mod.placeBid as
+      | ((
+          c: typeof ctx,
+          o: {
+            projectId: number;
+            amount: number;
+            period: number;
+            description: string;
+          },
+        ) => Promise<BidResult>)
+      | undefined;
+    if (!placeBid) {
+      return {
+        status: "need_browser",
+        fallback: await runPrepareBrowserApply({
+          job_id: job.id,
+          proposal_text: text,
+        }),
+      };
+    }
+    const bid = await placeBid(ctx, {
       projectId,
       amount: args.amount ?? 500,
       period: args.days ?? 7,
@@ -104,7 +145,7 @@ export async function runSubmitProposal(args: {
   }
 
   if (job.platform === "upwork") {
-    if (!upworkConfigured()) {
+    if (!mod || !configured) {
       return {
         status: "need_browser",
         message: "Upwork OAuth не настроен — browser apply",
@@ -114,7 +155,10 @@ export async function runSubmitProposal(args: {
         }),
       };
     }
-    const jobReference = upworkJobReference(job);
+    const jobReferenceFn = mod.jobReference as
+      | ((j: Job) => string | undefined)
+      | undefined;
+    const jobReference = jobReferenceFn?.(job);
     if (!jobReference) {
       return {
         status: "need_browser",
@@ -125,7 +169,24 @@ export async function runSubmitProposal(args: {
         }),
       };
     }
-    const created = await upworkCreateProposal({
+    const createProposal = mod.createProposal as
+      | ((o: {
+          jobReference: string;
+          coverLetter: string;
+          chargedAmount: number;
+          estimatedDuration?: number;
+        }) => Promise<BidResult & { browserHint?: string }>)
+      | undefined;
+    if (!createProposal) {
+      return {
+        status: "need_browser",
+        fallback: await runPrepareBrowserApply({
+          job_id: job.id,
+          proposal_text: text,
+        }),
+      };
+    }
+    const created = await createProposal({
       jobReference,
       coverLetter: text,
       chargedAmount: args.amount ?? 500,
@@ -147,7 +208,7 @@ export async function runSubmitProposal(args: {
   }
 
   if (job.platform === "kwork") {
-    if (!kworkConfigured()) {
+    if (!mod || !configured) {
       return {
         error: "Kwork credentials не заданы",
         fallback: await runPrepareBrowserApply({
@@ -157,7 +218,8 @@ export async function runSubmitProposal(args: {
       };
     }
     try {
-      const me = await kworkGetMe();
+      const getMe = mod.getMe as (() => Promise<unknown>) | undefined;
+      const me = getMe ? await getMe() : null;
       const browser = await runPrepareBrowserApply({
         job_id: job.id,
         proposal_text: text,
@@ -165,7 +227,7 @@ export async function runSubmitProposal(args: {
       return {
         status: "api_offer_not_available",
         message:
-          "Kwork API: auth OK, create offer нет — отправка через браузер.",
+          "kwork-api: auth OK, create offer нет — отправка через браузер.",
         auth: { ok: true, me },
         fallback: browser,
       };

@@ -1,7 +1,4 @@
-import { kworkConfigured, fetchKworkJobs } from "../adapters/kwork.js";
-import { freelancehuntConfigured, fetchFreelancehuntJobs } from "../adapters/freelancehunt.js";
-import { fetchFreelancerJobs, freelancerConfigured, } from "../adapters/freelancer.js";
-import { fetchUpworkJobs, upworkCompanySelector, upworkConfigured, } from "../adapters/upwork.js";
+import { callFetchJobs, getAdapter } from "../adapterLoader.js";
 import { pingRssPlatform } from "../adapters/rss.js";
 import { loadEnv } from "../env.js";
 import { proxyPoolInfo } from "../proxyPool.js";
@@ -10,10 +7,12 @@ export async function runSourcesStatus() {
     const pool = await proxyPoolInfo();
     const rssIds = ["fl_ru", "freelance_ru", "weblancer_net"];
     const rss = await Promise.all(rssIds.map((id) => pingRssPlatform(id)));
-    let kwork = { configured: kworkConfigured(), skipped: true };
-    if (kworkConfigured()) {
+    const kworkMod = await getAdapter("kwork");
+    const kworkConfigured = typeof kworkMod?.configured === "function" ? kworkMod.configured() : false;
+    let kwork = { configured: kworkConfigured, skipped: true };
+    if (kworkConfigured) {
         const started = Date.now();
-        const r = await fetchKworkJobs();
+        const r = await callFetchJobs("kwork");
         kwork = {
             configured: true,
             ok: !r.error || r.jobs.length > 0,
@@ -23,13 +22,12 @@ export async function runSourcesStatus() {
             viaProxy: pool.count > 0,
         };
     }
-    let freelancehunt = {
-        configured: freelancehuntConfigured(),
-        skipped: true,
-    };
-    if (freelancehuntConfigured()) {
+    const fhMod = await getAdapter("freelancehunt");
+    const fhConfigured = typeof fhMod?.configured === "function" ? fhMod.configured() : false;
+    let freelancehunt = { configured: fhConfigured, skipped: true };
+    if (fhConfigured) {
         const started = Date.now();
-        const r = await fetchFreelancehuntJobs();
+        const r = await callFetchJobs("freelancehunt");
         freelancehunt = {
             configured: true,
             ok: !r.error || r.jobs.length > 0,
@@ -38,11 +36,14 @@ export async function runSourcesStatus() {
             error: r.error,
         };
     }
-    let upwork = { configured: upworkConfigured(), skipped: true };
-    if (upworkConfigured()) {
+    const uwMod = await getAdapter("upwork");
+    const upworkConfigured = typeof uwMod?.configured === "function" ? uwMod.configured() : false;
+    let upwork = { configured: upworkConfigured, skipped: true };
+    if (upworkConfigured) {
         const started = Date.now();
-        const r = await fetchUpworkJobs({ first: 5 });
-        const orgs = await upworkCompanySelector();
+        const r = await callFetchJobs("upwork", { first: 5 });
+        const companySelector = uwMod?.companySelector;
+        const orgs = companySelector ? await companySelector() : null;
         upwork = {
             configured: true,
             ok: !r.error || r.jobs.length > 0,
@@ -53,13 +54,15 @@ export async function runSourcesStatus() {
             company_selector: orgs,
         };
     }
+    const flnMod = await getAdapter("freelancer");
+    const freelancerConfigured = typeof flnMod?.configured === "function" ? flnMod.configured() : false;
     let freelancer_com = {
-        configured: freelancerConfigured(),
+        configured: freelancerConfigured,
         skipped: true,
     };
-    if (freelancerConfigured()) {
+    if (freelancerConfigured) {
         const started = Date.now();
-        const r = await fetchFreelancerJobs({ limit: 5 });
+        const r = await callFetchJobs("freelancer", { limit: 5 });
         freelancer_com = {
             configured: true,
             ok: !r.error || r.jobs.length > 0,
@@ -76,6 +79,9 @@ export async function runSourcesStatus() {
         freelancehunt,
         upwork,
         freelancer_com,
-        summary: `RSS ok ${okCount}/${rss.length}; upwork=${upworkConfigured() ? "on" : "off"}; freelancer=${freelancerConfigured() ? "on" : "off"}`,
+        adapters: {
+            note: "Heavy board adapters are downloaded from the hub registry on first use",
+        },
+        summary: `RSS ok ${okCount}/${rss.length}; upwork=${upworkConfigured ? "on" : "off"}; freelancer=${freelancerConfigured ? "on" : "off"}`,
     };
 }

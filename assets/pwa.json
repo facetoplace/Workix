@@ -2,7 +2,7 @@
   "name": "Workix",
   "short_name": "Workix",
   "description": "Find a place in a startup — orders, projects, performers.",
-  "version": "1.2.10",
+  "version": "0.1.7.2",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

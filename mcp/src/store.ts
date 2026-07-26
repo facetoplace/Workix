@@ -5,8 +5,17 @@ import { fileURLToPath } from "node:url";
 import type { DraftRecord, Job, StoredJob } from "./types.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const DATA_DIR = process.env.WORKIX_MCP_DATA || join(ROOT, "data");
-const STORE_PATH = join(DATA_DIR, "store.json");
+
+function resolveDataDir(): string {
+  if (process.env.WORKIX_MCP_DATA?.trim()) {
+    return process.env.WORKIX_MCP_DATA.trim();
+  }
+  return join(ROOT, "data");
+}
+
+function storePath(): string {
+  return join(resolveDataDir(), "store.json");
+}
 
 interface StoreData {
   jobs: Record<string, StoredJob>;
@@ -19,16 +28,18 @@ function empty(): StoreData {
 }
 
 function ensure(): void {
-  if (!existsSync(DATA_DIR)) mkdirSync(DATA_DIR, { recursive: true });
-  if (!existsSync(STORE_PATH)) {
-    writeFileSync(STORE_PATH, JSON.stringify(empty(), null, 2), "utf8");
+  const dir = resolveDataDir();
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+  const path = storePath();
+  if (!existsSync(path)) {
+    writeFileSync(path, JSON.stringify(empty(), null, 2), "utf8");
   }
 }
 
 function load(): StoreData {
   ensure();
   try {
-    return JSON.parse(readFileSync(STORE_PATH, "utf8")) as StoreData;
+    return JSON.parse(readFileSync(storePath(), "utf8")) as StoreData;
   } catch {
     return empty();
   }
@@ -36,7 +47,7 @@ function load(): StoreData {
 
 function save(data: StoreData): void {
   ensure();
-  writeFileSync(STORE_PATH, JSON.stringify(data, null, 2), "utf8");
+  writeFileSync(storePath(), JSON.stringify(data, null, 2), "utf8");
 }
 
 export function jobId(platform: string, link: string): string {
@@ -108,5 +119,5 @@ export function getLatestDraft(jobIdValue: string): DraftRecord | undefined {
 
 export function dataDir(): string {
   ensure();
-  return DATA_DIR;
+  return resolveDataDir();
 }

@@ -9,7 +9,6 @@ export interface FetchResult {
 export declare function fetchText(url: string, opts?: {
     headers?: Record<string, string>;
     proxy?: string | false;
-    method?: "GET" | "POST";
     timeoutMs?: number;
     retries?: number;
     maxProxies?: number;
@@ -17,7 +16,6 @@ export declare function fetchText(url: string, opts?: {
 export declare function fetchJson<T = unknown>(url: string, opts?: {
     headers?: Record<string, string>;
     proxy?: string | false;
-    method?: "GET" | "POST";
 }): Promise<{
     data?: T;
     error?: string;

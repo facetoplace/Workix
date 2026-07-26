@@ -16,11 +16,11 @@ export declare const zPayment: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     budget: string | number;
     type?: "hour" | "work" | undefined;
-    cur?: "USD" | "USDT" | "RUB" | "CNY" | "GBP" | "UAH" | "EUR" | "TON" | undefined;
+    cur?: "USDT" | "USD" | "RUB" | "CNY" | "GBP" | "UAH" | "EUR" | "TON" | undefined;
 }, {
     budget: string | number;
     type?: "hour" | "work" | undefined;
-    cur?: "USD" | "USDT" | "RUB" | "CNY" | "GBP" | "UAH" | "EUR" | "TON" | undefined;
+    cur?: "USDT" | "USD" | "RUB" | "CNY" | "GBP" | "UAH" | "EUR" | "TON" | undefined;
 }>;
 export declare const zApplyDefaults: z.ZodObject<{
     apply_url: z.ZodOptional<z.ZodString>;
@@ -43,12 +43,12 @@ export declare const zInfoLink: z.ZodObject<{
     url: z.ZodString;
     kind: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
-    url: string;
     label: string;
+    url: string;
     kind?: string | undefined;
 }, {
-    url: string;
     label: string;
+    url: string;
     kind?: string | undefined;
 }>;
 export declare const zInfoLinks: z.ZodArray<z.ZodUnion<[z.ZodObject<{
@@ -56,11 +56,11 @@ export declare const zInfoLinks: z.ZodArray<z.ZodUnion<[z.ZodObject<{
     url: z.ZodString;
     kind: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
-    url: string;
     label: string;
+    url: string;
     kind?: string | undefined;
 }, {
-    url: string;
     label: string;
+    url: string;
     kind?: string | undefined;
 }>, z.ZodString]>, "many">;

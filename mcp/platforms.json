@@ -47,7 +47,8 @@
       "access": "unofficial_api",
       "apply": "browser",
       "status": "credentials",
-      "note": "PROXY_1 as default socks; offer via browser"
+      "module": "kwork",
+      "note": "PROXY_1 as default socks; offer via browser. Adapter module downloaded on first use."
     },
     {
       "id": "freelancehunt",
@@ -59,6 +60,7 @@
       "access": "official_api",
       "apply": "api",
       "status": "token",
+      "module": "freelancehunt",
       "refs": ["https://apidocs.freelancehunt.com"]
     },
     {
@@ -71,6 +73,7 @@
       "access": "official_api",
       "apply": "browser",
       "status": "include_jobs",
+      "module": "hh",
       "note": "remote + project/part only; HH_USER_AGENT required by HH"
     },
     {
@@ -82,7 +85,8 @@
       "audience": "company",
       "access": "official_api",
       "apply": "browser",
-      "status": "include_jobs"
+      "status": "include_jobs",
+      "module": "remoteok"
     },
     {
       "id": "profi",
@@ -274,10 +278,11 @@
       "access": "official_api",
       "apply": "api_or_browser",
       "status": "oauth",
+      "module": "upwork",
       "priority": "P0",
       "value": { "gigs": 5, "cofounder": 1, "roles": 2, "products": 1 },
       "url": "https://www.upwork.com",
-      "note": "P0: VPN/mobile EN. GraphQL search; proposal API or browser. See docs/11-mcp-integration-matrix.md"
+      "note": "P0: VPN/mobile EN. GraphQL search; proposal API or browser. Adapter module downloaded on first use."
     },
     {
       "id": "freelancer_com",
@@ -289,10 +294,11 @@
       "access": "official_api",
       "apply": "api",
       "status": "oauth",
+      "module": "freelancer",
       "priority": "P0",
       "value": { "gigs": 5, "cofounder": 1, "roles": 1, "products": 1 },
       "url": "https://www.freelancer.com",
-      "note": "P0: VPN/WireGuard projects found. FREELANCER_OAUTH_TOKEN; active search + place bid"
+      "note": "P0: VPN/WireGuard. FREELANCER_OAUTH_TOKEN; adapter module downloaded on first use."
     }
   ]
 }

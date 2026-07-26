@@ -2,11 +2,15 @@
   function detectApiBase() {
     const meta = document.querySelector('meta[name="workix-api"]');
     if (global.WORKIX_API) return String(global.WORKIX_API).replace(/\/$/, '');
-    if (meta && meta.content) return meta.content.replace(/\/$/, '');
+    if (meta && String(meta.content || '').trim()) {
+      return String(meta.content).trim().replace(/\/$/, '');
+    }
+    // Local hub process (API on same origin)
     if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
       return location.origin;
     }
-    return location.origin;
+    // CNAME / self-host UI mirrors: catalog lives on the central hub
+    return 'https://workix.co';
   }
 
   function wantMock() {

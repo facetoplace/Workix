@@ -1,89 +1,30 @@
+import { createRequire } from "node:module";
 import { loadEnv } from "../env.js";
-import { fetchJson } from "../http.js";
+import { nextProxy } from "../proxyPool.js";
 import { jobId } from "../store.js";
-const KWORK_API = "https://api.kwork.ru/";
-let cachedToken = null;
+const require = createRequire(import.meta.url);
 export function kworkConfigured() {
-    loadEnv();
     return Boolean(process.env.KWORK_LOGIN &&
         process.env.KWORK_PASSWORD &&
-        process.env.KWORK_PHONE4 &&
-        process.env.KWORK_API_BASIC_AUTH);
-}
-async function apiRequest(apiMethod, params) {
-    const query = new URLSearchParams();
-    for (const [key, value] of Object.entries(params)) {
-        query.set(key, String(value));
-    }
-    const proxy = process.env.KWORK_PROXY || undefined;
-    const auth = process.env.KWORK_API_BASIC_AUTH;
-    const result = await fetchJson(`${KWORK_API}${apiMethod}?${query.toString()}`, {
-        headers: {
-            Authorization: auth.startsWith("Basic ") ? auth : `Basic ${auth}`,
-        },
-        method: "POST",
-        proxy,
-    });
-    if (!result.data) {
-        throw new Error(`Kwork ${apiMethod}: ${result.error || `HTTP ${result.status}`}`);
-    }
-    return result.data;
-}
-async function getToken() {
-    if (cachedToken)
-        return cachedToken;
-    const login = process.env.KWORK_LOGIN;
-    const password = process.env.KWORK_PASSWORD;
-    let response = await apiRequest("signIn", {
-        login,
-        password,
-    });
-    if (String(response.error_code) === "192") {
-        response = await apiRequest("signIn", {
-            login,
-            password,
-            phone_last: process.env.KWORK_PHONE4,
-        });
-    }
-    const token = response.response?.token;
-    if (!response.success || !token) {
-        throw new Error(`Kwork signIn failed: ${response.message || response.error_code || "unknown error"}`);
-    }
-    cachedToken = token;
-    return token;
+        process.env.KWORK_PHONE4);
 }
 async function client() {
     loadEnv();
     if (!kworkConfigured()) {
-        throw new Error("Kwork не настроен. Задайте KWORK_LOGIN, KWORK_PASSWORD, KWORK_PHONE4 и KWORK_API_BASIC_AUTH.");
+        throw new Error("Kwork не настроен. Задайте KWORK_LOGIN, KWORK_PASSWORD, KWORK_PHONE4 (последние 4 цифры телефона).");
     }
-    return {
-        async getProjects() {
-            const token = await getToken();
-            const first = await apiRequest("projects", {
-                token,
-                categories: "",
-                page: 0,
-            });
-            const projects = [...(first.response || [])];
-            const pages = Math.min(first.paging?.pages || 1, 20);
-            for (let page = 2; page <= pages; page += 1) {
-                const next = await apiRequest("projects", {
-                    token,
-                    categories: "",
-                    page,
-                });
-                projects.push(...(next.response || []));
-            }
-            return { ...first, response: projects };
-        },
-        async getMe() {
-            const response = await apiRequest("actor", {
-                token: await getToken(),
-            });
-            return response.response;
-        },
-    };
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const Kwork = require("kwork-api");
+    const login = process.env.KWORK_LOGIN;
+    const password = process.env.KWORK_PASSWORD;
+    const phone4 = process.env.KWORK_PHONE4;
+    // kwork-api expects socks URL when proxy set
+    const proxy = process.env.KWORK_PROXY ||
+        (await nextProxy()) ||
+        undefined;
+    return proxy
+        ? new Kwork(login, password, phone4, proxy)
+        : new Kwork(login, password, phone4);
 }
 function mapProject(p) {
     const idNum = p.id ?? p.project_id;

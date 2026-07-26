@@ -26,16 +26,11 @@ export async function fetchText(url, opts) {
         error: "no attempt",
     };
     if (opts?.proxy === false) {
-        return once(url, {
-            headers: opts?.headers,
-            method: opts?.method,
-            timeoutMs,
-        });
+        return once(url, { headers: opts?.headers, timeoutMs });
     }
     if (typeof opts?.proxy === "string") {
         return once(url, {
             headers: opts.headers,
-            method: opts.method,
             proxy: opts.proxy,
             timeoutMs,
         });
@@ -55,7 +50,6 @@ export async function fetchText(url, opts) {
         seen.add(key);
         last = await once(url, {
             headers: opts?.headers,
-            method: opts?.method,
             proxy: useProxy,
             timeoutMs,
         });
@@ -82,7 +76,7 @@ function once(url, opts) {
             const lib = u.protocol === "http:" ? http : https;
             const agent = makeAgent(opts.proxy);
             const req = lib.request(url, {
-                method: opts.method ?? "GET",
+                method: "GET",
                 agent,
                 headers: {
                     "User-Agent": DEFAULT_UA,

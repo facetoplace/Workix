@@ -3,22 +3,31 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const DATA_DIR = process.env.WORKIX_MCP_DATA || join(ROOT, "data");
-const STORE_PATH = join(DATA_DIR, "store.json");
+function resolveDataDir() {
+    if (process.env.WORKIX_MCP_DATA?.trim()) {
+        return process.env.WORKIX_MCP_DATA.trim();
+    }
+    return join(ROOT, "data");
+}
+function storePath() {
+    return join(resolveDataDir(), "store.json");
+}
 function empty() {
     return { jobs: {}, drafts: [], shownDigestIds: [] };
 }
 function ensure() {
-    if (!existsSync(DATA_DIR))
-        mkdirSync(DATA_DIR, { recursive: true });
-    if (!existsSync(STORE_PATH)) {
-        writeFileSync(STORE_PATH, JSON.stringify(empty(), null, 2), "utf8");
+    const dir = resolveDataDir();
+    if (!existsSync(dir))
+        mkdirSync(dir, { recursive: true });
+    const path = storePath();
+    if (!existsSync(path)) {
+        writeFileSync(path, JSON.stringify(empty(), null, 2), "utf8");
     }
 }
 function load() {
     ensure();
     try {
-        return JSON.parse(readFileSync(STORE_PATH, "utf8"));
+        return JSON.parse(readFileSync(storePath(), "utf8"));
     }
     catch {
         return empty();
@@ -26,7 +35,7 @@ function load() {
 }
 function save(data) {
     ensure();
-    writeFileSync(STORE_PATH, JSON.stringify(data, null, 2), "utf8");
+    writeFileSync(storePath(), JSON.stringify(data, null, 2), "utf8");
 }
 export function jobId(platform, link) {
     return createHash("sha1").update(`${platform}|${link}`).digest("hex").slice(0, 16);
@@ -90,5 +99,5 @@ export function getLatestDraft(jobIdValue) {
 }
 export function dataDir() {
     ensure();
-    return DATA_DIR;
+    return resolveDataDir();
 }

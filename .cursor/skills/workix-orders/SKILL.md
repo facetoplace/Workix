@@ -29,7 +29,9 @@ description: >-
 
 Сначала при сбоях: `workix_sources_status` (PROXY_1 + Upwork/FH токены).
 
-Каталог площадок: `mcp/platforms.json`. Контрибут адаптеров: `CONTRIBUTING.md` / `mcp/README.md`.
+Каталог площадок: `workix_list_platforms` / `mcp/platforms.json`.  
+Адаптеры бирж **докачиваются** с хаба (`workix.co/mcp/registry.json`) при первом digest/search или через `workix_ensure_platforms` / `workix_install_platform`; кэш в `mcp/data/adapters/`. RSS (FL/Freelance.ru/Weblancer) — в ядре.  
+Контрибут: `CONTRIBUTING.md` / `mcp/README.md` (`npm run pack:adapters`).
 
 ## Hard rules
 
