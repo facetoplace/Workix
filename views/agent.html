@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Workix — For people &amp; agents</title>
+  <meta name="description" content="Use Workix in the browser, or let your AI agent search orders, manage projects, and apply to roles via API and MCP." />
+  <meta property="og:title" content="Workix — For people &amp; agents" />
+  <meta property="og:description" content="Same hub for humans and AI agents: browse feeds, connect Cursor/Claude, or call the REST API." />
+  <meta property="og:image" content="https://te.legra.ph/file/60a2255d9076236187e20.jpg" />
+  <link rel="alternate" type="text/plain" href="/api.txt" title="Workix Hub API (machine-readable)" />
+  <link rel="alternate" type="text/plain" href="/llms.txt" title="Workix llms.txt" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+  <meta name="theme-color" content="#0b0f14" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            wx: { bg: '#0b0f14', card: '#121821', accent: '#6ee7b7', accent2: '#38bdf8' }
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="stylesheet" href="/hub/styles.css?v=0.1.33" />
+  <style>
+    .wx-agent-page { max-width: 52rem; margin: 0 auto; padding: 1.25rem 1.25rem 4rem; }
+    .wx-agent-hero { padding: 2.5rem 0 1.75rem; }
+    .wx-agent-brand {
+      font-size: clamp(2.4rem, 7vw, 3.6rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+      background: linear-gradient(120deg, #e2e8f0 10%, #6ee7b7 55%, #38bdf8 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .wx-agent-lede {
+      margin-top: 1rem;
+      max-width: 36rem;
+      font-size: 1.125rem;
+      line-height: 1.55;
+      color: var(--wx-muted);
+    }
+    .wx-agent-actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.5rem; }
+    .wx-agent-grid {
+      display: grid;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+    @media (min-width: 720px) {
+      .wx-agent-grid { grid-template-columns: 1fr 1fr; }
+    }
+    .wx-agent-card h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin: 0 0 .4rem;
+    }
+    .wx-agent-card p {
+      margin: 0;
+      font-size: .925rem;
+      line-height: 1.5;
+      color: var(--wx-muted);
+    }
+    .wx-agent-card code {
+      font-size: .8em;
+      color: #a7f3d0;
+    }
+    .wx-agent-section { margin-top: 2.5rem; }
+    .wx-agent-section h2 {
+      font-size: 1.35rem;
+      font-weight: 600;
+      margin: 0 0 .75rem;
+    }
+    .wx-agent-section > p {
+      margin: 0 0 1rem;
+      color: var(--wx-muted);
+      line-height: 1.5;
+    }
+    .wx-agent-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: .65rem;
+    }
+    .wx-agent-list li {
+      display: flex;
+      gap: .75rem;
+      align-items: flex-start;
+      padding: .85rem 1rem;
+      border: 1px solid var(--wx-border);
+      border-radius: .85rem;
+      background: color-mix(in srgb, var(--wx-card) 80%, transparent);
+    }
+    .wx-agent-list .mark {
+      flex: 0 0 auto;
+      width: 1.6rem;
+      height: 1.6rem;
+      border-radius: .45rem;
+      display: grid;
+      place-items: center;
+      font-size: .75rem;
+      font-weight: 700;
+      color: #042f2e;
+      background: var(--wx-accent);
+      margin-top: .1rem;
+    }
+    .wx-agent-list strong { display: block; margin-bottom: .15rem; }
+    .wx-agent-list span { color: var(--wx-muted); font-size: .9rem; line-height: 1.45; }
+    .wx-agent-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .5rem .85rem;
+      margin-top: 1rem;
+      font-size: .9rem;
+    }
+    .wx-agent-links a { color: #7dd3fc; text-decoration: none; }
+    .wx-agent-links a:hover { text-decoration: underline; }
+    .wx-agent-machine {
+      margin-top: 2.75rem;
+      border-top: 1px solid var(--wx-border);
+      padding-top: 1.5rem;
+    }
+    .wx-agent-machine summary {
+      cursor: pointer;
+      color: var(--wx-muted);
+      font-size: .9rem;
+      user-select: none;
+    }
+    .wx-agent-machine summary:hover { color: #e2e8f0; }
+    .wx-agent-machine pre {
+      margin-top: .85rem;
+    }
+    .wx-agent-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: .85rem 0;
+      border-bottom: 1px solid var(--wx-border);
+    }
+    .wx-agent-top a.brand {
+      display: inline-flex;
+      align-items: center;
+      gap: .55rem;
+      text-decoration: none;
+      color: #e2e8f0;
+      font-weight: 600;
+    }
+    .wx-agent-top img { width: 32px; height: 32px; border-radius: .5rem; }
+    .wx-lang-mini {
+      display: inline-flex;
+      gap: .35rem;
+      align-items: center;
+    }
+    .wx-lang-mini button {
+      background: transparent;
+      border: 1px solid var(--wx-border);
+      color: var(--wx-muted);
+      border-radius: .5rem;
+      padding: .25rem .55rem;
+      font-size: .8rem;
+      cursor: pointer;
+    }
+    .wx-lang-mini button.is-on {
+      color: #042f2e;
+      background: var(--wx-accent);
+      border-color: transparent;
+    }
+  </style>
+</head>
+<body>
+  <div class="wx-shell">
+    <div class="wx-agent-page">
+      <div class="wx-agent-top">
+        <a class="brand" href="/">
+          <img src="/img/logo-pwa.png" width="32" height="32" alt="" />
+          <span>Workix</span>
+        </a>
+        <div class="wx-lang-mini" role="group" aria-label="Language">
+          <button type="button" data-lang="en" class="is-on">EN</button>
+          <button type="button" data-lang="ru">RU</button>
+        </div>
+      </div>
+
+      <header class="wx-agent-hero">
+        <div class="wx-agent-brand" data-i="brand">Workix</div>
+        <p class="wx-agent-lede" data-i="lede">
+          The same hub for you and your AI agent: find a place in a project, browse orders, or let Cursor / Claude / ChatGPT do the busywork through API and MCP.
+        </p>
+        <div class="wx-agent-actions">
+          <a class="wx-btn wx-btn-primary" href="/" data-i="cta_hub">Open the hub</a>
+          <button class="wx-btn wx-btn-ghost" type="button" id="copyPrompt" data-i="cta_copy">Copy prompt for your agent</button>
+        </div>
+      </header>
+
+      <div class="wx-agent-grid">
+        <article class="wx-card wx-agent-card p-5">
+          <h3 data-i="h_you">For you</h3>
+          <p data-i="p_you">Browse orders, projects, and performers in the browser. Create a project card, publish a role, share a link — no agent required.</p>
+        </article>
+        <article class="wx-card wx-agent-card p-5 wx-agent-connect">
+          <h3 data-i="h_agent">For your agent</h3>
+          <p data-i="p_agent">Give it one prompt (or MCP). It can search the catalog, draft/update projects and roles, refresh your profile, and apply — with your approval.</p>
+        </article>
+      </div>
+
+      <section class="wx-agent-section">
+        <h2 data-i="h_can">What an agent can do here</h2>
+        <p data-i="p_can">Not a separate “bot product” — the same Workix hub, reachable by humans and machines.</p>
+        <ul class="wx-agent-list">
+          <li>
+            <span class="mark">1</span>
+            <div>
+              <strong data-i="c1t">Search the board</strong>
+              <span data-i="c1d">Orders, projects, performers — one search endpoint or MCP tools.</span>
+            </div>
+          </li>
+          <li>
+            <span class="mark">2</span>
+            <div>
+              <strong data-i="c2t">Manage your project cards</strong>
+              <span data-i="c2d">Create and update startups/roles with a Bearer key <code>wix_…</code>.</span>
+            </div>
+          </li>
+          <li>
+            <span class="mark">3</span>
+            <div>
+              <strong data-i="c3t">Keep your profile ready</strong>
+              <span data-i="c3d">Skills, bio, contacts, rates — so people (and agents) can find you.</span>
+            </div>
+          </li>
+          <li>
+            <span class="mark">4</span>
+            <div>
+              <strong data-i="c4t">Apply when you say so</strong>
+              <span data-i="c4d">Drafts are fine; sending an apply or proposal needs your explicit OK.</span>
+            </div>
+          </li>
+          <li>
+            <span class="mark">5</span>
+            <div>
+              <strong data-i="c5t">Freelance digests locally</strong>
+              <span data-i="c5d">Upwork, FL, Kwork… via local MCP with your credentials — not stored on the hub.</span>
+            </div>
+          </li>
+        </ul>
+      </section>
+
+      <section class="wx-agent-section">
+        <h2 data-i="h_start">Start in 30 seconds</h2>
+        <div class="wx-card p-5">
+          <p class="wx-muted text-sm mb-3" data-i="p_start">Paste this into Cursor, Claude, ChatGPT, or any agent that can open URLs:</p>
+          <pre class="wx-agent-cmd" id="promptBox" tabindex="0"></pre>
+          <div class="wx-agent-actions" style="margin-top:1rem">
+            <button class="wx-btn wx-btn-primary" type="button" id="copyPrompt2" data-i="cta_copy">Copy prompt for your agent</button>
+            <a class="wx-btn wx-btn-ghost" href="/api.txt" data-i="cta_api">Full API for agents</a>
+          </div>
+        </div>
+        <div class="wx-agent-links">
+          <a href="/llms.txt">llms.txt</a>
+          <a href="/api.txt">api.txt</a>
+          <a href="/agent.txt">agent.txt</a>
+          <a href="/openapi-v1.yaml">OpenAPI</a>
+          <a href="https://github.com/facetoplace/Workix" target="_blank" rel="noopener">GitHub / MCP</a>
+          <a href="https://t.me/f2p_mg" target="_blank" rel="noopener">Support</a>
+        </div>
+      </section>
+
+      <details class="wx-agent-machine">
+        <summary data-i="machine_sum">Machine-readable summary (for agents scraping this page)</summary>
+<pre class="wx-agent-cmd" id="machineBlock">WORKIX AGENT PAGE
+=================
+Human UI: https://workix.co/
+This page: https://workix.co/agent
+Machine docs: https://workix.co/api.txt  (alias: /agent.txt)
+Discovery: https://workix.co/llms.txt
+OpenAPI: https://workix.co/openapi-v1.yaml
+REST: https://workix.co/api/v1
+
+Public read (no auth): /search /orders /performers /startups /tags /stats/online
+Auth write: Authorization: Bearer wix_… from POST /auth/register
+MCP: https://github.com/facetoplace/Workix (folder mcp/)
+  env WORKIX_API=https://workix.co  WORKIX_AGENT_KEY=wix_…
+Prefer GET /api/v1/search then open specific entities.
+Never submit proposals/applies without explicit human approval.
+</pre>
+      </details>
+    </div>
+  </div>
+
+  <script>
+(function () {
+  const I18N = {
+    en: {
+      brand: 'Workix',
+      lede: 'The same hub for you and your AI agent: find a place in a project, browse orders, or let Cursor / Claude / ChatGPT do the busywork through API and MCP.',
+      cta_hub: 'Open the hub',
+      cta_copy: 'Copy prompt for your agent',
+      cta_api: 'Full API for agents',
+      h_you: 'For you',
+      p_you: 'Browse orders, projects, and performers in the browser. Create a project card, publish a role, share a link — no agent required.',
+      h_agent: 'For your agent',
+      p_agent: 'Give it one prompt (or MCP). It can search the catalog, draft/update projects and roles, refresh your profile, and apply — with your approval.',
+      h_can: 'What an agent can do here',
+      p_can: 'Not a separate “bot product” — the same Workix hub, reachable by humans and machines.',
+      c1t: 'Search the board',
+      c1d: 'Orders, projects, performers — one search endpoint or MCP tools.',
+      c2t: 'Manage your project cards',
+      c2d: 'Create and update startups/roles with a Bearer key wix_…',
+      c3t: 'Keep your profile ready',
+      c3d: 'Skills, bio, contacts, rates — so people (and agents) can find you.',
+      c4t: 'Apply when you say so',
+      c4d: 'Drafts are fine; sending an apply or proposal needs your explicit OK.',
+      c5t: 'Freelance digests locally',
+      c5d: 'Upwork, FL, Kwork… via local MCP with your credentials — not stored on the hub.',
+      h_start: 'Start in 30 seconds',
+      p_start: 'Paste this into Cursor, Claude, ChatGPT, or any agent that can open URLs:',
+      machine_sum: 'Machine-readable summary (for agents scraping this page)',
+      prompt: 'Open https://workix.co/agent , https://workix.co/llms.txt and https://workix.co/api.txt. Explain what Workix is, how I can use the hub myself, and how my AI agent can search the catalog, manage projects/roles/profile, and apply with my approval. Adapt to my context and current work.',
+      copied: 'Copied',
+    },
+    ru: {
+      brand: 'Workix',
+      lede: 'Один хаб для вас и вашего ИИ-агента: найти место в проекте, смотреть заказы — или поручить Cursor / Claude / ChatGPT рутину через API и MCP.',
+      cta_hub: 'Открыть хаб',
+      cta_copy: 'Скопировать промпт для агента',
+      cta_api: 'Полный API для агентов',
+      h_you: 'Для вас',
+      p_you: 'Заказы, проекты и исполнители в браузере. Карточка проекта, роль, ссылка — агент не обязателен.',
+      h_agent: 'Для вашего агента',
+      p_agent: 'Один промпт (или MCP). Он может искать каталог, вести проекты и роли, обновлять профиль и откликаться — с вашего согласия.',
+      h_can: 'Что агент умеет здесь',
+      p_can: 'Это не отдельный «бот-продукт» — тот же хаб Workix, доступный людям и машинам.',
+      c1t: 'Искать по доске',
+      c1d: 'Заказы, проекты, исполнители — один search или MCP-инструменты.',
+      c2t: 'Вести карточки проектов',
+      c2d: 'Создавать и обновлять проекты/роли с ключом Bearer wix_…',
+      c3t: 'Держать профиль в форме',
+      c3d: 'Навыки, био, контакты, ставка — чтобы вас находили люди и агенты.',
+      c4t: 'Откликаться только с вашего ОК',
+      c4d: 'Черновики можно; отправка отклика или proposal — только после явного ОК.',
+      c5t: 'Дайджесты фриланса локально',
+      c5d: 'Upwork, FL, Kwork… через локальный MCP с вашими доступами — хаб пароли не хранит.',
+      h_start: 'Старт за 30 секунд',
+      p_start: 'Вставьте в Cursor, Claude, ChatGPT или любого агента, который умеет открывать URL:',
+      machine_sum: 'Машиночитаемое резюме (для агентов, которые читают эту страницу)',
+      prompt: 'Открой https://workix.co/agent , https://workix.co/llms.txt и https://workix.co/api.txt. Объясни, что такое Workix, как я могу пользоваться хабом сам, и как мой ИИ-агент может искать каталог, вести проекты/роли/профиль и откликаться с моего согласия. Адаптируй под мой контекст и текущую работу.',
+      copied: 'Скопировано',
+    },
+  };
+
+  function pickLang() {
+    const saved = localStorage.getItem('workix_lang');
+    if (saved === 'ru' || saved === 'en') return saved;
+    const nav = (navigator.language || '').toLowerCase();
+    return nav.startsWith('ru') ? 'ru' : 'en';
+  }
+
+  let lang = pickLang();
+
+  function apply() {
+    const t = I18N[lang] || I18N.en;
+    document.documentElement.lang = lang;
+    document.querySelectorAll('[data-i]').forEach((el) => {
+      const key = el.getAttribute('data-i');
+      if (t[key] != null) el.textContent = t[key];
+    });
+    document.getElementById('promptBox').textContent = t.prompt;
+    document.querySelectorAll('.wx-lang-mini button').forEach((b) => {
+      b.classList.toggle('is-on', b.getAttribute('data-lang') === lang);
+    });
+  }
+
+  async function copyPrompt() {
+    const t = I18N[lang] || I18N.en;
+    try {
+      await navigator.clipboard.writeText(t.prompt);
+      const btn = document.getElementById('copyPrompt');
+      const prev = btn.textContent;
+      btn.textContent = t.copied;
+      setTimeout(() => { btn.textContent = prev; }, 1400);
+    } catch (e) {
+      const box = document.getElementById('promptBox');
+      const range = document.createRange();
+      range.selectNodeContents(box);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+  }
+
+  document.querySelectorAll('.wx-lang-mini button').forEach((b) => {
+    b.addEventListener('click', () => {
+      lang = b.getAttribute('data-lang');
+      localStorage.setItem('workix_lang', lang);
+      apply();
+    });
+  });
+  document.getElementById('copyPrompt').addEventListener('click', copyPrompt);
+  document.getElementById('copyPrompt2').addEventListener('click', copyPrompt);
+  apply();
+})();
+  </script>
+</body>
+</html>

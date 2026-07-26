@@ -1,0 +1,42 @@
+{
+  "updated": "2026-07-26",
+  "note": "Публичный шаблон. Для локальной настройки скопируйте его в mcp/telegram-channels.json и добавьте нужные публичные каналы. Локальный файл игнорируется Git; не добавляйте в него личные чаты.",
+  "channels": [
+    {
+      "id": "productradar_official",
+      "title": "Product Radar",
+      "url": "https://t.me/productradar_official",
+      "kind": "startups_products",
+      "priority": "high"
+    },
+    {
+      "id": "mobile_jobs_feed",
+      "title": "Mobile Jobs feed (пример из devops_jobs экосистемы)",
+      "url": "https://t.me/mobile_jobs_feed",
+      "kind": "roles",
+      "priority": "high"
+    },
+    {
+      "id": "habr_career_tg",
+      "title": "Habr Карьера (если есть официальный TG)",
+      "url": "https://t.me/",
+      "kind": "roles",
+      "priority": "medium"
+    },
+    {
+      "id": "getmatch_bot",
+      "title": "getmatch @g_jobbot",
+      "url": "https://t.me/g_jobbot",
+      "kind": "roles",
+      "priority": "medium",
+      "note": "бот с вилками, не канал заказов"
+    },
+    {
+      "id": "it_freelance_custom",
+      "title": "Свой IT-фриланс канал (подставь @)",
+      "url": "https://t.me/",
+      "kind": "gigs",
+      "priority": "high"
+    }
+  ]
+}

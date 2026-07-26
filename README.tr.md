@@ -1,0 +1,181 @@
+# Workix
+
+**Diller:** [English](README.md) · [Русский](README.ru.md) · [Español](README.es.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Türkçe](README.tr.md) · [Українська](README.uk.md) · [हिन्दी](README.hi.md) · [中文](README.zh.md)
+
+Workix; insanların, projelerin ve işlerin birbirini bulduğu bir yerdir.
+
+[Workix merkezi](https://workix.co) üç unsuru tek bir katalogda buluşturur:
+
+- **Projeler** — ekip arkadaşı arayan girişimler, ürünler ve topluluklar.
+- **Roller ve iş ilanları** — açıklaması, bütçesi, etiketleri ve başvuru yöntemi bulunan açık işler.
+- **Uzmanlar** — yeni projelere açık profesyoneller.
+
+Workix, geleneksel bir serbest çalışma pazaryeri değildir. Bir proje ile uzman arasındaki ilişkinin yerini almaya çalışmaz. İlanlar, proje sahibinin tercih ettiği iletişim kanalına veya başvuru formuna yönlendirir; Workix ise fırsatların kolayca yayımlanmasını, keşfedilmesini ve paylaşılmasını sağlar.
+
+Kullanıcılar kataloğa web üzerinden göz atabilir. Yapay zekâ ajanları MCP veya REST API aracılığıyla katalogda arama yapabilir ve ilanları yönetebilir. Aynı yerel MCP, platform kimlik bilgilerini kullanıcının bilgisayarında tutarak harici platformlardaki fırsatları da toplayabilir.
+
+**Workix'i açın:** [workix.co](https://workix.co)  
+**Ajan rehberi:** [workix.co/agent](https://workix.co/agent)  
+**API referansı:** [workix.co/api.txt](https://workix.co/api.txt)
+
+## Ajanınızdan Workix'i keşfetmesini isteyin
+
+Bu istemi Cursor'a, Claude'a veya başka bir kodlama ajanına yapıştırın. İstem, ajandan Workix'i incelemesini ve ardından özel hedefiniz konusunda size yardımcı olmasını ister.
+
+```text
+Workix'in nasıl çalıştığını öğren:
+
+1. https://workix.co/agent, https://workix.co/llms.txt
+   ve https://workix.co/api.txt adreslerini aç.
+2. https://github.com/facetoplace/Workix adresini aç ve README.tr.md dosyasını oku.
+3. Şunları sade bir dille açıkla:
+   - Workix nedir ve kimler içindir;
+   - projelere, rollere, iş ilanlarına ve uzmanlara nasıl göz atabilirim;
+   - bir yapay zekâ ajanı Workix MCP ve API aracılığıyla neler yapabilir;
+   - hangi bölümler yerel olarak çalışır ve kimlik bilgileri nasıl güvende tutulur.
+4. Mevcut projeme bak ve aşağıdaki yararlı adımlardan birini seçip tamamlamama yardım et:
+   - Workix MCP'yi ajanıma bağlamak;
+   - uygun işler veya uzmanlar aramak;
+   - bir proje, rol ya da uzman profili yayımlamak veya güncellemek;
+   - Workix vitrinini kendi alan adımda yayınlamak;
+   - Workix'e katkıda bulunacak bir iyileştirme yapmak.
+
+Merkezi hub için WORKIX_API=https://workix.co kullan.
+Serbest çalışma platformlarının parolalarını veya belirteçlerini hub'a yükleme.
+Talimatları işletim sistemime, araçlarıma ve projeme uyarla.
+```
+
+## Bu depoda neler var?
+
+Bu depo, Workix'in açık istemcilerini ve entegrasyonlarını içerir. Bunlar `https://workix.co` adresindeki merkezi hub API'sini kullanır; böylece yerel bir kopya, ayrı bir katalog tutmadan ortak kataloğu görüntüleyebilir.
+
+- [`views/`](views/) vitrin sayfalarını içerir.
+- [`assets/`](assets/) tarayıcı uygulamasını, stilleri, çevirileri, PWA dosyalarını ve herkese açık API belgelerini içerir.
+- [`mcp/`](mcp/) TypeScript MCP sunucusunu, Workix araçlarını ve desteklenen iş platformlarına yönelik adaptörleri içerir.
+- [`docker/`](docker/) vitrini sunmak için küçük bir nginx imajı içerir.
+- [`docs/`](docs/) ajanlara ve kendi sunucunuzda barındırmaya yönelik herkese açık rehberleri içerir.
+
+İki ana bölüm birbirinden bağımsızdır:
+
+1. **Vitrin** — Workix kataloğuna göz atmak için kullanılan web arayüzü. Arayüzü [workix.co](https://workix.co) adresinde kullanabilir veya kendi alan adınızda barındırabilirsiniz.
+2. **MCP sunucusu** — bir yapay zekâ ajanının Workix'te arama yapmasını, ilanlarınızı ve profilinizi yönetmesini, teklif hazırlamasını ve desteklenen harici kaynaklarla çalışmasını sağlayan araçlar.
+
+Katalog verileri merkezi Workix API'si tarafından sunulur. Vitrini çalıştırmak veya MCP istemcisini bağlamak için üretim ortamı sırları gerekmez.
+
+## Workix'i bir yapay zekâ ajanıyla kullanma
+
+Bir ajan, `WORKIX_API=https://workix.co` ayarıyla projelerde, rollerde, iş ilanlarında ve uzmanlarda arama yapabilir. `WORKIX_AGENT_KEY` sağlandığında hesabınıza bağlı ilanlar oluşturabilir veya bunları güncelleyebilir ve uzman profilini yönetebilir.
+
+MCP sunucusunu yerel olarak çalıştırmak için:
+
+```bash
+git clone https://github.com/facetoplace/Workix.git
+cd Workix/mcp
+npm install
+npm run build
+```
+
+Örnek Cursor MCP yapılandırması:
+
+```json
+{
+  "mcpServers": {
+    "workix": {
+      "command": "node",
+      "args": ["FULL/PATH/TO/Workix/mcp/dist/index.js"],
+      "env": {
+        "WORKIX_API": "https://workix.co",
+        "WORKIX_AGENT_KEY": "wix_…"
+      }
+    }
+  }
+}
+```
+
+Bir ajan anahtarı almak için [workix.co](https://workix.co) adresine kaydolun. Anahtar, herkese açık aramalar için isteğe bağlı; hesabınıza bağlı işlemler için zorunludur.
+
+Harici platform kimlik bilgileri yalnızca yerel MCP ortamında bulunmalıdır. Upwork, Kwork veya diğer platformlara ait parolaları ve belirteçleri Workix hub'ına göndermeyin.
+
+Kurulum, kullanılabilir araçlar ve kaynağa özel ayarlar için [`mcp/README.md`](mcp/README.md) dosyasına bakın.
+
+## Vitrini kendi alan adınızda barındırma
+
+Projeler ve topluluklar Workix arayüzünü `work.example.com` gibi bir alan adından sunabilir. Bu yansı, ortak kataloğu yine `https://workix.co` adresinden okur.
+
+1. `views/` ile `assets/` dizinlerini yayınlayın veya [`docker/`](docker/) içindeki imajı kullanın.
+2. Arayüzü hub'a yönlendirin:
+
+   ```html
+   <meta name="workix-api" content="https://workix.co" />
+   ```
+
+   Ayrıca `API_BASE` veya `WORKIX_API` değerini `https://workix.co` olarak ayarlayabilirsiniz.
+3. Seçtiğiniz alan adı için DNS ve barındırma ayarlarını yapılandırın.
+
+Bu alan adıyla ilişkilendirilmiş ilanlar, yansıyı ziyaret eden kullanıcılar için öne çıkarılabilir. Canlı bir örnek için [work.facetoplace.app](https://work.facetoplace.app/) adresine, ayrıntılar için [`docs/self-host.md`](docs/self-host.md) dosyasına bakın.
+
+## Diğer platformları Workix MCP üzerinden kullanma
+
+Workix MCP, harici serbest çalışma pazaryerleri ve iş ilanı panolarıyla çalışmak için de tek bir arayüz sunar. Bir ajan birden fazla kaynakta tek bir özet üzerinden arama yapabilir, belirli bir ilanı açabilir, teklif taslağı hazırlayabilir ve teklifi kullanılabilir bir API üzerinden gönderebilir ya da sizin için bir tarayıcı kontrol listesi oluşturabilir.
+
+Bu entegrasyonlar yerel olarak çalışır. API belirteçleri, platform oturum bilgileri ve tarayıcı oturumları bilgisayarınızda kalır ve Workix hub'ına gönderilmez. Teklif gönderimi her zaman açıkça insan onayı gerektirir.
+
+### Platform hazırlık durumu
+
+Puan, platformun ne kadarının kapsandığını değil, **hedeflenen Workix iş akışının** bugün ne ölçüde hazır olduğunu gösterir:
+
+- **5/5** — arama ve başvuru, desteklenen bir API üzerinden çalışır.
+- **4/5** — arama güvenilirdir; başvuru veya kimlik doğrulamada hâlâ alternatif bir yöntem ya da kısıtlama vardır.
+- **3/5** — entegrasyon kullanışlıdır ancak kimlik bilgileri, proxy'ler veya resmî olmayan bir arayüz güvenilirliği etkiler.
+- **2/5** — otomatik akış yerine tarayıcı destekli izleme kaynağıdır.
+- **1/5** — yalnızca bağlantı/kontrol listesi sunulur; kapsamlı otomasyon bilinçli olarak kapsam dışındadır.
+
+**Otomasyon politikası** sütunu bilinçli olarak ihtiyatlı hazırlanmıştır. Platform koşulları ve API izinleri değişebileceğinden kullanıcılar her kaynağın güncel kurallarına ve kendi hesapları için geçerli koşullara da uymalıdır.
+
+| Platform | Arama / okuma | Başvuru | Hazırlık | Otomasyon politikası | Hedef |
+|----------|---------------|---------|:--------:|----------------------|-------|
+| **Freelancehunt** | Resmî API | API | **5/5** | Onaylı API ve belirteç | Eksiksiz iş akışını sürdürmek |
+| **Freelancer.com** | Resmî API | API üzerinden teklif | **4/5** | Onaylı API ve OAuth | Kimlik doğrulamayı ve hata işlemeyi kararlı hâle getirmek |
+| **Upwork** | OAuth GraphQL | İzin verildiğinde API; tarayıcı alternatifi | **4/5** | Yalnızca onaylı API izinleri; izinsiz veri kazıma yok | OAuth kurulumunu ve teklif alternatifini tamamlamak |
+| **FL.ru** | RSS | Tarayıcı | **4/5** | Herkese açık RSS; başvuru insan denetiminde kalır | Kategorileri ve bütçe ayrıştırmayı iyileştirmek |
+| **HH.ru** | Resmî API | Tarayıcı | **4/5** | Resmî API kuralları ve zorunlu kullanıcı aracısı | Proje/uzaktan çalışma filtrelerini iyileştirmek; API üzerinden başvuru isteğe bağlıdır |
+| **Remote OK** | Herkese açık API | İşverenin sitesi | **4/5** | Herkese açık akış; yönlendirmeden sonra işveren kuralları geçerlidir | Etiket ve teknoloji filtrelerini iyileştirmek |
+| **Kwork** | Yerel kimlik bilgileriyle resmî olmayan API | Tarayıcı | **3/5** | Yüksek riskli resmî olmayan erişim; otomatik başvuru yok | Oturum açma ve proxy güvenilirliğini iyileştirmek |
+| **Freelance.ru** | RSS; proxy gerekebilir | Tarayıcı | **3/5** | Herkese açık RSS; hesap kısıtlamaları aşılmaz | Akışları engellemelere karşı daha dayanıklı hâle getirmek |
+| **Weblancer** | RSS; proxy gerekebilir | Tarayıcı | **3/5** | Herkese açık RSS; hesap kısıtlamaları aşılmaz | Akışları engellemelere karşı daha dayanıklı hâle getirmek |
+| **Habr Career** | Tarayıcıyla izleme | Tarayıcı | **2/5** | Yalnızca herkese açık sayfalar/RSS; toplu başvuru yok | Ortak özete RSS eklemek |
+| **Product Radar / StartupFellows** | Tarayıcı veya Telegram üzerinden izleme | Harici form veya iletişim | **2/5** | Seçilmiş kaynakları izleme; elle iletişim | Seçilmiş izleme kaynakları olarak tutmak |
+| **Contra / BotPool / Wellfound** | Tarayıcıyla izleme | Tarayıcı | **2/5** | Otomasyon kısıtlı veya belirsiz; veri kazıyıcı yok | Tarayıcı destekli tutmak; veri kazıyıcı planlanmıyor |
+| **Telegram kanalları** | Tarayıcı/kullanıcı oturumuyla izleme | Elle iletişim | **2/5** | Kanal kurallarına uyulur; istenmeyen toplu mesajlaşma yok | Yarı manuel ve yapılandırılabilir tutmak |
+| **LinkedIn** | Tarayıcı kontrol listesi | Manuel / Easy Apply | **1/5** | **Otomatik veri kazıma veya toplu başvuru yok** | Yalnızca yarı manuel tutmak |
+| **YC Co-Founder Matching / CoFoundersLab** | Kapalı tarayıcı akışı | Manuel tanıştırma | **1/5** | **Otomatik iletişim veya spam yok** | Manuel izleme kaynağı olarak tutmak |
+| **Profi.ru** | Tarayıcı kontrol listesi | Tarayıcı | **1/5** | Tarayıcı/manuel kullanım; resmî iş ortağı erişimi mTLS gerektirir | İş ortağı mTLS entegrasyonu kapsam dışıdır |
+| **Arc.dev / Magier / Feltsense** | Eşleştirme veya kariyer sayfası izleme | Manuel | **1/5** | Yalnızca eşleştirme/manuel akış | Düşük öncelikli izleme; kapsamlı entegrasyon planlanmıyor |
+
+Mevcut geliştirme sırası şöyledir:
+
+1. Freelancer.com'u kararlı hâle getirmek ve Upwork OAuth/başvuru iş akışını tamamlamak.
+2. FL.ru, Freelance.ru, Weblancer ve Kwork'ün güvenilirliğini artırmak.
+3. Remote OK ve HH.ru için daha iyi filtreler eklemek, ardından Habr Career RSS desteğini eklemek.
+4. Kapalı ve kullanım koşulları açısından hassas platformlar için kırılgan veri kazıyıcılar oluşturmak yerine tarayıcı desteğini korumak.
+
+Kaynak kataloğu [`mcp/platforms.json`](mcp/platforms.json) dosyasındadır. Makine tarafından okunabilir liste için `workix_list_platforms`, mevcut yerel yapılandırmanızla hangi entegrasyonların kullanılabildiğini görmek için `workix_sources_status` komutunu çalıştırın.
+
+## Belgeler ve akışlar
+
+- [Ajan rehberi](https://workix.co/agent)
+- [Makine tarafından okunabilir genel bakış](https://workix.co/llms.txt)
+- [API referansı](https://workix.co/api.txt)
+- [OpenAPI belgesi](https://workix.co/openapi-v1.yaml)
+- [Destek](https://workix.co/support)
+- RSS: [iş ilanları](https://workix.co/feed/tasks.xml), [projeler](https://workix.co/feed/projects.xml), [uzmanlar](https://workix.co/feed/performers.xml)
+
+## Katkıda bulunma
+
+Yeni MCP adaptörleri, araçlar, ön ayarlar, testler, vitrin iyileştirmeleri, belgeler ve çeviriler dâhil her türlü katkıya açığız.
+
+Başlamak için [CONTRIBUTING.md](CONTRIBUTING.md) dosyasına bakın. Ürün veya API ile ilgili sorularınız için [Workix desteğini](https://workix.co/support) kullanın.
+
+## Lisans
+
+[LICENSE](LICENSE) dosyasına bakın. Değişiklik ve yeniden dağıtımda açıkça kaynak gösterilmesi gerekir. Ticari yeniden kullanım için önceden anlaşma yapılması zorunludur.

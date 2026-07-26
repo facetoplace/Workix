@@ -1,0 +1,79 @@
+{
+  "mobile_dev": {
+    "label": "Мобильные приложения и сервисы",
+    "hours": 48,
+    "limit": 15,
+    "include_jobs": false,
+    "include_services": false,
+    "keywords": [
+      "мобильн",
+      "android",
+      "ios",
+      "flutter",
+      "react native",
+      "приложение",
+      "app",
+      "MVP",
+      "бот",
+      "telegram",
+      "сервис",
+      "saas"
+    ],
+    "minus": ["отзыв на сайт", "накрутка", "реферат", "курьер"]
+  },
+  "vpn_mobile": {
+    "label": "VPN / WireGuard / mobile clients (P0 EN)",
+    "hours": 72,
+    "limit": 20,
+    "include_jobs": true,
+    "include_services": false,
+    "keywords": [
+      "VPN",
+      "WireGuard",
+      "OpenVPN",
+      "Shadowsocks",
+      "v2ray",
+      "flutter",
+      "react native",
+      "android",
+      "ios",
+      "mobile",
+      "tunnel"
+    ],
+    "minus": ["накрутка", "реферат", "router config only"],
+    "platforms": ["upwork", "freelancer_com", "freelancehunt", "fl_ru", "remoteok"]
+  },
+  "startups_products": {
+    "label": "Стартапы и новые продукты",
+    "hours": 72,
+    "limit": 15,
+    "include_jobs": true,
+    "include_services": false,
+    "keywords": [
+      "стартап",
+      "startup",
+      "MVP",
+      "co-founder",
+      "фаундер",
+      "продукт",
+      "запуск",
+      "pre-seed",
+      "пилот",
+      "indie"
+    ],
+    "minus": ["накрутка", "реферат"],
+    "watch_sources": [
+      "product_radar",
+      "startupfellows",
+      "wellfound",
+      "yc_cofounder",
+      "contra",
+      "botpool",
+      "linkedin_jobs",
+      "habr_career",
+      "telegram_watch",
+      "cofounderslab",
+      "arc_dev"
+    ]
+  }
+}

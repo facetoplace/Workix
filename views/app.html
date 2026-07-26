@@ -1,0 +1,2679 @@
+<!-- Works Version 0.1.7.14 -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover,width=device-width">
+
+    <link rel="manifest" href="https://workix.co/pwa.json">
+
+    <!-- Primary Meta Tags -->
+    <title>Work — Freelancing, Vacancies, Employee Search</title>
+    <meta name="title" content="Work — Freelancing, Vacancies, Employee Search" />
+    <meta name="description" content="Find a team for your startup or people to help fix what's accidentally now in Web3!" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Work — Freelancing, Vacancies, Employee Search" />
+    <meta property="og:description" content="Find a team for your startup or people to help fix what's accidentally now in Web3!" />
+    <meta property="og:image" content="https://te.legra.ph/file/60a2255d9076236187e20.jpg" />
+
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <meta name="msapplication-TileColor" content="#13100f">
+    <meta name="theme-color" content="#ffffff">
+
+    <script src="https://cdn.jsdelivr.net/npm/@tabler/core@latest/dist/js/tabler.min.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/socket.io-client@2/dist/socket.io.js" type="application/javascript"></script>
+    <link rel="stylesheet" href="https://facetoplace.app/css/tabler.min.css">
+    <link rel="stylesheet" href="https://preview.tabler.io/dist/css/tabler-flags.min.css?1695847769">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+    <script src="https://facetoplace.app/js/vue.js"></script>
+    <script src="https://mvse.ws/web3.js"></script>
+
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/moment-with-locales.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/star-rating.js@4.3.1/dist/star-rating.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/star-rating.js@4.3.1/src/index.min.css" rel="stylesheet">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/numeral.js/1.0.3/numeral.min.js" integrity="sha512-sMgx0iqtQVrEwuUPBeRZE42fOPWIRBRb3CLaoK5gilEnzKTkdJpjguVk5HpcmOgjyZlHSGqXXugNlaovRhYLsg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+</head>
+<body>
+
+<div id="loader" class="page page-center theme-dark">
+    <div class="container container-slim py-4">
+        <div class="text-center">
+            <div class="mb-3"></div>
+            <div class="text-secondary mb-3">Loading...</div>
+            <div class="progress progress-sm">
+                <div class="progress-bar progress-bar-indeterminate"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<main :class="{page: true, 'theme-dark': (skin == 'dark')}" style="opacity: 0">
+    <!-- Navbar (layout-fluid) -->
+    <header class="navbar navbar-expand-md d-print-none">
+        <div class="container-xl">
+            <button class="navbar-toggler hidden" type="button" data-bs-toggle="collapse" data-bs-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <h1 class="navbar-brand navbar-brand-autodark d-none-navbar-horizontal pe-0 pe-md-3 hidden"></h1>
+            <div class="navbar-nav flex-row order-md-last pnt" v-on:click="action('switch_view', 'tasks')">
+                <div class="d-md-flex wlhd">
+                    <transition
+                            name="logoanim"
+                            enter-active-class="animate__animated animate__jackInTheBox"
+                            leave-active-class="animate__animated animate__zoomOutUp"
+                    >
+                        <img v-if="ui.logo" :src="ui.logo" class="wlogo" alt="WorkLance">
+                    </transition>
+                </div>
+            </div>
+            <div class="navbar-nav flex-row order-md-last r_tools">
+                <div class="nav-item d-md-flex me-3">
+                    <div class="btn-list">
+                        <a v-if="user.id && user.wallets['TON'] == null" v-on:click="action('wallet_connect')" class="btn scb" target="_blank" rel="noreferrer">
+                            <span><emoji id="5215276644620586569"/></span>
+                            <span>Connect Wallet</span>
+                        </a>
+                        <a href="https://github.com/sponsors/codecalm" class="btn hidden" target="_blank" rel="noreferrer">
+                            <!-- Download SVG icon from http://tabler-icons.io/i/heart -->
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon text-pink" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572"></path></svg>
+                            Support
+                        </a>
+                    </div>
+                </div>
+                <div class="d-md-flex">
+                    <a v-on:click="action('light')" class="nav-link px-0 hide-theme-dark pnt" data-bs-toggle="tooltip" data-bs-placement="bottom" aria-label="Enable dark mode" data-bs-original-title="Enable dark mode">
+                        <!-- Download SVG icon from http://tabler-icons.io/i/moon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z"></path></svg>
+                    </a>
+                    <a v-on:click="action('light')" class="nav-link px-0 hide-theme-light pnt" data-bs-toggle="tooltip" data-bs-placement="bottom" aria-label="Enable light mode" data-bs-original-title="Enable light mode">
+                        <!-- Download SVG icon from http://tabler-icons.io/i/sun -->
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"></path><path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"></path></svg>
+                    </a>
+                    <div class="dropdown lang-zone" translate="no">
+                        <button type="button" class="flager btn dropdown-toggle" data-bs-toggle="dropdown">
+                            <span :class="get('class', 'flag')"></span>
+                        </button>
+                        <div class="dropdown-menu">
+                            <a class="dropdown-item" translate="no" href="#" v-on:click="action('lang_switch', 'en')">  <span :class="get('class', 'flag', 'en')"></span> English</a>
+                            <a class="dropdown-item" translate="no" href="#" v-on:click="action('lang_switch', 'de')">  <span :class="get('class', 'flag', 'de')"></span> Deutsch</a>
+                            <a class="dropdown-item" translate="no" href="#" v-on:click="action('lang_switch', 'hi')">  <span :class="get('class', 'flag', 'in')"></span> हिंदी</a>
+                            <a class="dropdown-item" translate="no" href="#" v-on:click="action('lang_switch', 'fr')">  <span :class="get('class', 'flag', 'fr')"></span> Français</a>
+                            <a class="dropdown-item" translate="no" href="#" v-on:click="action('lang_switch', 'tr')">  <span :class="get('class', 'flag', 'tr')"></span> Türkçe</a>
+                            <a class="dropdown-item" translate="no" href="#" v-on:click="action('lang_switch', 'ru')">  <span :class="get('class', 'flag', 'ru')"></span> Русский</a>
+                            <a class="dropdown-item" translate="no" href="#" v-on:click="action('lang_switch', 'uk')">  <span :class="get('class', 'flag', 'uk')"></span> Українська</a>
+                            <a class="dropdown-item" translate="no" href="#" v-on:click="action('lang_switch', 'es')">  <span :class="get('class', 'flag', 'es')"></span> Español</a>
+                            <a class="dropdown-item" translate="no" href="#" v-on:click="action('lang_switch', 'zh')">  <span :class="get('class', 'flag', 'zh')"></span> 中国人</a>
+                        </div>
+                    </div>
+
+
+                    <div class="nav-item dropdown d-none d-md-flex me-3 hidden" v-if="user.id">
+                        <a href="#" class="nav-link px-0" data-bs-toggle="dropdown" tabindex="-1" aria-label="Show notifications">
+                            <!-- Download SVG icon from http://tabler-icons.io/i/bell -->
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6"></path><path d="M9 17v1a3 3 0 0 0 6 0v-1"></path></svg>
+                            <span class="badge bg-red"></span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-arrow dropdown-menu-end dropdown-menu-card">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Last updates</h3>
+                                </div>
+                                <div class="list-group list-group-flush list-group-hoverable">
+                                    <div class="list-group-item">
+                                        <div class="row align-items-center">
+                                            <div class="col-auto"><span class="status-dot status-dot-animated bg-red d-block"></span></div>
+                                            <div class="col text-truncate">
+                                                <a href="#" class="text-body d-block">Example 1</a>
+                                                <div class="d-block text-secondary text-truncate mt-n1">
+                                                    Change deprecated html tags to text decoration classes (#29604)
+                                                </div>
+                                            </div>
+                                            <div class="col-auto">
+                                                <a href="#" class="list-group-item-actions">
+                                                    <!-- Download SVG icon from http://tabler-icons.io/i/star -->
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon text-muted" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z"></path></svg>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="list-group-item">
+                                        <div class="row align-items-center">
+                                            <div class="col-auto"><span class="status-dot d-block"></span></div>
+                                            <div class="col text-truncate">
+                                                <a href="#" class="text-body d-block">Example 2</a>
+                                                <div class="d-block text-secondary text-truncate mt-n1">
+                                                    justify-content:between ⇒ justify-content:space-between (#29734)
+                                                </div>
+                                            </div>
+                                            <div class="col-auto">
+                                                <a href="#" class="list-group-item-actions show">
+                                                    <!-- Download SVG icon from http://tabler-icons.io/i/star -->
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon text-yellow" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z"></path></svg>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="list-group-item">
+                                        <div class="row align-items-center">
+                                            <div class="col-auto"><span class="status-dot d-block"></span></div>
+                                            <div class="col text-truncate">
+                                                <a href="#" class="text-body d-block">Example 3</a>
+                                                <div class="d-block text-secondary text-truncate mt-n1">
+                                                    Update change-version.js (#29736)
+                                                </div>
+                                            </div>
+                                            <div class="col-auto">
+                                                <a href="#" class="list-group-item-actions">
+                                                    <!-- Download SVG icon from http://tabler-icons.io/i/star -->
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon text-muted" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z"></path></svg>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="list-group-item">
+                                        <div class="row align-items-center">
+                                            <div class="col-auto"><span class="status-dot status-dot-animated bg-green d-block"></span></div>
+                                            <div class="col text-truncate">
+                                                <a href="#" class="text-body d-block">Example 4</a>
+                                                <div class="d-block text-secondary text-truncate mt-n1">
+                                                    Regenerate package-lock.json (#29730)
+                                                </div>
+                                            </div>
+                                            <div class="col-auto">
+                                                <a href="#" class="list-group-item-actions">
+                                                    <!-- Download SVG icon from http://tabler-icons.io/i/star -->
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon text-muted" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z"></path></svg>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="nav-item d-none d-md-flex me-3" v-if="user.id == null">
+                    <div class="btn-list" v-on:click="action('login')">
+                        <a class="btn" target="_blank" rel="noreferrer">Login</a>
+                    </div>
+                </div>
+                <div class="nav-item dropdown" v-if="user.id">
+                    <a href="#" class="nav-link d-flex lh-1 text-reset p-0" data-bs-toggle="dropdown" aria-label="Open user menu">
+                        <span class="avatar avatar-sm" :style="'background-image: url('+user.avatar+')'"></span>
+                        <div class="d-none d-xl-block ps-2">
+                            <div translate="no">{{user.name}}</div>
+                            <div class="mt-1 small text-secondary" translate="no">{{user.id}}</div>
+                        </div>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                        <a href="#" class="dropdown-item hidden">Status</a>
+                        <a href="./profile.html" class="dropdown-item hidden">Profile</a>
+                        <a href="#" class="dropdown-item hidden">Feedback</a>
+                        <div class="dropdown-divider hidden"></div>
+                        <a href="./settings.html" class="dropdown-item hidden">Settings</a>
+                        <a v-on:click="action('logout')" class="dropdown-item pnt" v-if="engine != 'tg'">Logout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Add task -->
+    <transition
+            name="task_animation_1"
+            enter-active-class="animate__animated animate__fadeInUpBig"
+            :leave-active-class="'animate__animated ' + (draft.task.ready == true ? 'animate__fadeOutUpBig' : 'animate__fadeOutDownBig')"
+    >
+        <div class="task_create" v-if="ui.task_create">
+
+            <div class="close" v-on:click="action('task', 'hide_new')">
+                <svg width="100pt" height="100pt" version="1.1" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="filter: contrast(0); width: 100%">
+                    <path fill="black" d="m57.625 50.992l26.688-26.691c1.9688-1.9688 1.9688-5.1602 0-7.1289-1.9727-1.9688-5.1641-1.9688-7.1328 0l-26.688 26.688-26.688-26.688c-1.9727-1.9688-5.1602-1.9688-7.1328 0-1.9688 1.9688-1.9688 5.1602 0 7.1289l26.688 26.691-26.688 26.691c-1.9688 1.9688-1.9688 5.1602 0 7.1328 0.98828 0.98438 2.2773 1.4766 3.5664 1.4766 1.293 0 2.582-0.49219 3.5664-1.4766l26.688-26.688 26.688 26.688c0.98437 0.98438 2.2773 1.4766 3.5664 1.4766 1.2891 0 2.5781-0.49219 3.5664-1.4766 1.9688-1.9727 1.9688-5.1641 0-7.1328z"/>
+                </svg>
+            </div>
+
+            <div class="cblock">
+
+                <div class="card-body">
+                    <h3 class="card-title">Create Task</h3>
+                    <div class="row row-cards">
+                        <div class="col-sm-6 col-md-3">
+                            <div class="mb-3">
+                                <label class="form-label required">Type</label>
+                                <select class="form-select" id="task_type" v-on:input="action('draft', 'task_update')" v-bind:value="draft.task.type">
+                                    <option value="task">One task</option>
+                                    <option value="project">New project</option>
+                                    <option value="time_job">Part-time job</option>
+                                    <option value="full_job">Full-time job</option>
+                                    <option value="fixes">Fixes</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="mb-3">
+                                <label class="form-label required">Title</label>
+                                <input type="text" class="form-control" v-on:input="action('draft', 'task_update')" :placeholder="get('draft', 'title_holder')" id="task_title" v-bind:value="draft.task.title">
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Project</label>
+                                <input type="url" name="input-mask" class="form-control" data-mask="*.*" data-mask-visible="true" v-on:input="action('draft', 'task_update')" placeholder="example.com" id="task_project" v-bind:value="draft.task.project">
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Budget</label>
+                                <div class="input-group mb-2">
+                                    <input type="text" class="form-control" v-on:input="action('draft', 'task_update')" aria-label="100" placeholder="___.__" autocomplete="off" id="task_budget" v-bind:value="draft.task.payment.budget">
+                                    <button type="button" class="btn dropdown-toggle cur_selector" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" translate="no">
+                                        <span><img :src="'https://liber.ws/icons/'+draft.task.payment.cur" alt=""></span> {{draft.task.payment.cur}}
+                                    </button>
+                                    <div class="dropdown-menu" style="">
+                                        <a class="dropdown-item" v-on:click="action('draft', 'set_cur', cur)" v-for="(cur, ci) in utils.cur" v-bind:tag_index="ci" translate="no">
+                                            {{cur}}
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Payment for</label>
+                                <select class="form-select" id="task_payment" v-on:input="action('draft', 'task_update')" v-bind:value="draft.task.payment.type">
+                                    <option value="hour">Hour</option>
+                                    <option value="work">{{get('draft', 'paytype')}}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="mb-3 mb-0">
+                                <label class="form-label required">About Task</label>
+                                <textarea rows="5" class="form-control" v-on:input="action('draft', 'task_update')" placeholder="Here can be your description" style="height: 145px;" id="task_desc">{{draft.task.description}}</textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <div class="form-label">Select multiple categories</div>
+                                <input id="task_tags" class="form-control" v-on:input="action('draft', 'task_update')" v-on:input="action('draft', 'task_update');" autocomplete="off" placeholder="Whats kind of work (AI, Python, iOS, Design...)?">
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="mb-3 mb-0 text-end">
+
+                                <button type="submit" class="btn btn-primary" v-on:input="action('draft', 'task_update')" :disabled="draft.task.ready == false" v-on:click="action('task', 'post')">Post it</button>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <transition
+                    name="advice_animation_2"
+                    enter-active-class="animate__animated animate__fadeIn"
+                    leave-active-class="animate__animated animate__fadeOut"
+            >
+                <div class="shadow_pan" v-if="ui.pan" v-on:click="action('task', 'hide_new')"></div>
+            </transition>
+
+        </div>
+    </transition>
+
+    <!-- Add reusme -->
+    <transition
+            name="task_animation_1"
+            enter-active-class="animate__animated animate__fadeInUpBig"
+            :leave-active-class="'animate__animated ' + (draft.resume.ready == true ? 'animate__fadeOutUpBig' : 'animate__fadeOutDownBig')"
+    >
+        <div class="task_create resume_create" v-if="ui.resume_create">
+
+            <div class="close" v-on:click="action('resume', 'hide_new')">
+                <svg width="100pt" height="100pt" version="1.1" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="filter: contrast(0); width: 100%">
+                    <path fill="black" d="m57.625 50.992l26.688-26.691c1.9688-1.9688 1.9688-5.1602 0-7.1289-1.9727-1.9688-5.1641-1.9688-7.1328 0l-26.688 26.688-26.688-26.688c-1.9727-1.9688-5.1602-1.9688-7.1328 0-1.9688 1.9688-1.9688 5.1602 0 7.1289l26.688 26.691-26.688 26.691c-1.9688 1.9688-1.9688 5.1602 0 7.1328 0.98828 0.98438 2.2773 1.4766 3.5664 1.4766 1.293 0 2.582-0.49219 3.5664-1.4766l26.688-26.688 26.688 26.688c0.98437 0.98438 2.2773 1.4766 3.5664 1.4766 1.2891 0 2.5781-0.49219 3.5664-1.4766 1.9688-1.9727 1.9688-5.1641 0-7.1328z"/>
+                </svg>
+            </div>
+
+            <div class="cblock">
+
+                <div class="card-body">
+                    <h3 class="card-title">My profile</h3>
+                    <div class="row row-cards">
+                        <div class="col-md-5">
+                            <div class="mb-3">
+                                <label class="form-label">Your Full name</label>
+                                <input type="text" class="form-control" v-on:input="action('draft', 'resume_update')" :placeholder="user.data.name" id="resume_name" v-bind:value="draft.resume.name">
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label" translate="no">Telegram</label>
+                                <input type="url" name="input-mask" class="form-control" data-mask="*.*" data-mask-visible="true" disabled :placeholder="'@'+(user.data.username || user.data.user_id)" id="resume_contact" v-bind:value="draft.resume.project">
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Salary expectations</label>
+                                <div class="input-group mb-2">
+                                    <input type="text" class="form-control" v-on:input="action('draft', 'resume_update')" aria-label="100" placeholder="___.__" autocomplete="off" id="resume_budget" v-bind:value="draft.resume.payment.budget">
+                                    <button type="button" class="btn dropdown-toggle cur_selector" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" translate="no">
+                                        <span><img :src="'https://liber.ws/icons/'+draft.task.payment.cur" alt=""></span> {{draft.task.payment.cur}}
+                                    </button>
+                                    <div class="dropdown-menu" style="">
+                                        <a class="dropdown-item" v-on:click="action('draft', 'set_cur', cur)" v-for="(cur, ci) in utils.cur" v-bind:tag_index="ci" translate="no">
+                                            {{cur}}
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Payment for</label>
+                                <select class="form-select" id="resume_payment" v-on:input="action('draft', 'resume_update')" v-bind:value="draft.resume.payment.type">
+                                    <option value="hour">Hour</option>
+                                    <option value="work">{{get('draft', 'paytype')}}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="mb-3 mb-0">
+                                <span class="avatar avatar-sm" :style="'background-image: url('+user.avatar+')'"></span>
+                            </div>
+                            <div class="mb-3 mb-0">
+                                <label class="form-label required">About you</label>
+                                <textarea rows="5" class="form-control" v-on:input="action('draft', 'resume_update')" placeholder="Describe your past work experience, desired work location and a little information about yourself" style="height: 145px;" id="resume_desc">{{draft.resume.description}}</textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <div class="form-label">Select multiple categories / professional software</div>
+                                <input id="resume_tags" class="form-control" v-on:input="action('draft', 'resume_update')" v-on:input="action('draft', 'resume_update');" autocomplete="off" placeholder="Whats kind of work (AI, Python, iOS, Design...)?">
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <label class="form-label">Your portfolio or a link to your actual work</label>
+                                <input type="url" name="input-mask" class="form-control" data-mask="*.*" data-mask-visible="true" placeholder="https://example.com/my_work" id="resume_portfolio" v-bind:value="draft.resume.portofilo">
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <label class="form-label">Your CV / Personal Website</label>
+                                <input type="url" name="input-mask" v-on:input="action('draft', 'resume_update')" class="form-control" data-mask="*.*" data-mask-visible="true" placeholder="https://yourdomain.best" id="resume_cv" v-bind:value="draft.resume.cv">
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="mb-3 mb-0 text-end">
+
+                                <button type="submit" class="btn btn-primary" v-on:input="action('draft', 'resume_update')" :disabled="draft.resume.ready == false" v-on:click="action('resume', 'post')">Post it</button>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <transition
+                    name="advice_animation_2"
+                    enter-active-class="animate__animated animate__fadeIn"
+                    leave-active-class="animate__animated animate__fadeOut"
+            >
+                <div class="shadow_pan" v-if="ui.pan" v-on:click="mode == 'tasks' ? action('task', 'hide_new') : action('resume', 'hide_new')"></div>
+            </transition>
+
+        </div>
+    </transition>
+
+    <div class="tasks" v-if="view == 'tasks' || view == 'resumes'">
+        <div class="page-wrapper">
+            <!-- Page header -->
+            <div class="page-header d-print-none">
+                <div class="container-xl">
+                    <div class="row g-2 align-items-center">
+                        <div class="col">
+                            <h2 class="page-title">
+                                {{mode == 'tasks' ? 'Search for Project' : 'Search for Partner'}}
+                            </h2>
+                        </div>
+
+                        <!-- Page title actions -->
+                        <div class="col-auto ms-auto d-print-none">
+                            <a v-on:click="mode == 'tasks' ? action('task', 'new') : action('resume', 'new')" class="btn btn-primary">
+                                <!-- Download SVG icon from http://tabler-icons.io/i/plus -->
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path></svg>
+                                {{mode == 'tasks' ? 'Post a task' : 'Post a resume'}}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Page body -->
+            <div class="page-body">
+                <div class="container-xl">
+                    <div class="row g-4">
+                        <div class="col-md-3">
+                            <form action="./" method="get" autocomplete="off" novalidate="" class="sticky-top form_slider">
+                                <div class="form-label">Types</div>
+                                <div class="mb-4">
+                                    <label class="form-check">
+                                        <input type="checkbox" class="form-check-input" name="types_task" value="1" v-model="filters.types.task">
+                                        <span class="form-check-label">{{get('task', 'type', 'task')}}</span>
+                                    </label>
+                                    <label class="form-check">
+                                        <input type="checkbox" class="form-check-input" name="types_project" value="2" v-model="filters.types.project">
+                                        <span class="form-check-label">{{get('task', 'type', 'project')}}</span>
+                                    </label>
+                                    <label class="form-check">
+                                        <input type="checkbox" class="form-check-input" name="types_time_job" value="3" v-model="filters.types.time_job">
+                                        <span class="form-check-label">{{get('task', 'type', 'time_job')}}</span>
+                                    </label>
+                                    <label class="form-check">
+                                        <input type="checkbox" class="form-check-input" name="types_full_job" value="4" v-model="filters.types.full_job">
+                                        <span class="form-check-label">{{get('task', 'type', 'full_job')}}</span>
+                                    </label>
+                                    <label class="form-check">
+                                        <input type="checkbox" class="form-check-input" name="types_fixes" value="5" v-model="filters.types.fixes">
+                                        <span class="form-check-label">{{get('task', 'type', 'fixes')}}</span>
+                                    </label>
+                                </div>
+                                <div class="form-label">Tags</div>
+                                <div class="mb-4 tagfl">
+                                    <label class="form-check">
+                                        <input type="checkbox" class="form-check-input" name="form-type[]" value="1" :checked="filters.tags_on && filters.tags_on.includes('all')" v-on:change="action('filter', 'tag_switch', 'all')">
+                                        <span class="form-check-label">All Other</span>
+                                    </label>
+                                    <label class="form-check" v-for="(tag, tidx) in filters.tags" v-bind:tag_index="tidx">
+                                        <input type="checkbox" class="form-check-input" name="form-type[]" value="1" :checked="filters.tags_on && filters.tags_on.includes(tag.id)" v-on:change="action('filter', 'tag_switch', tag.id)">
+                                        <span class="form-check-label namer"><div class="tag_emoji"><emoji v-if="tag.emoji" :class="{oped: filters.tags_on && filters.tags_on.includes(tag.id)}" :id="tag.emoji"></emoji></div> <div class="name" translate="no">{{tag.name}}</div></span>
+                                    </label>
+                                </div>
+
+                                <div class="hidden">
+                                    <div class="form-label">Remote</div>
+                                    <div class="mb-4">
+                                        <label class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox">
+                                            <span class="form-check-label form-check-label-on">On</span>
+                                            <span class="form-check-label form-check-label-off">Off</span>
+                                        </label>
+                                    </div>
+                                    <div class="form-label">Salary Range</div>
+                                    <div class="mb-4">
+                                        <label class="form-check">
+                                            <input type="radio" class="form-check-input" name="form-salary" value="1" checked="">
+                                            <span class="form-check-label">$20K - $50K</span>
+                                        </label>
+                                        <label class="form-check">
+                                            <input type="radio" class="form-check-input" name="form-salary" value="2" checked="">
+                                            <span class="form-check-label">$50K - $100K</span>
+                                        </label>
+                                        <label class="form-check">
+                                            <input type="radio" class="form-check-input" name="form-salary" value="3">
+                                            <span class="form-check-label">&gt; $100K</span>
+                                        </label>
+                                        <label class="form-check">
+                                            <input type="radio" class="form-check-input" name="form-salary" value="4">
+                                            <span class="form-check-label">Drawing / Painting</span>
+                                        </label>
+                                    </div>
+                                    <div class="form-label">Immigration</div>
+                                    <div class="mb-4">
+                                        <label class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox">
+                                            <span class="form-check-label form-check-label-on">On</span>
+                                            <span class="form-check-label form-check-label-off">Off</span>
+                                        </label>
+                                        <div class="small text-secondary">Only show companies that can sponsor a visa</div>
+                                    </div>
+                                    <div class="form-label">Location</div>
+                                    <div class="mb-4">
+                                        <select class="form-select">
+                                            <option>Anywhere</option>
+                                            <option>London</option>
+                                            <option>San Francisco</option>
+                                            <option>New York</option>
+                                            <option>Berlin</option>
+                                        </select>
+                                    </div>
+                                    <div class="mt-5">
+                                        <button class="btn btn-primary w-100">
+                                            Confirm changes
+                                        </button>
+                                        <a href="#" class="btn btn-link w-100">
+                                            Reset to defaults
+                                        </a>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="col-md-9">
+                            <div class="col-3">
+                                <div class="mb-3">
+                                    <label class="form-label">What are you looking for?</label>
+                                    <div class="btn-group w-100" role="group">
+                                        <input type="radio" class="btn-check" name="btn-radio-basic" id="btn-radio-basic-1" autocomplete="off" :checked="mode == 'tasks'" v-on:click="action('mode', 'tasks')">
+                                        <label for="btn-radio-basic-1" type="button" class="btn">Projects</label>
+                                        <input type="radio" class="btn-check" name="btn-radio-basic" id="btn-radio-basic-2" autocomplete="off" :checked="mode == 'resumes'" v-on:click="action('mode', 'resumes')">
+                                        <label for="btn-radio-basic-2" type="button" class="btn">Contributors</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row row-cards">
+                                <div class="space-y">
+
+                                    <div :class="get('class', 'task_row_card', task)" v-for="(task, index) in tasks" v-if="mode == 'tasks' && filters.types[task.type] == true && (filters.tags_on.some(r=> task.tags_on.includes(r)) || filters.tags_on.includes('all'))" v-bind:last_card="index == tasks.length-1" v-bind:tid="task.sid" v-on:click="action('task', 'open', task.id)">
+                                        <span class="badge taskl_bade" v-if="isNewTask(task)">New</span>
+                                        <div class="row g-0">
+                                            <div class="col-auto">
+                                                <div class="card-body">
+                                                    <div class="avatar avatar-md" :style="'background-image: url('+task.cover+')'">
+                                                        <emoji :id="task.emoji" v-if="task.emoji && task.cover == null"></emoji>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col">
+                                                <div class="card-body ps-0">
+                                                    <div class="row">
+                                                        <div class="col">
+                                                            <h3 class="mb-0 task_title"><a :href="'/'+task.sid" target="_blank" v-on:click="$event.preventDefault(); action('task', 'open', task.id)">{{task.title}} <emoji :id="task.emoji" v-if="task.emoji && task.cover"></emoji></a></h3>
+                                                            <div class="task_desc">{{get('task', 'short_desc', task)}}</div>
+                                                        </div>
+                                                        <div class="col-auto fs-3 rsd">
+                                                            <div :class="{'price': true, 'text-green': (task.payment.budget > 0 ? true : false), 'text-muted': (task.payment.budget > 0 ? false : true)}" translate="no">{{get('numeral', task.payment.budget)}} {{task.payment.cur}}</div>
+                                                            <div class="proposals" v-if="task.proposals && task.proposals > 0">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"></path><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"></path></svg>
+                                                                {{task.proposals}}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-md">
+                                                            <div class="mt-3 list-inline list-inline-dots mb-0 text-secondary d-sm-block d-none">
+                                                                <div class="list-inline-item" v-if="task.project && task.project.length > 2"><!-- Download SVG icon from http://tabler-icons.io/i/building-community -->
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-inline" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M8 9l5 5v7h-5v-4m0 4h-5v-7l5 -5m1 1v-6a1 1 0 0 1 1 -1h10a1 1 0 0 1 1 1v17h-8"></path><path d="M13 7l0 .01"></path><path d="M17 7l0 .01"></path><path d="M17 11l0 .01"></path><path d="M17 15l0 .01"></path></svg> {{task.project}}</div>
+                                                                <div class="list-inline-item"><!-- Download SVG icon from http://tabler-icons.io/i/license -->
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-inline" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M15 21h-9a3 3 0 0 1 -3 -3v-1h10v2a2 2 0 0 0 4 0v-14a2 2 0 1 1 2 2h-2m2 -4h-11a3 3 0 0 0 -3 3v11"></path><path d="M9 7l4 0"></path><path d="M9 11l4 0"></path></svg>
+                                                                    {{get('task', 'type', task)}}</div>
+                                                                <div class="list-inline-item"><!-- Download SVG icon from http://tabler-icons.io/i/map-pin -->
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path><path d="M12 12h3.5"></path><path d="M12 7v5"></path></svg>
+                                                                    {{get('moment_from', (task.date != task.update ? task.update : task.date))}}</div>
+                                                            </div>
+                                                            <div class="mt-3 list mb-0 text-secondary d-block d-sm-none">
+                                                                <div class="list-item" v-if="task.project && task.project.length > 2"><!-- Download SVG icon from http://tabler-icons.io/i/building-community -->
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-inline" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M8 9l5 5v7h-5v-4m0 4h-5v-7l5 -5m1 1v-6a1 1 0 0 1 1 -1h10a1 1 0 0 1 1 1v17h-8"></path><path d="M13 7l0 .01"></path><path d="M17 7l0 .01"></path><path d="M17 11l0 .01"></path><path d="M17 15l0 .01"></path></svg>
+                                                                    {{task.project}}</div>
+                                                                <div class="list-item"><!-- Download SVG icon from http://tabler-icons.io/i/license -->
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-inline" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M15 21h-9a3 3 0 0 1 -3 -3v-1h10v2a2 2 0 0 0 4 0v-14a2 2 0 1 1 2 2h-2m2 -4h-11a3 3 0 0 0 -3 3v11"></path><path d="M9 7l4 0"></path><path d="M9 11l4 0"></path></svg>
+                                                                    {{get('task', 'type', task)}}</div>
+                                                                <div class="list-item">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path><path d="M12 12h3.5"></path><path d="M12 7v5"></path></svg>
+                                                                    {{get('moment_from', (task.date != task.update ? task.update : task.date))}}</div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-auto tags_container">
+                                                            <div class="mt-3 badges">
+                                                                <a href="#" class="badge badge-outline text-secondary fw-normal badge-pill" v-for="(tag, tidx) in task.tags.slice(0,5)" v-bind:tag_index="tidx" translate="no">{{tag.name}}</a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="rainbow" v-if="task.mode && task.mode.indexOf('advice') > -1"></div>
+                                    </div>
+
+                                    <div :class="get('class', 'task_row_card', resume)" v-for="(resume, index) in resumes" v-if="mode == 'resumes' && (filters.tags_on.some(r=> resume.tags_on.includes(r)) || resume.tags_on.includes('all'))" v-bind:rid="resume.sid" v-on:click="go(resume.url)">
+                                        <span class="badge taskl_bade" v-if="isNewTask(resume)">New</span>
+                                        <div class="row g-0">
+                                            <div class="col-auto">
+                                                <div class="card-body">
+                                                    <div class="avatar avatar-md" :style="'background-image: url('+resume.cover+')'">
+                                                        <emoji :id="resume.emoji" v-if="resume.emoji && resume.cover == null"></emoji>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col">
+                                                <div class="card-body ps-0">
+                                                    <div class="row">
+                                                        <div class="col">
+                                                            <h3 class="mb-0 task_title"><a :href="'/'+resume.sid" target="_blank" v-on:click="$event.preventDefault(); action('resume', 'open', resume.id)">{{resume.name}} <emoji :id="resume.emoji" v-if="resume.emoji && resume.cover"></emoji></a></h3>
+                                                            <div class="task_desc">{{get('resume', 'short_desc', resume)}}</div>
+                                                        </div>
+                                                        <div class="col-auto fs-3 rsd">
+                                                            <div :class="{'price': true, 'text-green': (resume.payment.budget > 0 ? true : false), 'text-muted': (resume.payment.budget > 0 ? false : true)}" translate="no">{{get('numeral', resume.payment.budget)}} {{resume.payment.cur}}</div>
+                                                            <div class="proposals" v-if="resume.clients && resume.clients > 0">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"></path><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"></path></svg>
+                                                                {{resume.clients}}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-md">
+                                                            <div class="mt-3 list-inline list-inline-dots mb-0 text-secondary d-sm-block d-none">
+                                                                <div class="list-inline-item"><!-- Download SVG icon from http://tabler-icons.io/i/map-pin -->
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path><path d="M12 12h3.5"></path><path d="M12 7v5"></path></svg>
+                                                                    {{get('moment_from', resume.date)}}</div>
+                                                            </div>
+                                                            <div class="mt-3 list mb-0 text-secondary d-block d-sm-none">
+                                                                <div class="list-item" v-if="resume.project && resume.project.length > 2"><!-- Download SVG icon from http://tabler-icons.io/i/building-community -->
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-inline" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M8 9l5 5v7h-5v-4m0 4h-5v-7l5 -5m1 1v-6a1 1 0 0 1 1 -1h10a1 1 0 0 1 1 1v17h-8"></path><path d="M13 7l0 .01"></path><path d="M17 7l0 .01"></path><path d="M17 11l0 .01"></path><path d="M17 15l0 .01"></path></svg>
+                                                                    {{resume.project}}</div>
+                                                                <div class="list-item"><!-- Download SVG icon from http://tabler-icons.io/i/license -->
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-inline" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M15 21h-9a3 3 0 0 1 -3 -3v-1h10v2a2 2 0 0 0 4 0v-14a2 2 0 1 1 2 2h-2m2 -4h-11a3 3 0 0 0 -3 3v11"></path><path d="M9 7l4 0"></path><path d="M9 11l4 0"></path></svg>
+                                                                    {{get('task', 'type', resume)}}</div>
+                                                                <div class="list-item">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path><path d="M12 12h3.5"></path><path d="M12 7v5"></path></svg>
+                                                                    {{get('moment_from', resume.date)}}</div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-auto tags_container">
+                                                            <div class="mt-3 badges">
+                                                                <a href="#" class="badge badge-outline text-secondary fw-normal badge-pill" v-for="(tag, tidx) in resume.tags.slice(0,5)" v-bind:tag_index="tidx" translate="no">{{tag.name}}</a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="rainbow" v-if="resume.mode && resume.mode.indexOf('advice') > -1"></div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-wrapper page task" v-if="view == 'task'">
+        <div class="page-header d-print-none">
+            <div class="container-xl">
+                <div class="row g-2 align-items-center">
+                    <div class="col">
+                        <div class="back" v-on:click="action('switch_view', 'tasks')">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l14 0"></path><path d="M5 12l6 6"></path><path d="M5 12l6 -6"></path></svg>
+                            <h2 class="page-title pnt">
+                                {{page.task.title}}
+                            </h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Page body -->
+        <div class="page-body">
+            <div class="container-xl">
+                <div class="row row-cards">
+                    <div class="col-lg-8">
+                        <div class="card card-lg">
+                            <div class="card-body">
+                                <div class="markdown" v-html="page.task.description"></div>
+                            </div>
+                        </div>
+
+
+                        <br>
+                        <div class="card card-lg" v-if="page.task.proposals && page.task.proposals.length > 0">
+                            <div class="card-body">
+                                <div class="divide-y">
+                                    <div class="props_list">
+                                        <div class="row" v-for="(p, pinx) in page.task.proposals" v-bind:tag_index="p._id">
+                                            <div class="col-auto">
+                                                <span class="avatar" :style="'background-image: url('+p.avatar+');'"></span>
+                                                <!--                                                <span class="avatar">JL</span>-->
+                                            </div>
+                                            <div class="col">
+                                                <div class="text-truncate">
+                                                    <strong></strong> place proposal
+                                                </div>
+                                                <div class="text-secondary">{{get('moment_from', p.date)}}</div>
+                                            </div>
+                                            <div class="col-auto align-self-center tyjz">
+
+                                                <span class="btn" v-if="p.link" v-on:click="go(p.link)">
+                                                    <svg style='margin: 0 !important;' xmlns="http://www.w3.org/2000/svg" class="icon me-2 text-muted" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z"></path><path d="M3 7l9 6l9 -6"></path></svg>
+                                                </span>
+
+                                                <span class="badge bg-blue-lt">Score: {{p.score}}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <br>
+                        <div class="card">
+                            <div class="card-body">
+                                <h3 class="card-title">Your proposal</h3>
+                                <div class="row row-cards">
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label class="form-label">Interesity</label>
+
+                                            <div>
+                                                <span class="gl-star-rating gl-star-rating--ltr">
+                                                    <select id="int-circle-filled" v-model="page.task.proposal.Interesity">
+                                                        <option value="1" :selected="page.task.proposal.Interesity == 1">Terrible</option>
+                                                        <option value="2" :selected="page.task.proposal.Interesity == 2">Poor</option>
+                                                        <option value="3" :selected="page.task.proposal.Interesity == 3">Average</option>
+                                                        <option value="4" :selected="page.task.proposal.Interesity == 4">Very Good</option>
+                                                        <option value="5" :selected="page.task.proposal.Interesity == 5">Excellent</option>
+                                                    </select>
+                                                </span>
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label class="form-label">Difficulty</label>
+
+                                            <div>
+                                                <span class="gl-star-rating gl-star-rating--ltr" data-star-rating="">
+                                                    <select id="hard-circle-filled" v-model="page.task.proposal.Difficulty">
+                                                        <option value="1" :selected="page.task.proposal.Difficulty == 1">Terrible</option>
+                                                        <option value="2" :selected="page.task.proposal.Difficulty == 2">Poor</option>
+                                                        <option value="3" :selected="page.task.proposal.Difficulty == 3">Average</option>
+                                                        <option value="4" :selected="page.task.proposal.Difficulty == 4">Very Good</option>
+                                                        <option value="5" :selected="page.task.proposal.Difficulty == 5">Excellent</option>
+                                                    </select>
+                                                    <span class="gl-star-rating--stars" data-rating="2"><span data-index="0" data-value="1" class="gl-active"><!-- Download SVG icon from http://tabler-icons.io/i/circle-filled --><svg xmlns="http://www.w3.org/2000/svg" class="icon gl-star-full text-green icon-3" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M7 3.34a10 10 0 1 1 -4.995 8.984l-.005 -.324l.005 -.324a10 10 0 0 1 4.995 -8.336z" stroke-width="0" fill="currentColor"></path></svg></span><span data-index="1" data-value="2" class="gl-active gl-selected"><!-- Download SVG icon from http://tabler-icons.io/i/circle-filled --><svg xmlns="http://www.w3.org/2000/svg" class="icon gl-star-full text-green icon-3" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M7 3.34a10 10 0 1 1 -4.995 8.984l-.005 -.324l.005 -.324a10 10 0 0 1 4.995 -8.336z" stroke-width="0" fill="currentColor"></path></svg></span><span data-index="2" data-value="3" class=""><!-- Download SVG icon from http://tabler-icons.io/i/circle-filled --><svg xmlns="http://www.w3.org/2000/svg" class="icon gl-star-full text-green icon-3" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M7 3.34a10 10 0 1 1 -4.995 8.984l-.005 -.324l.005 -.324a10 10 0 0 1 4.995 -8.336z" stroke-width="0" fill="currentColor"></path></svg></span><span data-index="3" data-value="4" class=""><!-- Download SVG icon from http://tabler-icons.io/i/circle-filled --><svg xmlns="http://www.w3.org/2000/svg" class="icon gl-star-full text-green icon-3" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M7 3.34a10 10 0 1 1 -4.995 8.984l-.005 -.324l.005 -.324a10 10 0 0 1 4.995 -8.336z" stroke-width="0" fill="currentColor"></path></svg></span><span data-index="4" data-value="5" class=""><!-- Download SVG icon from http://tabler-icons.io/i/circle-filled --><svg xmlns="http://www.w3.org/2000/svg" class="icon gl-star-full text-green icon-3" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M7 3.34a10 10 0 1 1 -4.995 8.984l-.005 -.324l.005 -.324a10 10 0 0 1 4.995 -8.336z" stroke-width="0" fill="currentColor"></path></svg></span></span></span>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label class="form-label">Understandability</label>
+
+                                            <div>
+                                                <span class="gl-star-rating gl-star-rating--ltr" data-star-rating="">
+                                                    <select id="und-circle-filled" v-model="page.task.proposal.Understandability">
+                                                        <option value="1" :selected="page.task.proposal.Understandability == 1">Terrible</option>
+                                                        <option value="2" :selected="page.task.proposal.Understandability == 2">Poor</option>
+                                                        <option value="3" :selected="page.task.proposal.Understandability == 3">Average</option>
+                                                        <option value="4" :selected="page.task.proposal.Understandability == 4">Very Good</option>
+                                                        <option value="5" :selected="page.task.proposal.Understandability == 5">Excellent</option>
+                                                    </select>
+                                                    <span class="gl-star-rating--stars" data-rating="2"><span data-index="0" data-value="1" class="gl-active"><!-- Download SVG icon from http://tabler-icons.io/i/circle-filled --><svg xmlns="http://www.w3.org/2000/svg" class="icon gl-star-full text-green icon-3" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M7 3.34a10 10 0 1 1 -4.995 8.984l-.005 -.324l.005 -.324a10 10 0 0 1 4.995 -8.336z" stroke-width="0" fill="currentColor"></path></svg></span><span data-index="1" data-value="2" class="gl-active gl-selected"><!-- Download SVG icon from http://tabler-icons.io/i/circle-filled --><svg xmlns="http://www.w3.org/2000/svg" class="icon gl-star-full text-green icon-3" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M7 3.34a10 10 0 1 1 -4.995 8.984l-.005 -.324l.005 -.324a10 10 0 0 1 4.995 -8.336z" stroke-width="0" fill="currentColor"></path></svg></span><span data-index="2" data-value="3" class=""><!-- Download SVG icon from http://tabler-icons.io/i/circle-filled --><svg xmlns="http://www.w3.org/2000/svg" class="icon gl-star-full text-green icon-3" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M7 3.34a10 10 0 1 1 -4.995 8.984l-.005 -.324l.005 -.324a10 10 0 0 1 4.995 -8.336z" stroke-width="0" fill="currentColor"></path></svg></span><span data-index="3" data-value="4" class=""><!-- Download SVG icon from http://tabler-icons.io/i/circle-filled --><svg xmlns="http://www.w3.org/2000/svg" class="icon gl-star-full text-green icon-3" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M7 3.34a10 10 0 1 1 -4.995 8.984l-.005 -.324l.005 -.324a10 10 0 0 1 4.995 -8.336z" stroke-width="0" fill="currentColor"></path></svg></span><span data-index="4" data-value="5" class=""><!-- Download SVG icon from http://tabler-icons.io/i/circle-filled --><svg xmlns="http://www.w3.org/2000/svg" class="icon gl-star-full text-green icon-3" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M7 3.34a10 10 0 1 1 -4.995 8.984l-.005 -.324l.005 -.324a10 10 0 0 1 4.995 -8.336z" stroke-width="0" fill="currentColor"></path></svg></span></span></span>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-md-3">
+
+                                        <div class="mb-3">
+                                            <label class="form-label">Budget</label>
+                                            <div class="input-group mb-2">
+                                                <input type="text" class="form-control" min="0" aria-label="100" autocomplete="off" id="prop_budget" v-model="page.task.proposal.Budget">
+                                                <button type="button" class="btn dropdown-toggle cur_selector" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" translate="no">
+                                                    <span><img :src="'https://liber.ws/icons/'+draft.task.payment.cur" alt=""></span> {{draft.task.payment.cur}}
+                                                </button>
+                                                <div class="dropdown-menu" style="">
+                                                    <a class="dropdown-item" v-on:click="action('draft', 'set_cur', cur)" v-for="(cur, ci) in utils.cur" v-bind:tag_index="ci" translate="no">
+                                                        {{cur}}
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                    <div class="col-sm-6 col-md-4">
+                                        <div class="mb-3">
+                                            <label class="form-label">Time (in days)</label>
+                                            <input type="number" class="form-control" placeholder="7 days" min="1" v-model="page.task.proposal.Time">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="mb-3 mb-0">
+                                            <label class="form-label">Description</label>
+                                            <textarea rows="5" class="form-control" placeholder="Here can be your description" v-model="page.task.proposal.Description"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer text-end">
+                                <button type="button" class="btn btn-pill" id="gpt_proposal" v-on:click="action('get', 'gpt_proposal')" v-if="user.gpt">GPT</button>
+                                <button type="submit" class="btn btn-primary" v-on:click="action('proposal', 'post')">Place a proposal</button>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="me-3 hidden">
+                                        <!-- Download SVG icon from http://tabler-icons.io/i/scale -->
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-md" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M7 20l10 0"></path><path d="M6 6l6 -1l6 1"></path><path d="M12 3l0 17"></path><path d="M9 12l-3 -6l-3 6a3 3 0 0 0 6 0"></path><path d="M21 12l-3 -6l-3 6a3 3 0 0 0 6 0"></path></svg>
+                                    </div>
+                                    <div class="hidden">
+                                        <small class="text-secondary">tabler/tabler is licensed under the</small>
+                                        <h3 class="lh-1">MIT License</h3>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-auto">
+                                            <span class="avatar" :style="'background-image: url('+page.task.publisher.avatar+')'"></span>
+                                        </div>
+                                        <div class="col">
+                                            <div class="text-truncate" translate="no">{{page.task.publisher.name}}</div>
+                                            <div class="text-secondary" v-on:click="action('get_task_posted', page.task)"><span>Posted</span> <span>{{get('moment_from', page.task.published)}}</span></div>
+                                            <div class="text-secondary" v-if="page.task.update != page.task.published"><span>Updated</span> <span>{{get('moment_from', page.task.update)}}</span></div>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <div :class="get('class', 'task_page_buget_bage', page.task)" translate="no">{{get('numeral', page.task.payment.budget)}} {{page.task.payment.cur}}</div>
+
+                                <div class="text-secondary mb-3 hidden">
+                                    A short and simple permissive license with conditions only requiring preservation of copyright and
+                                    license notices. Licensed works, modifications, and larger works may be distributed under different terms
+                                    and without source code.
+                                </div>
+                                <h4 class="hidden">Permissions</h4>
+
+                                <ul class="list-unstyled space-y-1">
+                                    <li v-if="page.task.publisher.wallets['TON']"><!-- Download SVG icon from http://tabler-icons.io/i/check -->
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon text-green" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l5 5l10 -10"></path></svg>  TON Wallet Connected</li>
+                                    <li v-else><!-- Download SVG icon from http://tabler-icons.io/i/x -->
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon text-red" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path></svg>
+                                        TON Wallet is not connected</li>
+                                </ul>
+
+                                <br>
+                                <a :href="'https://tonscan.org/address/'+page.task.publisher.wallets['TON'].address" v-if="page.task.publisher.wallets['TON']" target="_blank" alt="tonscan cheak">
+                                    <span class="badge bg-indigo-lt" translate="no">{{ page.task.publisher.wallets['TON'].name ? page.task.publisher.wallets['TON'].name : ((page.task.publisher.wallets['TON'].address).slice(0, 5)+'...'+page.task.publisher.wallets['TON'].address.slice(-5))  }}</span>
+                                </a>
+
+
+                                <h4 class="hidden">Conditions</h4>
+                                <ul class="list-unstyled space-y-1 hidden">
+                                    <li><!-- Download SVG icon from http://tabler-icons.io/i/info-circle -->
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon text-blue" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path><path d="M12 9h.01"></path><path d="M11 12h1v4h1"></path></svg>
+                                        License and copyright notice</li>
+                                </ul>
+                            </div>
+                            <div class="card-footer hidden">
+                                This is not legal advice.
+                                <a href="#" target="_blank">Learn more about repository licenses.</a>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer footer-transparent d-print-none">
+        <div class="container-xl">
+            <div class="row text-center align-items-center flex-row-reverse">
+                <div class="col-lg-auto ms-lg-auto">
+                    <ul class="list-inline list-inline-dots mb-0">
+                        <li class="list-inline-item"><a href="https://tabler.io/docs" target="_blank" class="link-secondary" rel="noopener">Documentation</a></li>
+                        <li class="list-inline-item"><a href="https://ton.app/utilities/workix?id=2360" target="_blank" class="link-secondary" rel="noopener">Review</a></li>
+                        <li class="list-inline-item"><a href="https://t.me/f2p_mg" class="link-secondary" target="_blank">Support</a></li>
+                        <li class="list-inline-item"><a href="https://github.com/facetoplace/Workix" target="_blank" class="link-secondary" rel="noopener">Source code</a></li>
+                        <li class="list-inline-item"><a href="https://fork.page/9o6zp?lang" target="_blank" class="link-secondary" rel="noopener">Link domain</a></li>
+                        <li class="list-inline-item">
+                            <a href="https://liber.ws/workix" target="_blank" class="link-secondary" rel="noopener">
+                                <!-- Download SVG icon from http://tabler-icons.io/i/heart -->
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon text-pink icon-filled icon-inline" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572"></path></svg>
+                                Sponsor
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-12 col-lg-auto mt-3 mt-lg-0">
+                    <ul class="list-inline list-inline-dots mb-0">
+                        <li class="list-inline-item">
+                            Copyright © {{new Date().getFullYear()}}
+                            <a href="/" class="link-secondary">Work</a>.
+                            <span>All rights blockchained.</span>
+                        </li>
+                        <li class="list-inline-item">
+                            <a href="https://t.me/workix_news" target="_blank" class="link-secondary" rel="noopener">
+                                v{{app_version}}
+                            </a>
+                        </li>
+                        <li class="list-inline-item"> Online <span translate="no">{{online}}</span> <span class="badge bg-lime badge-notification badge-blink"></span> </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+</main>
+
+</body>
+
+
+<script>
+    var debug = false;
+
+    var base = document.location.protocol+'//'+document.location.host;
+    if(base.indexOf('localhost') > -1) {
+        base = 'https://workix.co';
+        debug = true;
+    }
+
+
+    var socket = io('https://workix.co'+'/', {
+        transports: [ 'websocket', 'polling' ],
+        reconnection: true,
+        reconnectionDelay: 500,
+        reconnectionAttempts: 500
+    });
+
+    const urlParams = new URLSearchParams(window.location.search);
+
+    function changeUrl(newUrl) {
+
+        if(debug) return;
+
+        const state = {};
+        const title = '';
+
+        window.history.pushState(state, title, newUrl);
+    }
+
+    let URLi = new URL(document.location.href);
+    let path = '/';
+
+    if(URLi.pathname.length > 1){
+        path = URLi.pathname;
+
+        path = path.slice(1);
+        if(path.slice(-1) == '/') path = path.slice(0, -1);
+    }
+
+
+
+    const isIOS = /iPhone|iPad|iPod/.test(navigator.platform);
+    const isMobile = (navigator && navigator.userAgentData && navigator.userAgentData.mobile != null ? navigator.userAgentData.mobile : isIOS);
+
+    var app_version = 1;
+    try {
+        app_version = document.body.parentElement.previousSibling.previousSibling.data.split(' ')[3]
+    } catch (e) {
+        console.error(e);
+    }
+
+    function getTheme(){
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            return 'dark';
+        } else {
+            return 'light';
+        }
+    }
+
+    let alertTriggered = false;
+    let timeoutId = null;
+    let Control_btn = false;
+
+    function isInViewport(element) {
+        const rect = element.getBoundingClientRect();
+        return (
+            rect.top < window.innerHeight &&
+            rect.bottom > 0
+        );
+    }
+
+    function checkLastCard() {
+        const lastCard = document.querySelector('div[last_card]');
+        if (!lastCard) return;
+        if (isInViewport(lastCard) && !alertTriggered) {
+            alertTriggered = true;
+            // alert('Элемент last_card в зоне видимости!');
+
+            socket.emit('get', {type: 'tasks', except: app.tasks.map(task => task.sid), tags: app.filters.tags_on});
+
+            timeoutId = setTimeout(() => {
+                alertTriggered = false;
+            }, 15000); // 15 секунд
+        }
+    }
+
+    function resetAll(action){
+        // Clear cookies
+        const cookies = document.cookie.split(";");
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i];
+            const eqPos = cookie.indexOf("=");
+            const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+            document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+        }
+
+        // Clear localStorage
+        localStorage.clear();
+
+        // Clear sessionStorage
+        sessionStorage.clear();
+
+        if(action == 'reload') { setTimeout(()=>{window.location.reload();}, 800); }
+    }
+
+
+    //fix config
+    window.vue_loaded = false;
+    setTimeout(()=>{
+        if(window.vue_loaded == false){
+            alert('App updated!')
+            resetAll('reload');
+        } else {
+            loader_hide();
+        }
+    }, 21000);
+
+
+    function encryptData(data) {
+        let result = '';
+        for (let i = 0; i < data.length; i++) {
+            result += String.fromCharCode(data.charCodeAt(i) + 3);
+        }
+        return result;
+    }
+    function decryptData(data) {
+        let result = '';
+        for (let i = 0; i < data.length; i++) {
+            result += String.fromCharCode(data.charCodeAt(i) - 3);
+        }
+        return result;
+    }
+
+    function readFromLocalStorage(key) {
+        const encryptedData = localStorage.getItem(key);
+        if (encryptedData) {
+            const decryptedData = decryptData(encryptedData);
+            return JSON.parse(decryptedData);
+        }
+        return null;
+    }
+
+    function saveToLocalStorage(key, data) {
+        const encryptedData = encryptData(JSON.stringify(data));
+        localStorage.setItem(key, encryptedData);
+    }
+
+
+    /**
+     * Плавно скроллит страницу к последнему DOM-элементу по селектору,
+     * так чтобы он оказался чуть ниже верха (на 30% высоты окна)
+     * @param {string} selector - CSS-селектор элемента
+     * @param {number} duration - Длительность анимации (мс)
+     */
+    function smoothScrollToLastElement(selector, duration) {
+        const elements = document.querySelectorAll(selector);
+        if (!elements.length) return;
+        const element = elements[elements.length - 1];
+
+        // Куда скроллить: элемент - 30% высоты окна
+        const rect = element.getBoundingClientRect();
+        const windowHeight = window.innerHeight;
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const targetY = rect.top + scrollTop - (windowHeight * 0.3);
+
+        const startY = window.scrollY || window.pageYOffset;
+        const difference = targetY - startY;
+        const startTime = performance.now();
+
+        function animate(now) {
+            const elapsed = now - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            // easeInOutQuad
+            const ease = progress < 0.5
+                ? 2 * progress * progress
+                : -1 + (4 - 2 * progress) * progress;
+
+            window.scrollTo(0, startY + difference * ease);
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            }
+        }
+
+        requestAnimationFrame(animate);
+    }
+
+
+
+
+    let draft_task = {
+        type: 'project',
+        title: null,
+        project: null,
+        payment: {
+            budget: null,
+            type: 'work',
+            cur: 'USD'
+        },
+        description: null,
+        tags: null,
+        ready: false
+    };
+
+    let draft_resume = {
+        type: 'worker',
+        name: null,
+        payment: {
+            budget: null,
+            type: 'work',
+            cur: 'USD'
+        },
+        bio: null,
+        cv: null,
+        portfolio: null,
+        tags: null,
+        ready: false
+    };
+
+    let draft_proposal = {
+        Interesity: null,
+        Difficulty: null,
+        Understandability: null,
+        Budget: null,
+        Currency: null,
+        Time: null,
+        Description: null
+    }
+
+    function loader_hide(){
+        document.querySelector('main').setAttribute('style', '');
+        document.querySelector('#loader').setAttribute('style', 'display:none');
+    }
+
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text)
+            .then(() => {
+                console.log('Текст скопирован в буфер обмена');
+            })
+            .catch(err => {
+                console.error('Ошибка при копировании: ', err);
+            });
+    }
+
+    let task_updater;
+
+    var app = new Vue({
+        el: "main",
+        data: {
+            view: 'loading',
+            mode: 'tasks',
+            state: null,
+            user: {
+                id: null,
+                name: null,
+                avatar: null,
+                email: null,
+                data: {},
+                key: null,
+                settings: {},
+                os: null,
+                device_id: null,
+                push_token: null,
+                watched: []
+            },
+            tasks: [],
+            resumes: [],
+            skin: getTheme(),
+            status: 'loading',
+            lang: null,
+            isMobile: WEB3.user.isMobile || false,
+            isSafari: /^((?!chrome|android).)*safari/i.test(navigator.userAgent),
+            socket_state: null,
+            debug: debug,
+            app_version: app_version,
+            engine: 'none',
+            filters: {
+                types: {
+                    task: true,
+                    project: true,
+                    time_job: true,
+                    full_job: true,
+                    fixes: true
+                },
+                tags_on: [],
+                tags: []
+            },
+            page: {
+                task: {}
+            },
+            utils: {
+                cur: ['USD', 'USDT', 'TON']
+            },
+            draft: {
+                task: {...draft_task},
+                resume: {...draft_resume}
+            },
+            ui: {
+                logo: null,
+                focused: false,
+                task_create: false,
+                resume_create: false,
+                tg: false,
+                selector: {
+                    task_tags: null,
+                    resume_tags: null
+                }
+            },
+            watched: [],
+            online: 1
+        },
+        watch: {
+            view: {
+                handler: function(upd, old) {
+                    console.log(`view changed`, old, upd);
+
+                    if(upd == 'tasks') {
+
+                        if(old == 'task') {
+                            let t_id = app.page.task._sid;
+                            setTimeout(()=>{smoothScrollToLastElement(`[tid="${t_id}"]`, 800);}, 200)
+                        }
+
+                        app.page.task = null;
+                        changeUrl('/');
+                    }
+
+                    app.save();
+                    setTimeout(()=>{
+                        try {
+                            app.action('tr');
+                            window.emojify();
+                        } catch(e) { console.error(e); }
+                    }, 100);
+                },
+                deep: true
+            },
+            'filters.types': {
+                handler: function(upd, old) {
+                    console.log(`filters.types`, old, upd);
+                    app.save();
+                },
+                deep: true
+            }
+        },
+        methods: {
+            init(type){
+
+                if(type == 'task_page'){
+
+
+                    let crz = `<svg xmlns="http://www.w3.org/2000/svg" class="icon gl-star-full text-green icon-3" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 3.34a10 10 0 1 1 -4.995 8.984l-.005 -.324l.005 -.324a10 10 0 0 1 4.995 -8.336z" /></svg>`;
+
+                    const rating1 = new StarRating('#int-circle-filled', {
+                        tooltip: false,
+                        clearable: false,
+                        stars: function (el, item, index, full) { el.innerHTML = crz; }
+                    });
+                    const rating2 = new StarRating('#hard-circle-filled', {
+                        tooltip: false,
+                        clearable: false,
+                        stars: function (el, item, index, full) { el.innerHTML = crz; }
+                    });
+                    const rating3 = new StarRating('#und-circle-filled', {
+                        tooltip: false,
+                        clearable: false,
+                        stars: function (el, item, index, full) { el.innerHTML = crz; }
+                    });
+
+
+
+                }
+
+            },
+            action(type, data, event, cfg){
+
+                if(type == 'alert'){
+                    alert(data.text);
+                }
+
+                if(type == 'mode'){
+                    app.mode = data;
+
+                    if(data == 'resumes'){
+                        socket.emit('get', {type: 'resumes'});
+                    }
+
+                    setTimeout(()=>{
+                        app.action('tr');
+                        window.emojify();
+                    }, 256);
+
+                    app.save();
+                }
+
+                if(type == 'wallet_connect'){
+                    WEB3.auth({methods: ['ton-connect'], project: 'workix.co', style: {bg: 'blur', buttons: 'center'}});
+                }
+
+                if(type == 'lang_switch'){
+
+                    app.lang = data || WEB3.user.lang || 'en';
+                    app.save();
+                    window.location.reload();
+
+                }
+
+                if(type == 'filter'){
+
+                    if(data == 'tag_switch'){
+
+                        if(app.filters.tags_on.includes(event)){
+                            app.filters.tags_on = app.filters.tags_on.filter(item => item !== event);
+                        } else {
+                            app.filters.tags_on.push(event);
+                        }
+
+                        if(task_updater == null){
+                            task_updater = setTimeout(()=> {
+                                socket.emit('get', {type: 'tasks', except: app.tasks.map(task => task.sid), tags: app.filters.tags_on});
+                                task_updater = null;
+                            }, 5000);
+                        }
+
+                        app.save();
+
+                    }
+
+                }
+
+                if(type == 'tr'){
+                    if(app.lang) WEB3.translate(app.lang);
+                }
+
+                if(type == 'copy_propose'){
+                    let text = document.querySelector('textarea').value;
+                    copyToClipboard(text);
+                }
+
+                if(type == 'draft'){
+
+                    if(data == 'task_update'){
+
+                        app.draft.task.type = document.querySelector('#task_type').value || null;
+                        app.draft.task.title = document.querySelector('#task_title').value || null;
+                        app.draft.task.project = document.querySelector('#task_project').value || null;
+                        app.draft.task.payment.budget = document.querySelector('#task_budget').value || null;
+                        app.draft.task.payment.type = document.querySelector('#task_payment').value || null;
+                        app.draft.task.description = document.querySelector('#task_desc').value || null;
+                        // app.draft.task.tags = document.querySelector('#task_tags').value || null;
+
+                        if(app.draft.task.type && app.draft.task.title && app.draft.task.description){
+                            app.draft.task.ready = true;
+                        } else app.draft.task.ready = false;
+
+                        app.save();
+
+                    }
+
+                    if(data == 'resume_update'){
+
+                        app.draft.resume.name = document.querySelector('#resume_name').value || null;
+                        app.draft.resume.payment.budget = document.querySelector('#resume_budget').value || null;
+                        app.draft.resume.payment.type = document.querySelector('#resume_payment').value || null;
+                        app.draft.resume.bio = document.querySelector('#resume_desc').value || null;
+                        app.draft.resume.cv = document.querySelector('#resume_cv').value || null;
+                        app.draft.resume.portfolio = document.querySelector('#resume_portfolio').value || null;
+
+                        if(app.draft.resume.type && app.draft.resume.bio){
+                            app.draft.resume.ready = true;
+                        } else app.draft.resume.ready = false;
+
+                        app.save();
+
+                    }
+
+                    if(data == 'set_cur'){
+                        app.draft.task.payment.cur = event;
+                        app.draft.resume.payment.cur = event;
+                    }
+
+                    if(data == 'search_tag'){
+                        socket.emit('get', {type: 'tag_search', input: event});
+                    }
+
+                    if(data == 'add_tag'){
+                        socket.emit('get', {type: 'tag_search', input: event, create: true});
+                    }
+
+                }
+
+                if(type == 'update_app'){
+
+                    app.ui.update = false;
+
+                    setTimeout(()=>{
+
+                        app.save();
+
+                        if ('serviceWorker' in navigator) {
+                            navigator.serviceWorker.getRegistrations().then((registrations) => {
+                                registrations.forEach((registration) => {
+                                    registration.update();
+                                });
+                            });
+                        }
+
+
+                        if ('caches' in window) {
+                            caches.keys().then((cacheNames) => {
+                                cacheNames.forEach((cacheName) => {
+                                    caches.delete(cacheName);
+                                });
+                            });
+                        }
+
+
+                        window.location.reload(true);
+
+                    }, 1500);
+
+                }
+
+                if(type == 'task'){
+
+                    if(data == 'new'){
+
+                        app.ui.task_create = true;
+                        app.ui.pan = true;
+
+                        setTimeout(()=>{
+                            app.action('tr');
+
+                            if (window.TomSelect) {
+                                var el = document.getElementById('task_tags');
+                                if(el)
+                                app.ui.selector.task_tags = new TomSelect(el, {
+                                    persist: false,
+                                    valueField: 'id',
+                                    labelField: 'name',
+                                    searchField: 's',
+                                    options: app.filters.tags,
+                                    createOnBlur: true,
+                                    create: true,
+                                    onItemAdd: function (item) {
+                                        // console.log('tag add:', item);
+                                        app.action('draft', 'add_tag', item);
+                                        app.draft.task.tags = app.ui.selector.task_tags.items;
+                                    },
+                                    createFilter: function(input) {
+
+                                        // return !(input in this.options);
+                                        // return input.length >= parseInt( document.getElementById('length').value, 10);
+                                        // console.log('tag search:', input);
+                                        app.action('draft', 'search_tag', input);
+
+                                        return {
+                                            name: input,
+                                            new: true
+                                        };
+
+                                    }
+                                });
+                            }
+
+                        }, 256);
+
+                    }
+
+                    if(data == 'post'){
+
+                        if(app.user.id == null) {
+                            app.action('login');
+                            return;
+                        }
+
+                        app.ui.task_create = false;
+                        app.ui.pan = false;
+
+                        console.log({task: app.draft.task});
+
+                        socket.emit('task', {action: 'create', task: app.draft.task});
+
+                        setTimeout(()=>{
+                            app.draft.task = {...draft_task};
+                            socket.emit('get', {type: 'tasks'});
+                        }, 1000);
+
+                    }
+
+                    if(data == 'hide_new'){
+                        app.ui.task_create = false;
+                        app.ui.pan = false;
+
+                        app.save();
+                    }
+
+                    if(data == 'open'){
+                        socket.emit('get', {type: 'task', id: event});
+
+                        app.watched.push(event);
+
+                        setTimeout(()=>{
+                            app.init('task_page');
+                        }, 800);
+
+                    }
+
+                }
+
+                if(type == 'resume'){
+
+                    if(data == 'new'){
+
+                        if(app.user.id == null) {
+                            app.action('login');
+                            return;
+                        }
+
+                        app.ui.resume_create = true;
+                        app.ui.pan = true;
+
+                        setTimeout(()=>{
+                            app.action('tr');
+
+                            if (window.TomSelect) {
+                                var el = document.getElementById('resume_tags');
+                                if(el)
+                                    app.ui.selector.resume_tags = new TomSelect(el, {
+                                        persist: false,
+                                        valueField: 'id',
+                                        labelField: 'name',
+                                        searchField: 's',
+                                        options: app.filters.tags,
+                                        createOnBlur: true,
+                                        create: true,
+                                        onItemAdd: function (item) {
+                                            // console.log('tag add:', item);
+                                            app.action('draft', 'add_tag', item);
+                                            app.draft.resume.tags = app.ui.selector.resume_tags.items;
+                                        },
+                                        createFilter: function(input) {
+
+                                            // return !(input in this.options);
+                                            // return input.length >= parseInt( document.getElementById('length').value, 10);
+                                            // console.log('tag search:', input);
+                                            app.action('draft', 'search_tag', input);
+
+                                            return {
+                                                name: input,
+                                                new: true
+                                            };
+
+                                        }
+                                    });
+                            }
+
+                        }, 256);
+
+                    }
+
+                    if(data == 'post'){
+
+                        if(app.user.id == null) {
+                            app.action('login');
+                            return;
+                        }
+
+                        app.ui.resume_create = false;
+                        app.ui.pan = false;
+
+                        console.log({resume: app.draft.resume});
+
+                        socket.emit('resume', {action: 'create', resume: app.draft.resume});
+
+                        setTimeout(()=>{
+                            socket.emit('get', {type: 'resumes'});
+                        }, 1000);
+
+                    }
+
+                    if(data == 'hide_new'){
+                        app.ui.resume_create = false;
+                        app.ui.pan = false;
+
+                        app.save();
+                    }
+
+                    if(data == 'open'){
+                        socket.emit('get', {type: 'reusme', id: event});
+
+                        setTimeout(()=>{
+                            // app.init('task_page');
+                        }, 800);
+
+                    }
+
+                }
+
+                if(type == 'proposal'){
+
+                    if(data == 'post'){
+
+                        if(app.user.id == null) {
+                            app.action('login');
+                            return;
+                        }
+
+                        app.page.task.proposal.Currency = app.draft.task.payment.cur;
+                        socket.emit('proposal', {action: 'post', task: app.page.task});
+
+                        setTimeout(()=>{
+                            app.action('task', 'open', app.page.task._id);
+                        }, 1234);
+
+                    }
+
+                }
+
+                if(type == 'login'){
+
+                    if(app.user.id) app.view = 'tasks'
+                    else {
+
+                        //'apple', 'google', 'vk', 'email',
+                        //'ton-connect'
+                        WEB3.auth({methods: ['telegram', 'email', 'google'], project: 'workix.co', style: {bg: 'blur', buttons: 'center'}});
+
+                    }
+
+                }
+
+                if(type == 'logout'){
+                    app.user = { email: null };
+                    app.view = 'hello';
+                    app.path = '';
+                    app.save();
+
+                    setTimeout(()=>{
+                        resetAll('reload');
+                    }, 1000);
+                }
+
+                if(type == 'light'){
+
+                    if($('body').attr('class') === 'theme-light' || data == 'dark'){
+                        document.querySelector('body').classList.remove('theme-light')
+                        document.querySelector('body').classList.add('theme-dark')
+                        app.skin = 'dark';
+                    } else {
+                        document.querySelector('body').classList.remove('theme-dark')
+                        document.querySelector('body').classList.add('theme-light')
+                        app.skin = 'light';
+                    }
+
+
+                    if(app.engine == 'pwa') window.location.reload();
+
+                    return true;
+                }
+
+                if(type == 'get_user_data'){
+                    socket.emit('auth', {key: (app.user.key || urlParams.get('key')), source: 'workix.co', user: app.user});
+                }
+
+                if(type == 'switch_view'){
+                    app.view = data;
+                    app.save();
+                }
+
+                if(type == 'lang'){
+                    app.lang = data;
+                    app.save();
+                    if(data != 'en') WEB3.translate(data); else {
+                        window.location.reload();
+                    }
+                }
+
+                if(type == 'go'){
+
+                    if(data == 'tg_chat'){
+
+                        let url = '';
+                        window.open(url, '_blank');
+
+                        if(app.ui.tg){
+                            socket.emit('user', {action: 'go', link: url});
+                            window.open(url, '_top');
+                        }
+
+                    } else {
+
+                        window.open(data.url, '_blank');
+
+                    }
+
+                }
+
+                if(type == 'get_task_posted'){
+
+                    socket.emit('get', {type: 'task_posted_url', _id: app.page.task._id});
+
+                }
+
+                if(type == 'get'){
+
+                    if(data == 'gpt_proposal'){
+
+                        let btn = document.querySelector('#gpt_proposal');
+                        if(btn){
+                            btn.classList.add('btn-loading');
+                            setTimeout(()=>{
+                                // alert('Test');
+                                socket.emit('get', {type: 'gpt_proposal', page: app.page.task});
+                                btn.classList.remove('btn-loading')
+                            }, 7000);
+                        }
+
+                    }
+
+                }
+
+                if(type == 'paste'){
+
+                    if(data.gpt_proposal){
+                        let te = document.querySelector('textarea').value;
+                        document.querySelector('textarea').value = data.gpt_proposal+ '\n\n' + te;
+                    }
+
+                }
+
+            },
+            go(url, type){
+                window.open(url, type || '_blank');
+            },
+            get(type, data, event){
+
+                if(type == 'class'){
+
+                    if(data == 'task_page_buget_bage'){
+                        let task = event;
+                        return `badge badge-outline ${task.payment.budget > 0 ? 'text-teal' : 'text-muted'} buget_badge`
+                    }
+
+                    if(data == 'task_row_card'){
+                        let r = 'card mtl pnt';
+                        if(event && ((app.watched && app.watched.includes(event.id)) || (app.user.list && app.user.list.watched && app.user.list.watched[event.id]))) r += ' watched';
+                        if(event && (app.user.list && app.user.list.proposed && app.user.list.proposed[event.id])) r += ' proposed';
+                        if(event && event.mode && event.mode.indexOf('advice') > -1) r += ' advice_box';
+                        return r;
+                    }
+
+                    if(data == 'flag'){
+                        let lng = event || app.lang || '';
+                        if(lng == 'en') lng = 'gb';
+                        if(lng == 'zh') lng = 'cn';
+                        if(lng == 'uk') lng = 'ua';
+                        if(lng == 'kk') lng = 'kz';
+                        if(lng == 'hi') lng = 'in';
+                        return `flag flag-country-${lng.toLowerCase()}`;
+                    }
+
+                }
+
+                if(type == 'draft'){
+
+                    if(data == 'paytype'){
+                        return (app.draft.task.type == 'project' ? 'Project' : 'Task');
+                    }
+
+                    if(data == 'title_holder'){
+                        return (app.draft.task.type == 'project' ? 'Project name' : 'What you need to do');
+                    }
+
+                }
+
+                if(type == 'task'){
+
+                    if(data == 'type'){
+                        let t = '';
+
+                        if(typeof event == "string") event = {type: event};
+
+                        if(event.type == 'task') t = 'One Task';
+                        if(event.type == 'project') t = 'Project';
+                        if(event.type == 'time_job') t = 'Part-time job';
+                        if(event.type == 'full_job') t = 'Full-time job';
+                        if(event.type == 'fixes') t = 'Fixes';
+
+                        return t;
+                    }
+
+                    if(data == 'short_desc'){
+
+                        var html = event.description || event.bio;
+                        var div = document.createElement("div");
+                        div.innerHTML = html;
+                        let d = div.textContent || div.innerText || "";
+
+                        d = d.replaceAll(`<br>`, ' ').slice(0, 100)+'...';
+                        return  d;
+                    }
+
+                }
+
+                if(type == 'resume'){
+
+                    if(data == 'short_desc'){
+
+                        var html = event.description || event.bio;
+                        var div = document.createElement("div");
+                        div.innerHTML = html;
+                        let d = div.textContent || div.innerText || "";
+
+                        d = d.replaceAll(`<br>`, ' ').slice(0, 600)+'...';
+                        return  d;
+                    }
+
+                }
+
+                if(type == 'moment_from'){
+                    return moment(data).fromNow()
+                }
+
+                if(type == 'numeral'){
+
+                    let d = data;
+
+                    if(Math.abs(Number(d)) > 0){
+                        d = numeral(d).format('0,0');
+                    }
+
+                    return d;
+                }
+
+            },
+            save(){
+                saveToLocalStorage('app_data', {user: app.user, view: app.view, mode: app.mode, filters: app.filters, skin: app.skin, draft: app.draft, page: app.page, watched: app.watched, lang: app.lang, version: app_version, engine: app.engine, ui: app.ui});
+            },
+            isNewTask(task) {
+                const THREE_DAYS = 3 * 24 * 60 * 60 * 1000; // три дня в миллисекундах
+                const now = new Date();
+                const taskDate = new Date(task.date);
+
+                return (now - taskDate) <= THREE_DAYS && task.proposals < 5;
+            }
+        },
+        mounted(){
+
+            window.dispatchEvent(new CustomEvent('WebApp', { detail: { action: 'getSystemInfo' }}));
+
+            if(this.engine == 'none'){
+                if(window.matchMedia('(display-mode: standalone)').matches) this.engine = 'pwa';
+            }
+
+            // Инициализация глобальной переменной
+            this.ui.focused = true;
+
+            setTimeout(()=>{app.action('tr');}, 256);
+
+            function handleChange() {
+                if (document.hidden) {
+                    app.ui.focused = false;
+                } else {
+                    app.ui.focused = true;
+                }
+            }
+
+            // Подписка на событие изменения видимости вкладки
+            document.addEventListener("visibilitychange", handleChange);
+
+            // Дополнительно можно отслеживать потерю фокуса и возвращение фокуса в окно браузера,
+            // если это необходимо для вашего кейса, хотя событие visibilitychange уже обрабатывает большинство нужд.
+            window.addEventListener("blur", function() {
+                app.ui.focused = false;
+            });
+
+            window.addEventListener("focus", function() {
+                app.ui.focused = true;
+            });
+
+
+            window.onload = ()=>{
+
+                setTimeout(()=>{
+                    loader_hide();
+                }, 800);
+
+                if(path > 0 && path.indexOf('/') == -1) app.action('task', 'open', path);
+
+                if(WEB3.user.cur.local != null){
+                    setTimeout(async ()=>{
+                        let cur = await WEB3.user.cur.local;
+                        if(typeof cur == "string") app.utils.cur.unshift(cur);
+                    }, 10);
+                }
+
+                if(app.skin == 'dark'){
+                    document.querySelector('body').classList.add('theme-dark');
+                }
+
+                setTimeout(()=>{
+                    app.ui.logo = 'https://te.legra.ph/file/0d72a3b8bda94ea16fa77.jpg';
+                }, 900);
+
+                if(app.lang == null && WEB3.user.lang){
+                    app.lang = WEB3.user.lang;
+                    app.action('tr');
+                }
+
+            }
+
+
+            let storage = readFromLocalStorage('app_data');
+            if(storage){
+
+                let int_version = Number(app_version.replaceAll('.', ''));
+                if(storage){
+                    if(storage.user && storage.version == null) resetAll('reload');
+                    if(storage.version){
+
+                        let user_config_version = Number(storage.version.replaceAll('.', ''));
+
+                        //console.log(`${int_version} = ${user_config_version}`);
+                        if(user_config_version != int_version) resetAll('reload');
+
+                    }
+                }
+
+                for(let key of Object.keys(storage)){
+                    this[key] = storage[key];
+                }
+
+                if(urlParams.get('key') != null){
+                    if(this.user == null) this.user = {};
+                    this.user.key = urlParams.get('key');
+                }
+
+                if(urlParams.get('key') != null && urlParams.get('tg') != null){
+                    this.ui.tg = true;
+                }
+
+            }
+
+
+
+            // if(this.skin) $('html').attr('data-techwave-skin', this.skin);
+
+            this.status = 'done';
+
+            setTimeout(()=>{
+                if(app.view == 'loading') app.view = 'tasks';
+                if(app.view == 'task') {
+                    app.init('task_page');
+                }
+            }, 1200);
+
+
+            socket.on('connect', function(){
+                if(debug) console.log('Socket Connected');
+                app.action('get_user_data');
+                socket.emit('get', {type: 'tasks', host: URLi.host, tags: app.filters.tags_on || []});
+                socket.emit('get', {type: 'resumes'});
+                app.socket_state = true;
+            });
+
+            socket.on('disconnect', function(){
+                if(debug) console.log('Socket Disconnected');
+                app.socket_state = false;
+            });
+
+            socket.on('app', function(data){
+                console.log('[SOCKET {APP}]', data)
+                if(data.action){ app.action(data.action, data); }
+                if(data.version){
+                    console.log('server_app_version:', data.version);
+
+                    let int_version = Number(app_version.replaceAll('.', ''));
+                    let int_server_version = Number(data.version.replaceAll('.', ''));
+
+                    if((int_server_version - int_version) >= 1) {
+                        setTimeout(()=>{
+                            app.ui.update = true;
+                        }, 3000);
+                    }
+                }
+                if(data.tasks){
+
+                    let except = app.tasks.map(task => task.sid);
+                    for(let e of data.tasks){
+                        if(except.indexOf(e._sid) == -1 && except.indexOf(e.sid) == -1)
+                        app.tasks.push(e)
+                    }
+
+                    setTimeout(()=>{
+
+                        setTimeout(()=>{
+                            try {
+                                app.action('tr');
+                                window.emojify();
+                            } catch(e) { console.error(e); }
+                        }, 100);
+
+                        window.addEventListener('scroll', checkLastCard);
+                        window.addEventListener('resize', checkLastCard);
+                        document.addEventListener('keydown', function(event) {
+                            if(event.key === 'Control') Control_btn = !Control_btn;
+                            if((event.key === "c" || event.key === "f") && Control_btn == true) {
+
+                                if(app.page && app.page.task){
+                                    socket.emit('get', {type: 'task_posted_url', _id: app.page.task._id});
+                                }
+
+                            }
+                        });
+                    }, 400);
+                }
+                if(data.resumes){
+                    app.resumes = data.resumes;
+                    setTimeout(()=>{window.emojify();}, 400);
+                }
+                if(data.tags_filter){
+                    app.filters.tags = data.tags_filter;
+                    if(app.filters.tags_on.length == 0){
+                        for(let t of data.tags_filter){
+                            app.filters.tags_on.push(t.id);
+                        }
+                        app.filters.tags_on.push('all');
+                    }
+                }
+                if(data.online) app.online = data.online;
+                if(data.task_page){
+                    app.page.task = data.task_page;
+
+                    if(app.page.task.proposal == null)
+                        app.page.task.proposal = {...draft_proposal};
+
+                    app.action('switch_view', 'task');
+                    setTimeout(()=>{smoothScrollToLastElement('.card-body', 10);}, 350)
+                    changeUrl(app.page.task._sid.toString());
+                    app.save();
+                }
+            });
+
+            socket.on('user', function (data){
+                if(debug) console.log('[SOCKET] User', data);
+
+                if(data._id){
+
+                    app.user = data;
+
+                    if(app.user._id == '66869b3ec7035f98714b079d' || 1 == 1){
+                        app.user.gpt = true;
+                    }
+
+
+                }
+            });
+
+            socket.on('draft', function (data){
+                if(debug) console.log('[SOCKET] draft', data);
+
+                if(data.tags){
+                    for(let t of data.tags){
+                        try { app.ui.selector.task_tags.addOption(t); } catch (e){}
+                        try { app.ui.selector.resume_tags.addOption(t); } catch (e){}
+                    }
+                }
+            });
+
+            socket.on('action', function (data){
+
+                if(data.action){
+
+                    let action = data.action;
+
+                    if(action == 'alert'){
+
+                        if(data.text){
+                            alert(data.text);
+                        }
+
+                    }
+
+                }
+
+            });
+
+            setTimeout(()=>{
+                app.action('mode_ui_init');
+                loader_hide();
+            }, 100);
+
+
+            window.addEventListener('WEB3', function (e) {
+
+                console.log('Web3 listener event:', e);
+                console.log('Web3', window.WEB3);
+                console.log('Web3_user', window.WEB3.user);
+
+                if(app.user.id == null){
+                    for(let [key, value] of Object.entries(window.WEB3.user.profile)){
+                        app.user[key] = value;
+                    }
+
+                    app.save();
+
+                    app.action('switch_view', 'tasks');
+                    setTimeout(()=>{window.location.reload();}, 100);
+
+                } else {
+
+                    //other account connect
+                    if(window.WEB3.user.profile.address){
+                        socket.emit('account', {action: 'connect', TON: window.WEB3.user.profile});
+
+                        setTimeout(()=>{
+                            app.action('get_user_data');
+                        }, 1457);
+                    }
+
+                }
+
+
+            });
+            window.addEventListener('message', function(e) {
+
+            } );
+            window.addEventListener('NativeApp', function (e, d) {
+
+                console.log('NativeApp listener event:', e);
+
+                let data = e.detail;
+
+                socket.emit('debug', {NativeApp: data});
+
+                if(data.os){
+
+                    app.user.os = `${data.os.name} ${data.os.version}  (${data.app.version}.${data.app.code})`;
+                    app.user.device_id = data.device_id;
+
+                }
+
+                if(data.push_token){
+                    app.user.push_token = data.push_token;
+                }
+
+
+                if(data['shortcut']){
+                    let shortcut_id = e.detail['shortcut'];
+                    if(shortcut_id == 'clear_cache_cookies'){
+
+                        setTimeout(()=>{ window.dispatchEvent(new CustomEvent('WebApp', { detail: { action: 'clear_cache_cookies' }})); }, 100);
+                        setTimeout(()=>{ window.dispatchEvent(new CustomEvent('WebApp', { detail: { action: 'clear_cache_cookies' }})); }, 15000);
+                        socket.emit('debug', {NativeApp: 'cache_removed'});
+
+                    }
+                }
+
+            });
+
+
+            setTimeout(()=>{
+
+                let nvs = getComputedStyle(document.documentElement).getPropertyValue('--web-view-neron');
+                if((nvs && nvs == 'true') || (window.location.href.indexOf('#webview') > -1)){
+                    app.debug_info = true;
+                    app.engine = 'sdk';
+                    app.save();
+
+
+                    window.dispatchEvent(new CustomEvent('WebApp', { detail: { action: 'shortcuts',
+                            data: [{
+                                title: "Жесткая перезагрузка",
+                                subtitle: "Очистить кэш",
+                                icon: "scribble",
+                                type: "clear_cache_cookies"
+                            }]
+                        }}));
+
+                }
+
+                if(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-top')){
+                    let val = getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-top');
+                    document.documentElement.style.setProperty('--safe-top', (val));
+                }
+
+                if(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-bottom')){
+                    let val = getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-bottom');
+                    document.documentElement.style.setProperty('--safe-bottom', (val));
+                }
+
+
+
+            }, 1000);
+
+            window.vue_loaded = true;
+
+        },
+        computed: {
+        },
+        config: {
+            devtools: true
+        }
+    });
+
+
+    if(debug){
+        Vue.config.devtools = true;
+    }
+
+    Vue.config.errorHandler = function(error, vm, info) {
+        console.error('[Vue Error]', error, vm, info);
+        let err = error.toString();
+        if((err.indexOf('TypeError: undefined') > -1 || err.indexOf('TypeError: Cannot read properties of undefined') > -1) && info == 'render'){
+            console.log('Window Reset Cache...');
+
+            // if(debug == false){
+            //     window.vue_loaded = false;
+            // }
+
+        }
+    };
+
+
+    window.addEventListener("beforeinstallprompt", async (event) => {
+        socket.emit('stats', {action: 'pwa_install'});
+    });
+
+
+</script>
+
+<style>
+
+    .form_slider {
+        /*max-height: 100vh;*/
+        /*overflow: scroll;*/
+        /*width: fit-content;*/
+    }
+
+    .tagfl emoji {
+        opacity: 0;
+        transition-duration: 800ms;
+    }
+
+    .tagfl .oped {
+        opacity: 1;
+    }
+
+    .tagfl .namer {
+        display: flex;
+        column-gap: 7px;
+    }
+
+    .tagfl .tag_emoji {
+        width: 21px;
+        aspect-ratio: 1/1;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: absolute;
+        left: -29px;
+    }
+
+    .tagfl .tag_emoji lottie-player.emoji_player {
+        width: 21px;
+    }
+
+    .tagfl .tag_emoji img {
+        width: 20px !important;
+        height: 20px !important;
+    }
+
+    .tagfl .tag_emoji .emoji_player {
+        left: 0;
+    }
+
+    .rsd .proposals {
+        display: flex;
+        justify-content: flex-end;
+        opacity: 0.23;
+        margin-top: 4px;
+    }
+
+    .advice_box .holder {
+        width: 99%;
+        height: 97%;
+        background: #191919;
+        position: absolute;
+        top: 1px;
+        border-radius: 8px;
+        z-index: -1;
+        left: 2px;
+    }
+
+    .advice_box .rainbow {
+        animation: rainbow-border 10.5s linear 10s;
+        background: linear-gradient(90deg, #0ebeff, #ffdd40, #ae63e4, #47cf73, #0ebeff, #ffdd40, #ae63e4, #47cf73);
+        background-size: 200% 200%;
+        border-radius: inherit;
+        width: 100%;
+        height: 1px;
+        position: absolute;
+        z-index: 1;
+        bottom: 0;
+        left: 0;
+    }
+
+    @keyframes rainbow-border {
+        0% {
+            background-position: 0% 50%;
+        }
+        100% {
+            background-position: 200% 50%;
+        }
+    }
+
+
+
+    .task_desc {
+        opacity: 0.23;
+        margin-top: 1px;
+    }
+
+    .taskl_bade {
+       position: absolute;
+       right: 0;
+       filter: opacity(0.32);
+       top: -9px;
+    }
+
+    img.emoji_icon {
+        width: 21px;
+        height: 21px;
+        aspect-ratio: 1/1;
+    }
+    emoji {
+        min-width: fit-content;
+        display: inline-flex;
+    }
+
+
+    .btn.scb {
+        display: flex;
+        column-gap: 7px;
+        align-items: center;
+    }
+    .btn.scb span {
+        display: flex;
+    }
+
+
+    .task_create .close {
+        width: 30px;
+        position: absolute;
+        right: 3vw;
+        top: 0px;
+    }
+
+    .task_create {
+        position: fixed;
+        width: 100%;
+        z-index: 1053;
+        backdrop-filter: blur(21px);
+        -webkit-backdrop-filter: blur(21px);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+        align-content: center;
+    }
+
+    .task_create .shadow_pan {
+        background: #1010108a;
+        position: absolute;
+        z-index: -1;
+        width: 100%;
+        height: 100%;
+    }
+
+    .task_create .cblock {
+        width: 60vw;
+    }
+
+    .tags_container {
+        overflow: scroll;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+        display: flex;
+        align-items: flex-end;
+    }
+
+    .tags_container::-webkit-scrollbar {
+        display: none;
+    }
+
+    .tags_container .badges {
+        width: fit-content;
+    }
+
+
+
+    .badge-blink {
+        margin-left: 3px;
+        animation: 6.4s blink infinite;
+        animation-timing-function: linear;
+    }
+
+    .card.mtl {
+        transition-duration: 777ms;
+    }
+
+    .card.mtl:hover {
+        transform: scale(1.012);
+    }
+
+
+    .r_tools {
+        display: flex;
+        column-gap: 12px;
+    }
+
+    .flager {
+        display: flex;
+        align-items: center;
+    }
+
+    .flager span {
+        height: 20px;
+    }
+
+    .tyjz {
+        column-gap: 7px;
+        display: flex;
+        align-items: center;
+    }
+
+    .page.task .props_list {
+        display: flex;
+        flex-direction: column;
+        row-gap: 13px;
+    }
+
+    .page.task .buget_badge {
+        margin-bottom: 20px;
+    }
+
+    .page.task .back {
+        display: flex;
+        column-gap: 10px;
+        flex-direction: row;
+        align-items: center;
+    }
+
+    [data-star-rating] .gl-active .gl-star-full {
+        fill: #6bc91a;
+        stroke: #6cde09;
+    }
+
+    [data-star-rating] .gl-star-full {
+        fill: #dcdce61a;
+        stroke: #dcdce65c;
+        transition: fill .15s ease-in-out,stroke .15s ease-in-out;
+    }
+
+    .ts-dropdown .create {
+        color: wheat;
+        font-weight: 700;
+    }
+
+    .card .task_title {
+        display: flex;
+    }
+
+    .card .task_title emoji {
+        margin-left: 3px;
+        position: absolute;
+    }
+
+    .card .mt-3.badges {
+        display: flex;
+        column-gap: 5px;
+    }
+
+    .cur_selector span {
+        display: flex;
+    }
+
+    .cur_selector span img {
+        width: 17px;
+        margin-right: 4px;
+    }
+
+    .ts-control {
+        background: none;
+        color: w;
+        border: none;
+    }
+
+    input#task_tags-ts-control {
+        color: aliceblue !important;
+    }
+
+    .ts-control .item {
+        color: var(--tblr-light) !important;
+        border: 1px solid var(--tblr-secondary) !important;
+        background: var(--tblr-secondary) !important;
+        border-radius: 13px;
+        font-weight: 600;
+        filter: invert(1);
+        padding: 4px 10px 5px 9px !important;
+    }
+
+    .ts-dropdown.multi {
+        background: var(--tblr-dark);
+        color: var(--tblr-light);
+        border-color: var(--tblr-dark);
+    }
+
+    .ts-dropdown .create.active {
+        background: var(--tblr-dark) !important;
+    }
+
+    input#select-states-ts-control {
+        color: var(--tblr-light) !important;
+    }
+
+
+    .hidden {
+        display: none !important;
+    }
+    .wlogo {
+        width: 69px;
+        mix-blend-mode: lighten;
+        aspect-ratio: 1/1;
+    }
+    .wlhd {
+        /*position: absolute;*/
+    }
+    .pnt {
+        cursor: pointer;
+    }
+
+    .card.watched {
+        filter: opacity(0.4);
+    }
+
+    .card.proposed {
+        filter: opacity(0.15);
+    }
+
+    @keyframes blink {
+        0% {
+            opacity: 0;
+        }
+        50% {
+            opacity: 1;
+        }
+        100% {
+            opacity: 0;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .task_create .cblock {
+            width: 81vw;
+            overflow: scroll;
+            padding-top: 100px;
+            padding-bottom: 100px;
+        }
+        .sticky-top {
+            margin-left: 11px;
+        }
+
+        .tagfl .namer {
+            flex-direction: row-reverse;
+            justify-content: flex-end;
+        }
+        .tagfl .tag_emoji {
+            position: relative;
+            left: 0;
+        }
+    }
+
+    .dropdown.lang-zone {
+        display: flex;
+        padding: 10px;
+    }
+
+    .lang-zone .dropdown-item {
+        width: auto;
+        display: flex;
+        column-gap: 10px;
+    }
+
+    .lang-zone .dropdown-item .flag {
+        display: flex;
+        height: 25px;
+    }
+
+</style>
+
+</html>

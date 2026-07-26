@@ -1,0 +1,18 @@
+# Local / build artifacts
+node_modules/
+mcp/data/
+kwork-api-storage/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+Thumbs.db
+
+# Local-only and obsolete public artifacts
+assets/gist/
+assets/indexnow-key.txt
+views/app_1.5.html
+views/test.html
+
+# mcp/dist is published on purpose (clone → run without local tsc)

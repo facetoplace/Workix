@@ -1,0 +1,516 @@
+openapi: 3.0.3
+info:
+  title: Workix Hub API
+  version: 1.0.0
+  description: |
+    Central hub API for startups, roles, profiles, and applies.
+    Auth is key-first: register → agent API key `wix_…` (Bearer).
+    External freelance platforms are out of scope for this surface.
+servers:
+  - url: https://workix.co
+  - url: http://127.0.0.1:80
+paths:
+  /api/v1/auth/register:
+    post:
+      summary: Register identity (key-first)
+      operationId: authRegister
+      responses:
+        '201':
+          description: Created — private material returned once
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+  /api/v1/auth/challenge:
+    post:
+      summary: Issue challenge for public-key verify
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [publicKey]
+              properties:
+                publicKey: { type: string }
+      responses:
+        '200':
+          description: Challenge nonce
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  challenge: { type: string }
+                  expiresAt: { type: string, format: date-time }
+  /api/v1/auth/verify:
+    post:
+      summary: Verify signed challenge → short-lived JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [publicKey, challenge, signature]
+              properties:
+                publicKey: { type: string }
+                challenge: { type: string }
+                signature: { type: string }
+      responses:
+        '200':
+          description: JWT
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+  /api/v1/auth/link-mvse:
+    post:
+      summary: Link secondary MVSE browser identity (stub-friendly)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mvseUserId: { type: string }
+                profile: { type: object }
+      responses:
+        '200':
+          description: Linked
+  /api/v1/me:
+    get:
+      summary: Current user
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Me
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    patch:
+      summary: Update me (segment, name, avatar)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                avatar: { type: string }
+                segment: { type: string, enum: [founder, seeker, browsing] }
+      responses:
+        '200':
+          description: Updated
+  /api/v1/me/agent-key/rotate:
+    post:
+      summary: Rotate agent API key (returns plaintext once)
+      security: [{ bearerAuth: [] }]
+      responses:
+        '201':
+          description: New key
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  agentApiKey: { type: string }
+  /api/v1/startups:
+    get:
+      summary: List startups (public = approved only unless mine=true)
+      parameters:
+        - in: query
+          name: q
+          schema: { type: string }
+        - in: query
+          name: mine
+          schema: { type: boolean }
+        - in: query
+          name: status
+          schema: { type: string }
+        - in: query
+          name: limit
+          schema: { type: integer, default: 50 }
+      responses:
+        '200':
+          description: List
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Startup'
+    post:
+      summary: Create startup
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartupInput'
+      responses:
+        '201':
+          description: Created
+  /api/v1/startups/{slug}:
+    get:
+      summary: Get startup by slug
+      parameters:
+        - $ref: '#/components/parameters/slug'
+      responses:
+        '200':
+          description: Startup
+    patch:
+      summary: Update startup
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/slug'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartupInput'
+      responses:
+        '200':
+          description: Updated
+  /api/v1/roles:
+    get:
+      summary: List roles
+      parameters:
+        - in: query
+          name: startup
+          schema: { type: string }
+          description: startup slug or id
+        - in: query
+          name: q
+          schema: { type: string }
+        - in: query
+          name: mine
+          schema: { type: boolean }
+        - in: query
+          name: limit
+          schema: { type: integer, default: 50 }
+      responses:
+        '200':
+          description: List
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Role'
+    post:
+      summary: Create role
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleInput'
+      responses:
+        '201':
+          description: Created
+  /api/v1/roles/{id}:
+    get:
+      summary: Get role
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          description: Role
+    patch:
+      summary: Update role
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/id'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleInput'
+      responses:
+        '200':
+          description: Updated
+  /api/v1/profile:
+    get:
+      summary: Get own or public profile
+      parameters:
+        - in: query
+          name: userId
+          schema: { type: string }
+      responses:
+        '200':
+          description: Profile
+    patch:
+      summary: Update own profile/resume
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Profile'
+      responses:
+        '200':
+          description: Updated
+  /api/v1/profile/import:
+    post:
+      summary: Prefill resume from text or LinkedIn URL (stub/AI)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text: { type: string }
+                linkedinUrl: { type: string }
+      responses:
+        '200':
+          description: Prefill suggestion
+  /api/v1/applies:
+    post:
+      summary: Apply to a role (notifies founder)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplyInput'
+      responses:
+        '201':
+          description: Created
+  /api/v1/notification-prefs:
+    get:
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Prefs
+    patch:
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationPrefs'
+      responses:
+        '200':
+          description: Updated
+  /api/v1/analytics/events:
+    post:
+      summary: Track product analytics
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type]
+              properties:
+                type:
+                  type: string
+                  enum: [entry_segment, share_view, apply_click]
+                payload: { type: object }
+      responses:
+        '204':
+          description: Recorded
+  /api/v1/feedback:
+    post:
+      summary: Report a bug, suggestion, or support request (delivered to hub admins)
+      description: |
+        Optional auth. Delivered to admin Telegram.
+        Rate limits: support/suggestion — 1/hour (+ daily cap);
+        bug/other — authenticated 1/5min and 10/day, anonymous 1/15min and 3/day.
+        Message length 20–2000 characters. UI form: /support
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [message]
+              properties:
+                type:
+                  type: string
+                  enum: [bug, suggestion, support, other]
+                  default: other
+                message: { type: string, minLength: 20, maxLength: 2000 }
+                subject: { type: string, maxLength: 120 }
+                contact: { type: string, maxLength: 200 }
+                context: { type: string, maxLength: 500 }
+      responses:
+        '201':
+          description: Accepted
+        '400':
+          description: Validation error
+        '429':
+          description: Rate limited (cooldown or daily cap)
+  /api/v1/i18n/{locale}:
+    get:
+      parameters:
+        - in: path
+          name: locale
+          required: true
+          schema: { type: string, enum: [en, ru] }
+      responses:
+        '200':
+          description: UI string map
+  /api/v1/admin/moderate:
+    post:
+      summary: Admin approve/reject (WORKIX_ADMIN_SECRET)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [entityType, entityId, status, adminSecret]
+              properties:
+                entityType: { type: string, enum: [startup, role] }
+                entityId: { type: string }
+                status: { type: string, enum: [approved, rejected] }
+                adminSecret: { type: string }
+      responses:
+        '200':
+          description: Updated
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Agent API key `wix_…` or short-lived JWT
+  parameters:
+    slug:
+      in: path
+      name: slug
+      required: true
+      schema: { type: string }
+    id:
+      in: path
+      name: id
+      required: true
+      schema: { type: string }
+  schemas:
+    RegisterResponse:
+      type: object
+      properties:
+        userId: { type: string }
+        publicKey: { type: string }
+        privateKeyOnce: { type: string }
+        agentApiKey: { type: string }
+        seedOnce: { type: string }
+    TokenResponse:
+      type: object
+      properties:
+        token: { type: string }
+        expiresAt: { type: string, format: date-time }
+    User:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        avatar: { type: string }
+        segment: { type: string, enum: [founder, seeker, browsing, null] }
+        publicKey: { type: string }
+        hasAgentKey: { type: boolean }
+    Startup:
+      type: object
+      properties:
+        id: { type: string }
+        slug: { type: string }
+        name: { type: string }
+        logo: { type: string, nullable: true }
+        url: { type: string, nullable: true }
+        description: { type: string }
+        status: { type: string, enum: [draft, pending, approved, rejected] }
+        publisherId: { type: string }
+        applyDefaults:
+          type: object
+          properties:
+            apply_url: { type: string }
+            apply_email: { type: string }
+            apply_telegram: { type: string }
+        stats:
+          type: object
+          properties:
+            shareViews: { type: integer }
+            applyClicks: { type: integer }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    StartupInput:
+      type: object
+      required: [name, description]
+      properties:
+        name: { type: string }
+        slug: { type: string }
+        logo: { type: string }
+        url: { type: string }
+        description: { type: string }
+        status: { type: string, enum: [draft, pending] }
+        applyDefaults: { type: object }
+    Role:
+      type: object
+      properties:
+        id: { type: string }
+        slug: { type: string }
+        startupId: { type: string }
+        startupSlug: { type: string }
+        title: { type: string }
+        description: { type: string }
+        status: { type: string, enum: [draft, pending, approved, rejected] }
+        apply_url: { type: string, nullable: true }
+        apply_email: { type: string, nullable: true }
+        apply_telegram: { type: string, nullable: true }
+        tags: { type: array, items: { type: string } }
+        highlightPriority: { type: integer }
+        createdAt: { type: string, format: date-time }
+    RoleInput:
+      type: object
+      required: [startupId, title]
+      properties:
+        startupId: { type: string }
+        slug: { type: string }
+        title: { type: string }
+        description: { type: string }
+        status: { type: string, enum: [draft, pending] }
+        apply_url: { type: string }
+        apply_email: { type: string }
+        apply_telegram: { type: string }
+        tags: { type: array, items: { type: string } }
+    Profile:
+      type: object
+      properties:
+        name: { type: string }
+        headline: { type: string }
+        bio: { type: string }
+        skills: { type: array, items: { type: string } }
+        links: { type: array, items: { type: string } }
+        location: { type: string }
+        openTo: { type: array, items: { type: string } }
+    ApplyInput:
+      type: object
+      required: [roleId]
+      properties:
+        roleId: { type: string }
+        name: { type: string }
+        contact: { type: string }
+        message: { type: string }
+    NotificationPrefs:
+      type: object
+      properties:
+        email: { type: string }
+        telegram: { type: string }
+        channels:
+          type: object
+          properties:
+            email: { type: boolean }
+            telegram: { type: boolean }

@@ -1,0 +1,25 @@
+{
+  "mcpServers": {
+    "workix": {
+      "description": "Workix hub + freelance digest MCP. Hub API at https://workix.co. Docs: https://workix.co/llms.txt and https://workix.co/api.txt",
+      "url": "https://workix.co/api.txt",
+      "docs": [
+        "https://workix.co/llms.txt",
+        "https://workix.co/api.txt",
+        "https://workix.co/openapi-v1.yaml",
+        "https://github.com/facetoplace/Workix"
+      ],
+      "install": {
+        "type": "stdio",
+        "repository": "https://github.com/facetoplace/Workix",
+        "path": "mcp",
+        "command": "node",
+        "args": ["mcp/dist/index.js"],
+        "env": {
+          "WORKIX_API": "https://workix.co",
+          "WORKIX_AGENT_KEY": "wix_…"
+        }
+      }
+    }
+  }
+}

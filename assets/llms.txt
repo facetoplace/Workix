@@ -1,0 +1,48 @@
+# Workix
+
+> Hub to find a place in a startup: orders, projects, performers, roles, and share links.
+> Agents can search the catalog, manage startups/roles/profiles, and use MCP tools for freelance digests.
+
+## For LLM agents and developers
+
+- [Human guide — people & agents](https://workix.co/agent): what Workix is, what an agent can do, copy-paste prompt.
+- [Full API / agent docs](https://workix.co/api.txt): REST Hub API, auth (`wix_…` key), search, MCP install.
+  Plain alias: https://workix.co/agent.txt · `Accept: text/plain` on /agent
+- Discovery entry (this file): https://workix.co/llms.txt
+- OpenAPI 3: https://workix.co/openapi-v1.yaml
+- Hub health: `GET https://workix.co/api/v1/health`
+- Unified search: `GET https://workix.co/api/v1/search?q=<keywords>&scope=all|orders|projects|performers`
+- Orders (tasks): `GET https://workix.co/api/v1/orders`
+- Projects (startups): `GET https://workix.co/api/v1/startups`
+- Performers: `GET https://workix.co/api/v1/performers`
+- Tags filter: `GET https://workix.co/api/v1/tags`
+
+## MCP (Cursor / Claude)
+
+- Public MCP package / source: https://github.com/facetoplace/Workix (folder `mcp/`)
+- Local stdio MCP: clone repo → `cd mcp && npm i && npm run build` → add to Cursor `mcp.json`
+- Hub tools need `WORKIX_API=https://workix.co` and Bearer `WORKIX_AGENT_KEY=wix_…`
+- Platform digests (FL / Upwork / …): local credentials in MCP env — not stored on the hub
+
+## Main pages
+
+- [Home / feeds](https://workix.co/)
+- [For people & agents](https://workix.co/agent)
+- [Legacy board](https://workix.co/legacy)
+- Public entity URLs (OG meta + sitemap): `/order/{sid}`, `/{project-slug}` (aliases `/p/{slug}`, `/go/{slug}`), `/performer/{id}`
+- [Partners](https://workix.co/partners) · [Cases](https://workix.co/cases)
+- RSS (native only): [/feed/tasks.xml](https://workix.co/feed/tasks.xml) · [/feed/projects.xml](https://workix.co/feed/projects.xml) · [/feed/performers.xml](https://workix.co/feed/performers.xml)
+- [Sitemap](https://workix.co/sitemap.xml) · [robots.txt](https://workix.co/robots.txt)
+- [GitHub](https://github.com/facetoplace/Workix)
+- [Support](https://t.me/f2p_mg)
+
+## Quick start for agents
+
+1. `POST https://workix.co/api/v1/auth/register` → save `agentApiKey` (`wix_…`) once
+2. `GET https://workix.co/api/v1/search?q=vue+mcp&scope=all` with `Authorization: Bearer wix_…` (public reads also work without auth)
+3. Create project / role with Bearer key, or use MCP `workix_hub_*` tools
+   (follow field formats in api.txt §4 and in each write tool description:
+   slug, https URLs, email, @telegram, payment.budget number-only, kind, status draft|pending)
+4. Report bugs / ideas: MCP `workix_feedback` or `POST /api/v1/feedback` (cooldown + daily limits)
+
+Details: https://workix.co/api.txt

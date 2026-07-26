@@ -1,0 +1,254 @@
+WORKIX HUB API + MCP
+====================
+Version 1. Documentation optimized for LLM agents and humans.
+
+Short discovery file: https://workix.co/llms.txt
+This document: https://workix.co/api.txt
+Human guide (HTML): https://workix.co/agent
+Machine aliases: https://workix.co/agent.txt · https://workix.co/api.txt
+  (curl -H "Accept: text/plain" https://workix.co/agent  also returns this file)
+OpenAPI: https://workix.co/openapi-v1.yaml
+
+MENTAL MODEL
+------------
+Workix is a hub to find a place in a startup (and related freelance board feeds).
+
+Public machine-readable feeds (no token required for read):
+  - orders  = freelance tasks from the board DB
+  - projects = startup cards on the hub
+  - performers = resumes / people open to work
+  - tags = filter chips (with optional MVSE emoji ids)
+
+Public RSS (native hub listings only — aggregator clones excluded):
+  - https://workix.co/feed/tasks.xml
+  - https://workix.co/feed/projects.xml
+  - https://workix.co/feed/performers.xml
+  Aliases: /rss.xml → tasks; /feed → /feed/tasks.xml
+
+Human pages:
+  - https://workix.co/partners  (embed / RSS / channels)
+  - https://workix.co/cases
+  - https://workix.co/sitemap.xml
+
+Authenticated write (Bearer agent key `wix_…`):
+  - create/update startups, roles, profile
+  - apply to a role
+
+External freelance platforms (Upwork, FL, Kwork, …) are NOT proxied by the hub.
+They are used via local Workix MCP with the user's own credentials.
+
+BASE URLS
+---------
+Hub / storefront: https://workix.co
+REST API prefix: https://workix.co/api/v1
+Discovery: https://workix.co/llms.txt
+Human guide: https://workix.co/agent
+This guide: https://workix.co/api.txt
+OpenAPI: https://workix.co/openapi-v1.yaml
+MCP source: https://github.com/facetoplace/Workix (directory mcp/)
+Legacy UI: https://workix.co/legacy
+
+JSON responses use UTF-8.
+
+1. AUTH (key-first)
+-------------------
+Register (returns secrets once — save agentApiKey):
+
+  POST https://workix.co/api/v1/auth/register
+  Content-Type: application/json
+  {}
+
+Example:
+  curl -sS -X POST https://workix.co/api/v1/auth/register -H "Content-Type: application/json" -d "{}"
+
+Response includes:
+  userId, publicKey, privateKeyOnce (or seedOnce), agentApiKey (wix_…)
+
+Use on later requests:
+  Authorization: Bearer wix_YOUR_KEY
+
+Current user:
+  GET https://workix.co/api/v1/me
+  → includes last.active (any auth activity), last.agent_use (last Bearer wix_… use),
+    usedAgent (true if agent_use is set)
+
+Rotate key:
+  POST https://workix.co/api/v1/me/agent-key/rotate
+
+Browser MVSE login is secondary (human UI); agents should prefer the API key.
+
+Activity markers (User.last):
+  last.active     — updated on any authenticated API request (JWT or agent key)
+  last.agent_use  — updated only when Authorization uses agent key (wix_…)
+  Who used an agent at least once: last.agent_use exists / usedAgent=true
+
+2. SEARCH (preferred for agents)
+--------------------------------
+  GET https://workix.co/api/v1/search?q=<keywords>&scope=all|orders|projects|performers&limit=30
+
+Examples:
+  curl -sS "https://workix.co/api/v1/search?q=vue%20mcp&scope=all"
+  curl -sS "https://workix.co/api/v1/search?q=design&scope=orders"
+
+Each item has "type": "order" | "project" | "performer".
+
+3. BOARD FEEDS (read)
+---------------------
+Orders (tasks):
+  GET https://workix.co/api/v1/orders
+  Query: q, tags (comma ids), types (comma), priceFrom, limit
+
+Performers (resumes):
+  GET https://workix.co/api/v1/performers
+  Query: q, tags, limit
+
+Tags (sidebar filters):
+  GET https://workix.co/api/v1/tags
+
+Online counter:
+  GET https://workix.co/api/v1/stats/online
+
+Projects / startups:
+  GET https://workix.co/api/v1/startups
+  GET https://workix.co/api/v1/startups/{slug}
+  Query: q, mine=true (auth)
+
+Roles:
+  GET https://workix.co/api/v1/roles
+  GET https://workix.co/api/v1/roles/{id}
+  Query: q, startup, mine=true (auth)
+
+Health:
+  GET https://workix.co/api/v1/health
+
+4. WRITE (auth required)
+------------------------
+Field formats (agents MUST follow — same as UI forms):
+  slug            lowercase latin/digits/hyphens. Example: my-project
+  url/logo/links  prefer https://…
+  links           [{ "label": "Whitepaper", "url": "https://…", "kind"? }] or URL strings
+                  kind?: whitepaper|docs|demo|social|portfolio|github|brief|other (max 20)
+  apply_email     name@domain.com
+  apply_telegram / telegram   @username or username
+  tags/skills     string array. Example: ["Vue","MCP"]
+  payment         { "budget": "500"|25, "type": "hour"|"work", "cur": "USDT"|"USD"|"RUB"|"CNY"|"GBP"|"UAH"|"EUR"|"TON" }
+  kind (role)     task|project|time_job|full_job|fixes
+  status          draft (save) | pending (moderation / publish)
+  contact (apply) email or @telegram
+  displayCurrency USDT|USD|RUB|CNY|GBP|UAH|EUR|TON
+
+Create project (startup):
+  POST /api/v1/startups
+  { "name", "description?", "slug?", "url?", "logo?", "github?", "tags"?: [],
+    "links"?: [{ "label", "url", "kind"? }],
+    "applyDefaults"?: { "apply_url"?, "apply_email"?, "apply_telegram"? },
+    "status": "draft"|"pending" }
+
+Update project:
+  PATCH /api/v1/startups/{slug}
+
+Create role:
+  POST /api/v1/roles
+  { "startupId", "title", "description?", "kind"?, "project"?, "payment"?,
+    "tags"?: [], "links"?: [{ "label", "url", "kind"? }],
+    "apply_url"?, "apply_email"?, "apply_telegram"?, "status"? }
+
+Update role:
+  PATCH /api/v1/roles/{id}
+
+Profile:
+  GET /api/v1/profile
+  PATCH /api/v1/profile
+  { "name?", "headline?", "bio?", "skills"?: [], "telegram?", "portfolio?", "cv?",
+    "links"?: [], "location?", "openTo"?: [], "payment"?, "displayCurrency"? }
+
+Apply to role:
+  POST /api/v1/applies
+  { "roleId", "name?", "contact?", "message?" }
+
+Share / project pages (human) — canonical:
+  https://workix.co/{startupSlug}
+  https://workix.co/{startupSlug}/{roleSlug}
+  Aliases (same page): /p/{slug}, /go/{slug} (legacy fallback)
+
+5. MCP FOR AGENTS (Cursor)
+--------------------------
+Install from public repo https://github.com/facetoplace/Workix
+
+  cd mcp
+  npm install
+  npm run build
+
+Cursor mcp.json example:
+
+{
+  "mcpServers": {
+    "workix": {
+      "command": "node",
+      "args": ["FULL/PATH/TO/workix/mcp/dist/index.js"],
+      "env": {
+        "WORKIX_API": "https://workix.co",
+        "WORKIX_AGENT_KEY": "wix_…"
+      }
+    }
+  }
+}
+
+Hub tools (need WORKIX_API + WORKIX_AGENT_KEY for writes):
+  workix_hub_health, workix_hub_register, workix_hub_me
+  workix_list_startups, workix_list_my_startups, workix_get_startup
+  workix_create_startup, workix_update_startup
+  workix_list_roles, workix_create_role, workix_update_role
+  workix_get_profile, workix_update_profile, workix_hub_apply
+  workix_feedback — bug / suggestion / support to admins (rate-limited)
+
+Freelance board tools (local credentials — never send passwords to workix.co):
+  workix_digest, workix_search, workix_get_job
+  workix_draft_proposal, workix_submit_proposal (confirm:true only after human ok)
+  workix_prepare_browser_apply, workix_sources_status, workix_list_platforms
+  workix_upwork_auth_url, workix_upwork_exchange_code
+
+Never submit a proposal without explicit user approval.
+
+5b. FEEDBACK / SUPPORT (→ admin Telegram)
+-----------------------------------------
+  UI form: https://workix.co/support
+  POST https://workix.co/api/v1/feedback
+  Content-Type: application/json
+  Authorization: Bearer wix_…   (optional; anonymous allowed)
+
+  Body:
+    type: "bug" | "suggestion" | "support" | "other"
+    message: string (20…2000 chars)
+    subject?: string
+    contact?: string   (telegram / email for reply)
+    context?: string   (optional extra: MCP version, OS, …)
+
+  Limits (defaults):
+    support / suggestion — cooldown 1 hour, daily cap 5 (auth) / 3 (anon)
+    bug / other          — auth 5 min / 10 day; anon 15 min / 3 day
+  On 429: Retry-After header + retryAfterSec in JSON.
+
+  Delivered to admin Telegram (TG_BOT_TOKEN + TG_ADMIN_CHAT_ID or CARTEL_ADMIN_CHAT_ID).
+
+6. QUICK LINKS
+--------------
+Home: https://workix.co/
+Human agent guide: https://workix.co/agent
+llms.txt: https://workix.co/llms.txt
+api.txt: https://workix.co/api.txt
+agent.txt: https://workix.co/agent.txt
+OpenAPI: https://workix.co/openapi-v1.yaml
+GitHub: https://github.com/facetoplace/Workix
+Support: https://t.me/f2p_mg
+News: https://t.me/workix_news
+
+RULES
+-----
+- Prefer /api/v1/search for discovery; then open specific order/project/performer.
+- Point humans to /agent; point agents/scrapers to /api.txt or /llms.txt.
+- Save agentApiKey when register/rotate — shown once.
+- Do not store third-party freelance passwords on the hub; use local MCP env.
+- Be polite with rate limits; reuse ids/slugs instead of spam-creating entities.
+
+Questions: https://t.me/f2p_mg or GitHub issues on facetoplace/Workix.

@@ -1,0 +1,10 @@
+import type { DraftRecord, Job, StoredJob } from "./types.js";
+export declare function jobId(platform: string, link: string): string;
+export declare function upsertJobs(jobs: Job[]): StoredJob[];
+export declare function getJob(idOrUrl: string): StoredJob | undefined;
+export declare function listJobs(): StoredJob[];
+export declare function markDigestShown(ids: string[]): void;
+export declare function wasShownInDigest(id: string): boolean;
+export declare function saveDraft(jobIdValue: string, text: string): DraftRecord;
+export declare function getLatestDraft(jobIdValue: string): DraftRecord | undefined;
+export declare function dataDir(): string;

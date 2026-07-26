@@ -1,0 +1,40 @@
+{
+  "name": "workix-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Workix MCP — freelance digest, search, and proposal helpers",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "workix-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "smoke": "npm run build && node scripts/smoke-preset.mjs mobile_dev",
+    "smoke:startups": "npm run build && node scripts/smoke-preset.mjs startups_products",
+    "smoke:hub": "node scripts/smoke-hub.mjs",
+    "upwork:token": "node scripts/upwork-token.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "dotenv": "^17.4.2",
+    "https-proxy-agent": "^9.1.0",
+    "rss-parser": "^3.13.0",
+    "socks-proxy-agent": "^10.1.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^22.12.0",
+    "tsx": "^4.16.5",
+    "typescript": "^5.5.4"
+  },
+  "overrides": {
+    "@hono/node-server": "2.0.12"
+  }
+}
