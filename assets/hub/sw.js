@@ -1,5 +1,5 @@
 /* Workix hub service worker — offline shell cache */
-const CACHE = 'workix-hub-v1';
+const CACHE = 'workix-hub-v2';
 const PRECACHE = [
   '/',
   '/hub/styles.css',
@@ -10,7 +10,7 @@ const PRECACHE = [
   '/hub/mock-db.js',
   '/img/logo-pwa.png',
   '/favicon-32x32.png',
-  '/pwa.json',
+  '/manifest.json',
 ];
 
 self.addEventListener('install', (event) => {

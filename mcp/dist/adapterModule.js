@@ -12,4 +12,5 @@ export const PLATFORM_MODULE_MAP = {
     remoteok: "remoteok",
     upwork: "upwork",
     freelancer_com: "freelancer",
+    dstore: "dstore",
 };

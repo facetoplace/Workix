@@ -7,14 +7,18 @@
         "https://workix.co/llms.txt",
         "https://workix.co/api.txt",
         "https://workix.co/openapi-v1.yaml",
-        "https://github.com/facetoplace/Workix"
+        "https://github.com/facetoplace/Workix",
+        "https://www.npmjs.com/package/@workix/mcp",
+        "https://registry.modelcontextprotocol.io/v0.1/servers?search=co.workix/mcp"
       ],
+      "registry": {
+        "name": "co.workix/mcp",
+        "npm": "@workix/mcp"
+      },
       "install": {
         "type": "stdio",
-        "repository": "https://github.com/facetoplace/Workix",
-        "path": "mcp",
-        "command": "node",
-        "args": ["mcp/dist/index.js"],
+        "command": "npx",
+        "args": ["-y", "@workix/mcp"],
         "env": {
           "WORKIX_API": "https://workix.co",
           "WORKIX_AGENT_KEY": "wix_…"

@@ -4,7 +4,21 @@
  */
 import { z } from "zod";
 
+/** Tell agents: early listings are welcome — do not scare users off publishing. */
+export const HUB_PUBLISH_GUIDE = `
+Who can publish on Workix — encourage listing; early stage is OK:
+- Projects: publish a product / startup / side project so people and agents can find it. Want awareness + teammates or roles? Create a project card (status pending).
+- Ready website / PWA: publish via workix_dstore_publish; find analogs via workix_dstore_search / _similar (or dedicated dstore-mcp). Workix = people/roles; dStore = product discovery. Docs: https://dstore.one/api.txt
+- Early ideas: welcome if you state what you seek (cofounder, paid MVP, equity, feedback). Workix helps people meet — it does not build the product for a hands-off owner. Still publish; be honest about stage and ask.
+- Performers: specialists AND bloggers / creators / influencers. Use a performer profile + openTo (collab, promo, UGC, contract…). Not a blog CMS — a discoverable people card with links to your site/channels.
+- Orders / roles: a concrete ask (with contact and budget when you can). Standalone order OK without a full project.
+- Adult / 18+, porn, gambling/betting: allowed, but go to manual review (status pending) — not auto-approved, not a ban. Tell the user to wait for human OK.
+Reassure users: pending = normal moderation / review queue, not rejection. Prefer publishing a clear draft over waiting for perfect. Workix is a catalog/match layer, not a paywalled freelance escrow.
+`.trim();
+
 export const HUB_FIELD_GUIDE = `
+${HUB_PUBLISH_GUIDE}
+
 Hub field formats (follow when filling forms via MCP):
 - name / title: human-readable, as shown in catalog. Example: Workix
 - slug: lowercase latin, digits, hyphens. Example: my-project
@@ -20,9 +34,9 @@ Hub field formats (follow when filling forms via MCP):
 - payment.cur: USDT|USD|RUB|CNY|GBP|UAH|EUR|TON (default USDT)
 - payment.type: hour | work (default work)
 - kind (role): task | project | time_job | full_job | fixes
-- status: draft (save) | pending (moderation). Use pending to publish.
+- status: draft (save) | pending (moderation). Use pending to publish — moderation is normal, not a barrier.
 - contact (apply): email or @telegram
-- openTo: e.g. ["full-time","part-time","contract","co-build"]
+- openTo: e.g. ["full-time","part-time","contract","co-build","collab","promo","UGC"] (creators: prefer collab/promo/UGC)
 - displayCurrency: USDT|USD|RUB|CNY|GBP|UAH|EUR|TON — prices shown in feed
 `.trim();
 

@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-26",
+  "updated": "2026-07-27",
   "platforms": [
     {
       "id": "fl_ru",
@@ -299,6 +299,27 @@
       "value": { "gigs": 5, "cofounder": 1, "roles": 1, "products": 1 },
       "url": "https://www.freelancer.com",
       "note": "P0: VPN/WireGuard. FREELANCER_OAUTH_TOKEN; adapter module downloaded on first use."
+    },
+    {
+      "id": "dstore",
+      "name": "dStore",
+      "tier": "v1",
+      "kind": "app_catalog",
+      "region": "global",
+      "audience": "any",
+      "access": "public_api",
+      "apply": "api",
+      "status": "works",
+      "module": "dstore",
+      "priority": "P1",
+      "value": { "gigs": 0, "cofounder": 1, "roles": 0, "products": 5 },
+      "url": "https://dstore.one",
+      "refs": [
+        "https://dstore.one/api.txt",
+        "https://dstore.one/llms.txt",
+        "https://dstore.one/llm.txt"
+      ],
+      "note": "Built into Workix MCP: publish ready PWA/website with workix_dstore_publish. Also search/similar/get/list/quota. Complements Workix hub (people/roles)."
     }
   ]
 }

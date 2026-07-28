@@ -63,4 +63,5 @@ export const PLATFORM_MODULE_MAP: Record<string, string> = {
   remoteok: "remoteok",
   upwork: "upwork",
   freelancer_com: "freelancer",
+  dstore: "dstore",
 };

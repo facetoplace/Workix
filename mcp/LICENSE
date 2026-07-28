@@ -1,0 +1,23 @@
+Workix Public License (storefront + MCP)
+========================================
+
+Copyright (c) Workix contributors and FaceToPlace / Workix project.
+
+You may:
+
+1. Use, study, modify, and redistribute this software and documentation
+   for non-commercial purposes, provided you give clear attribution to
+   Workix (link to https://github.com/facetoplace/Workix and/or https://workix.co).
+
+2. Submit improvements as pull requests or patches. Contributions are welcome
+   and, unless stated otherwise, are accepted under these same terms.
+
+You may not, without prior written agreement:
+
+3. Use this software (or substantial portions of it) as part of a commercial
+   product, paid redistribution, or commercial hosted service.
+
+The central hub API and catalog data at https://workix.co are operated
+separately; access to the hub may be subject to its own terms of use.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.

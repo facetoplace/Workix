@@ -30,6 +30,7 @@ const MODULES = [
   "remoteok",
   "upwork",
   "freelancer",
+  "dstore",
 ];
 
 const EXTERNAL = [

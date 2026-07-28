@@ -82,7 +82,7 @@
       titleRu: 'Партнёрства — написать',
       blurbEn: 'Channels, Radar listings, embeds on your domain — talk to us.',
       blurbRu: 'Каналы, листинги Radar, витрина на вашем домене — напишите нам.',
-      href: 'https://t.me/f2p_mg',
+      href: '/support',
       kind: 'contact',
     },
   ];

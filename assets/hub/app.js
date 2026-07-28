@@ -3,8 +3,350 @@
 
   const FEED_PAGE = 24;
   const FEED_WINDOW = 72; // keep ~3 pages in memory
+  const HUB_LOGO = '/img/logo-pwa.png';
+  const HUB_BRAND = 'Workix';
+  const BRAND_NAMES = {
+    'workix.co': 'Workix',
+    'facetoplace.app': 'FaceToPlace',
+  };
 
   const PREF_EVENT_KEYS = ['applies', 'invites', 'messages', 'digests', 'moderation'];
+
+  function metaContent(name) {
+    try {
+      const el = document.querySelector(`meta[name="${name}"]`);
+      return el ? String(el.content || '').trim() : '';
+    } catch (_) {
+      return '';
+    }
+  }
+
+  function normalizePageHost(raw) {
+    let h = String(raw || '').trim().toLowerCase();
+    if (!h) return '';
+    h = h.replace(/^https?:\/\//, '');
+    h = h.split('/')[0].split('?')[0].split('#')[0];
+    h = h.replace(/:\d+$/, '');
+    return h;
+  }
+
+  /** work.facetoplace.app → facetoplace.app */
+  function rootDomainFromHost(raw) {
+    let h = normalizePageHost(raw);
+    if (h.startsWith('work.')) h = h.slice(5);
+    if (h.startsWith('www.')) h = h.slice(4);
+    return h;
+  }
+
+  function isHubRootDomain(root) {
+    const d = String(root || '').toLowerCase();
+    if (!d || d === 'localhost' || d === '127.0.0.1') return true;
+    return d === 'workix.co';
+  }
+
+  function brandNameForRoot(root) {
+    const d = String(root || '').toLowerCase();
+    if (BRAND_NAMES[d]) return BRAND_NAMES[d];
+    const base = (d.split('.')[0] || d).replace(/[-_]+/g, ' ');
+    if (!base) return HUB_BRAND;
+    return base.replace(/\b\w/g, (c) => c.toUpperCase());
+  }
+
+  function absOnOrigin(origin, src) {
+    const s = String(src || '').trim();
+    if (!s) return '';
+    if (/^https?:\/\//i.test(s)) return s;
+    if (s.startsWith('//')) return `https:${s}`;
+    try {
+      return new URL(s, origin).href;
+    } catch (_) {
+      return '';
+    }
+  }
+
+  function isGoogleFaviconUrl(url) {
+    return /google\.com\/s2\/favicons/i.test(String(url || ''));
+  }
+
+  function googleFaviconUrl(host) {
+    const h = String(host || '').replace(/^www\./i, '').toLowerCase();
+    if (!h) return '';
+    return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(h)}&sz=128`;
+  }
+
+  /**
+   * Load image; for Google s2 favicons reject the default globe (always 16×16
+   * even when sz=128). Real icons come back as 128×128.
+   */
+  function probeImage(url, timeoutMs = 2800, opts = {}) {
+    const minSide = Number(opts.minSide) || 0;
+    const rejectGoogleDefault = opts.rejectGoogleDefault !== false;
+    return new Promise((resolve) => {
+      if (!url) return resolve(null);
+      const img = new Image();
+      let done = false;
+      const finish = (ok) => {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        img.onload = img.onerror = null;
+        resolve(ok ? url : null);
+      };
+      const timer = setTimeout(() => finish(false), timeoutMs);
+      img.onload = () => {
+        const w = Number(img.naturalWidth) || 0;
+        const h = Number(img.naturalHeight) || 0;
+        // Google default placeholder: 16×16 (same bytes for missing domains)
+        if (rejectGoogleDefault && isGoogleFaviconUrl(url) && (w <= 16 || h <= 16)) {
+          finish(false);
+          return;
+        }
+        if (minSide > 0 && (w < minSide || h < minSide)) {
+          finish(false);
+          return;
+        }
+        finish(true);
+      };
+      img.onerror = () => finish(false);
+      try { img.referrerPolicy = 'no-referrer'; } catch (_) { /* ignore */ }
+      img.src = url;
+    });
+  }
+
+  async function fetchWithTimeout(url, timeoutMs = 900) {
+    const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const timer = ctrl ? setTimeout(() => ctrl.abort(), timeoutMs) : null;
+    try {
+      const res = await fetch(url, {
+        method: 'GET',
+        mode: 'cors',
+        credentials: 'omit',
+        signal: ctrl ? ctrl.signal : undefined,
+      });
+      if (!res.ok) return null;
+      return res;
+    } catch (_) {
+      return null;
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  }
+
+  async function fetchJsonLoose(url) {
+    const res = await fetchWithTimeout(url);
+    if (!res) return null;
+    try { return await res.json(); } catch (_) { return null; }
+  }
+
+  async function fetchTextLoose(url) {
+    const res = await fetchWithTimeout(url);
+    if (!res) return '';
+    try { return await res.text(); } catch (_) { return ''; }
+  }
+
+  function firstProbedImage(urls, timeoutMs = 2200) {
+    const unique = [];
+    const seen = new Set();
+    for (const url of urls) {
+      if (!url || seen.has(url)) continue;
+      seen.add(url);
+      unique.push(url);
+    }
+    return new Promise((resolve) => {
+      let left = unique.length;
+      if (!left) return resolve(null);
+      let settled = false;
+      unique.forEach((url) => {
+        probeImage(url, timeoutMs).then((ok) => {
+          if (settled) return;
+          if (ok) {
+            settled = true;
+            resolve(ok);
+            return;
+          }
+          left -= 1;
+          if (left <= 0) resolve(null);
+        });
+      });
+    });
+  }
+
+  function iconsFromManifest(manifest, origin) {
+    const icons = Array.isArray(manifest && manifest.icons) ? manifest.icons : [];
+    const scored = icons.map((icon) => {
+      const src = absOnOrigin(origin, icon && icon.src);
+      const sizes = String((icon && icon.sizes) || '');
+      let score = 0;
+      const m = sizes.match(/(\d+)x(\d+)/i);
+      if (m) score = Math.min(Number(m[1]), Number(m[2]));
+      else if (src) score = 64;
+      return { src, score };
+    }).filter((x) => x.src);
+    scored.sort((a, b) => b.score - a.score);
+    return scored.map((x) => x.src);
+  }
+
+  function iconsFromHtml(html, origin) {
+    const out = [];
+    const re = /<link\b[^>]*rel=["']([^"']+)["'][^>]*>/gi;
+    let m;
+    while ((m = re.exec(html))) {
+      const rel = String(m[1] || '').toLowerCase();
+      if (!/(apple-touch-icon|icon|shortcut icon)/.test(rel)) continue;
+      const tag = m[0];
+      const href = (tag.match(/\bhref=["']([^"']+)["']/i) || [])[1];
+      const abs = absOnOrigin(origin, href);
+      if (abs) out.push({ abs, apple: rel.includes('apple-touch-icon') });
+    }
+    out.sort((a, b) => Number(b.apple) - Number(a.apple));
+    return out.map((x) => x.abs);
+  }
+
+  async function resolveMirrorBrand(root) {
+    const overrideName = metaContent('workix-brand');
+    const overrideLogo = metaContent('workix-brand-logo');
+    const name = overrideName || brandNameForRoot(root);
+    if (overrideLogo) {
+      const ok = await probeImage(overrideLogo);
+      if (ok) return { name, logo: ok, root };
+    }
+
+    const origins = [`https://${root}`, `https://www.${root}`];
+    const preferred = [];
+    const fallback = [];
+    for (const origin of origins) {
+      // Prefer real app/PWA icons over tiny favicons (favicon often wins the race otherwise)
+      [
+        '/img/logo/app.png',
+        '/apple-touch-icon.png',
+        '/apple-touch-icon-precomposed.png',
+        '/apple-touch-icon-180x180.png',
+        '/pwa/icon-192.png',
+        '/android-chrome-192x192.png',
+        '/icon-192.png',
+        '/favicon-192x192.png',
+        '/favicon.png',
+      ].forEach((p) => preferred.push(`${origin}${p}`));
+      fallback.push(`${origin}/favicon.ico`);
+    }
+
+    // Probe known paths immediately (no CORS). Discover extras from manifest/HTML in parallel.
+    const discover = (async () => {
+      const extra = [];
+      await Promise.all(origins.map(async (origin) => {
+        const manifests = await Promise.all(
+          ['/pwa/manifest.json', '/manifest.webmanifest', '/manifest.json', '/site.webmanifest']
+            .map((path) => fetchJsonLoose(`${origin}${path}`)),
+        );
+        for (const manifest of manifests) {
+          if (!manifest) continue;
+          iconsFromManifest(manifest, origin).forEach((u) => extra.push(u));
+          break;
+        }
+        const html = await fetchTextLoose(`${origin}/`);
+        if (html) iconsFromHtml(html, origin).forEach((u) => extra.push(u));
+      }));
+      return extra;
+    })();
+
+    let logo = await firstProbedImage(preferred, 2200);
+    if (!logo) {
+      const extra = await discover;
+      logo = await firstProbedImage(extra.concat(fallback), 2200);
+    }
+    return { name, logo: logo || HUB_LOGO, root };
+  }
+
+  function detectSiteBrandSync() {
+    const host = normalizePageHost(
+      (typeof WorkixAPI !== 'undefined' && WorkixAPI.getFeatureHost && WorkixAPI.getFeatureHost())
+        || location.host
+        || location.hostname
+        || '',
+    );
+    const root = rootDomainFromHost(host);
+    if (isHubRootDomain(root)) {
+      return { name: metaContent('workix-brand') || HUB_BRAND, logo: metaContent('workix-brand-logo') || HUB_LOGO, root: root || 'workix.co', hub: true };
+    }
+    return {
+      name: metaContent('workix-brand') || brandNameForRoot(root),
+      logo: metaContent('workix-brand-logo') || HUB_LOGO,
+      root,
+      hub: false,
+    };
+  }
+
+  function isWeakLogoUrl(raw) {
+    const u = String(raw || '').trim();
+    if (!u) return true;
+    return /google\.com\/s2\/favicons/i.test(u)
+      || /icons\.duckduckgo\.com\/ip3/i.test(u)
+      || /favicon\.yandex\./i.test(u)
+      || /\/favicon\.ico(?:$|\?)/i.test(u);
+  }
+
+  function originFromSiteUrl(raw) {
+    const s = String(raw || '').trim();
+    if (!s) return '';
+    try {
+      const u = new URL(/^https?:\/\//i.test(s) ? s : `https://${s}`);
+      if (!/^https?:$/i.test(u.protocol)) return '';
+      return u.origin;
+    } catch (_) {
+      return '';
+    }
+  }
+
+  /** On-site PWA/apple-touch first; else Google s2 if not the 16×16 default globe. */
+  async function resolveSiteIcon(siteUrl) {
+    const origin = originFromSiteUrl(siteUrl);
+    if (!origin) return '';
+    let host = '';
+    try { host = new URL(origin).hostname.replace(/^www\./i, ''); } catch (_) { host = ''; }
+
+    // Start Google immediately — must outlive preferred+manifest waits (was timing out at 3s)
+    const googlePromise = host
+      ? probeImage(googleFaviconUrl(host), 8000, { rejectGoogleDefault: true })
+      : Promise.resolve(null);
+
+    const preferred = [
+      `${origin}/apple-touch-icon.png`,
+      `${origin}/apple-touch-icon-precomposed.png`,
+      `${origin}/icon-192.png`,
+      `${origin}/img/logo/app.png`,
+      `${origin}/favicon.svg`,
+      `${origin}/favicon.png`,
+    ];
+
+    let logo = await firstProbedImage(preferred, 1000);
+    if (logo && !isWeakLogoUrl(logo)) return logo;
+
+    // favicon.ico OK if larger than Google's 16×16 default globe
+    const ico = await probeImage(`${origin}/favicon.ico`, 1500, { minSide: 17 });
+    if (ico) return ico;
+
+    // Manifest icons (CORS often blocked) in parallel with Google finishing
+    const manifestPromise = (async () => {
+      try {
+        const manifest = await fetchJsonLoose(`${origin}/manifest.json`)
+          || await fetchJsonLoose(`${origin}/pwa/manifest.json`);
+        if (!manifest) return '';
+        const extras = [];
+        iconsFromManifest(manifest, origin).forEach((u) => {
+          if (u && !isWeakLogoUrl(u)) extras.push(u);
+        });
+        if (!extras.length) return '';
+        const found = await firstProbedImage(extras.slice(0, 4), 1500);
+        return found && !isWeakLogoUrl(found) ? found : '';
+      } catch (_) {
+        return '';
+      }
+    })();
+
+    const [fromManifest, fromGoogle] = await Promise.all([manifestPromise, googlePromise]);
+    if (fromManifest) return fromManifest;
+    return fromGoogle || '';
+  }
 
   function defaultPrefs() {
     return {
@@ -220,8 +562,21 @@
 
   function navigate(hashPath, replace) {
     const h = String(hashPath || '').replace(/^\//, '');
-    // Always reset pathname — otherwise /go/slug#/catalog sticks
-    const url = (!h || h === 'catalog') ? '/' : `/#/${h}`;
+    // Path URLs for share/SEO (Telegram crawlers never see #hash)
+    let url;
+    const performer = h.match(/^performer\/([^/]+)$/i);
+    const order = h.match(/^order\/([^/]+)$/i);
+    if (!h || h === 'catalog') url = '/';
+    else if (performer) {
+      url = `/performer/${encodeURIComponent(decodeURIComponent(performer[1]))}`;
+    } else if (order) {
+      url = `/order/${encodeURIComponent(decodeURIComponent(order[1]))}`;
+    } else if (h === 'support' || h === 'partners' || h === 'cases') {
+      url = `/${h}`;
+    } else {
+      // App sections stay on hash; reset pathname so /go/slug#/catalog doesn't stick
+      url = `/#/${h}`;
+    }
     if (replace) history.replaceState(null, '', url);
     else history.pushState(null, '', url);
     window.dispatchEvent(new PopStateEvent('popstate'));
@@ -273,6 +628,9 @@
       const currentStartup = ref(null);
       const currentRole = ref(null);
       const currentPerformer = ref(null);
+      const performerProjects = computed(() => (currentPerformer.value && currentPerformer.value.projects) || []);
+      const performerOrders = computed(() => (currentPerformer.value && currentPerformer.value.orders) || []);
+      const performerRoles = computed(() => (currentPerformer.value && currentPerformer.value.roles) || []);
       const currentOrder = ref(null);
       const routeError = ref(null);
       const carousel = ref([]);
@@ -329,6 +687,7 @@
       const sloganIndex = ref(0);
       const sloganTick = ref(0);
       const prevSlogan = ref('');
+      const siteBrand = ref(detectSiteBrandSync());
       const pwaCanInstall = ref(false);
       let deferredPwaPrompt = null;
       const displayCurrency = ref(localStorage.getItem('workix_display_cur') || 'USDT');
@@ -437,6 +796,31 @@
       const proposalCurrencies = ['USDT', 'USD', 'TON', 'ETH'];
       const payCurrencies = ['USDT', 'USD', 'RUB', 'CNY', 'GBP', 'UAH', 'EUR', 'TON'];
       const taskKinds = ['task', 'project', 'time_job', 'full_job', 'fixes'];
+
+      async function applySiteBrand() {
+        const sync = detectSiteBrandSync();
+        siteBrand.value = sync;
+        if (sync.hub) return;
+        try {
+          const resolved = await resolveMirrorBrand(sync.root);
+          siteBrand.value = {
+            name: resolved.name || sync.name,
+            logo: resolved.logo || sync.logo,
+            root: sync.root,
+            hub: false,
+          };
+          try {
+            const title = document.title || '';
+            if (title && /Workix/i.test(title) && siteBrand.value.name && siteBrand.value.name !== HUB_BRAND) {
+              document.title = title.replace(/Workix/gi, siteBrand.value.name);
+            }
+            const apple = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+            if (apple) apple.setAttribute('content', siteBrand.value.name);
+          } catch (_) { /* ignore */ }
+        } catch (_) {
+          /* keep sync brand */
+        }
+      }
 
       function t(key) {
         return WorkixI18n.t(locale.value, key);
@@ -613,6 +997,79 @@
         if (code === 'pending_moderation') return t('project_pending');
         if (code === 'rejected') return t('project_rejected');
         return t('error') + (e && e.message ? `: ${e.message}` : '');
+      }
+
+      const resolvedProjectLogos = reactive({});
+      const projectLogoPending = new Set();
+      const projectLogoQueue = [];
+      let projectLogoActive = 0;
+      const PROJECT_LOGO_CONCURRENCY = 4;
+
+      function projectLogoSync(st) {
+        if (!st) return '';
+        const explicit = String(st.logo || '').trim();
+        if (explicit && !isWeakLogoUrl(explicit)) return explicit;
+        const fromUrl = (raw) => {
+          const s = String(raw || '').trim();
+          if (!s) return '';
+          try {
+            const u = new URL(/^https?:\/\//i.test(s) ? s : `https://${s}`);
+            const host = u.hostname.replace(/^www\./i, '').toLowerCase();
+            if (host === 'workix.co') return 'https://workix.co/img/logo-pwa.png';
+            if (host === 'facetoplace.app') return 'https://facetoplace.app/img/logo/app.png';
+            if (/(^|\.)github\.com$/i.test(u.hostname)) {
+              const parts = u.pathname.split('/').filter(Boolean);
+              const owner = parts[0] === 'orgs' || parts[0] === 'users' ? parts[1] : parts[0];
+              if (owner) return `https://github.com/${encodeURIComponent(owner)}.png?size=128`;
+            }
+          } catch (_) { /* ignore */ }
+          return '';
+        };
+        return fromUrl(st.url) || fromUrl(st.github) || '';
+      }
+
+      function projectLogo(st) {
+        if (!st) return '';
+        const id = String(st.id || st.slug || '');
+        if (id && Object.prototype.hasOwnProperty.call(resolvedProjectLogos, id)) {
+          return resolvedProjectLogos[id] || '';
+        }
+        return projectLogoSync(st);
+      }
+
+      function drainProjectLogoQueue() {
+        while (projectLogoActive < PROJECT_LOGO_CONCURRENCY && projectLogoQueue.length) {
+          const st = projectLogoQueue.shift();
+          const id = String(st.id || st.slug || '');
+          const site = String(st.url || '').trim();
+          projectLogoActive += 1;
+          resolveSiteIcon(site).then((url) => {
+            resolvedProjectLogos[id] = url || '';
+          }).finally(() => {
+            projectLogoPending.delete(id);
+            projectLogoActive -= 1;
+            drainProjectLogoQueue();
+          });
+        }
+      }
+
+      function enqueueProjectLogo(st) {
+        if (!st) return;
+        const id = String(st.id || st.slug || '');
+        if (!id || projectLogoPending.has(id) || Object.prototype.hasOwnProperty.call(resolvedProjectLogos, id)) return;
+        if (projectLogoSync(st)) return;
+        const site = String(st.url || '').trim();
+        if (!site) {
+          resolvedProjectLogos[id] = '';
+          return;
+        }
+        projectLogoPending.add(id);
+        projectLogoQueue.push(st);
+        drainProjectLogoQueue();
+      }
+
+      function enrichProjectLogos(list) {
+        (list || []).forEach((st) => enqueueProjectLogo(st));
       }
 
       function statusClass(st) {
@@ -804,8 +1261,10 @@
           items: [], hasMore: false, nextOffset: 0, pageOffset: 0, pageLimit: FEED_PAGE,
         }));
         if (kind === 'orders') orders.value = page.items;
-        else if (kind === 'projects') startups.value = page.items;
-        else performers.value = page.items;
+        else if (kind === 'projects') {
+          startups.value = page.items;
+          enrichProjectLogos(page.items);
+        } else performers.value = page.items;
         pager.hasMore = page.hasMore;
         pager.windowStart = 0;
         pager.nextOffset = page.nextOffset;
@@ -834,7 +1293,10 @@
           }
           const seen = new Set((listRef.value || []).map((x) => String(x.id || x.sid || x.slug)));
           const add = page.items.filter((x) => !seen.has(String(x.id || x.sid || x.slug)));
-          if (add.length) listRef.value = [...(listRef.value || []), ...add];
+          if (add.length) {
+            listRef.value = [...(listRef.value || []), ...add];
+            if (kind === 'projects') enrichProjectLogos(add);
+          }
           pager.hasMore = page.hasMore;
           if (listRef.value.length > FEED_WINDOW) {
             const drop = listRef.value.length - FEED_WINDOW;
@@ -1234,8 +1696,22 @@
 
       async function openPerformer(id) {
         currentPerformer.value = await WorkixAPI.getPerformer(id);
-        if (currentPerformer.value) prefetchFxRates([currentPerformer.value]);
+        if (currentPerformer.value) {
+          prefetchFxRates([
+            currentPerformer.value,
+            ...(currentPerformer.value.orders || []),
+          ]);
+        }
         setTimeout(() => refreshEmojis(), 80);
+      }
+
+      function openPerformerRole(role) {
+        if (!role) return;
+        if (role.startupSlug && (role.slug || role.id)) {
+          navigateProject(role.startupSlug, role.slug || null);
+          return;
+        }
+        if (role.id) navigate(`role/${encodeURIComponent(role.id)}`);
       }
 
       function resetProposalForm(order) {
@@ -1877,14 +2353,33 @@
         navigate('catalog');
       }
 
-      /** Rewrite legacy /go /p /#/p /#/go to canonical /{slug} */
-      function canonicalizeProjectUrl() {
+      /** Rewrite hash/legacy URLs to path forms crawlers can preview (Telegram etc.). */
+      function canonicalizeShareUrls() {
         const path = location.pathname || '/';
         const hash = String(location.hash || '');
+
+        let m = hash.match(/^#\/performer\/([^/]+)\/?$/i);
+        if (m) {
+          const id = encodeURIComponent(decodeURIComponent(m[1]));
+          const canon = `/performer/${id}`;
+          if (path + hash !== canon) {
+            history.replaceState(null, '', canon);
+            return true;
+          }
+        }
+        m = hash.match(/^#\/order\/([^/]+)\/?$/i);
+        if (m) {
+          const id = encodeURIComponent(decodeURIComponent(m[1]));
+          const canon = `/order/${id}`;
+          if (path + hash !== canon) {
+            history.replaceState(null, '', canon);
+            return true;
+          }
+        }
+
         let slug = null;
         let role = null;
-
-        let m = path.match(/^\/(?:go|p)\/([^/]+)(?:\/([^/]+))?\/?$/i);
+        m = path.match(/^\/(?:go|p)\/([^/]+)(?:\/([^/]+))?\/?$/i);
         if (m) {
           slug = decodeURIComponent(m[1]);
           role = m[2] && m[2] !== 'edit' ? decodeURIComponent(m[2]) : null;
@@ -1921,7 +2416,7 @@
         accountOpen.value = false;
         langOpen.value = false;
         notifyOpen.value = false;
-        canonicalizeProjectUrl();
+        canonicalizeShareUrls();
         route.value = parseRoute();
         if (ensureOnboarding()) return;
         routeLoad();
@@ -2002,6 +2497,7 @@
           // Keep parity with legacy URLi.host → socket data.host
           WorkixAPI.setFeatureHost(params.get('host') || params.get('site') || location.host || location.hostname || '');
         }
+        applySiteBrand();
         await loadLocale(locale.value);
         await refreshMe();
         onRoute();
@@ -2054,6 +2550,9 @@
       );
 
       watch([filteredOrders, filteredProjects, filteredPerformers, availableTags, feed], () => refreshEmojis());
+      watch(filteredProjects, (list) => enrichProjectLogos(list), { deep: false });
+      watch(performerProjects, (list) => enrichProjectLogos(list), { deep: false });
+      watch(mineStartups, (list) => enrichProjectLogos(list), { deep: false });
       watch(() => route.value.name, (name) => {
         if (name === 'catalog') nextTick().then(bindFeedSentinels);
       });
@@ -2065,10 +2564,11 @@
         locale, route, loading, toast, me, startups, roles, orders, performers, boardTags,
         online, mineStartups,
         currentStartup, currentRole, currentPerformer, currentOrder, routeError, carousel, profile, prefs, q, onceKey, keyDraft,
+        performerProjects, performerOrders, performerRoles,
         keyRotating, displayedAgentKey,
         importText, apiMeta, authStore, formStartup, formRole, formApply, formSupport, formProposal,
         proposalSaving, supportSending, walletChains, proposalCurrencies,
-        feed, filters, slogans, sloganIndex, sloganTick, prevSlogan, currentSlogan,
+        feed, filters, slogans, sloganIndex, sloganTick, prevSlogan, currentSlogan, siteBrand,
         feedTitle, feedSearchPlaceholder,
         feedTypeOptions, openToOptions, availableTags,
         filteredOrders, filteredProjects, filteredPerformers,
@@ -2078,10 +2578,10 @@
         languages, langOpen, accountOpen, notifyOpen, notifications, notifyUnread,
         localeLoading, flagClass, pickLang,
         payCurrencies, taskKinds, profileLinksText,
-        t, statusClass, statusLabel, setLang, navigate, goHome, chooseSegment, agentPrompt, copyAgentPrompt,
+        t, projectLogo, statusClass, statusLabel, setLang, navigate, goHome, chooseSegment, agentPrompt, copyAgentPrompt,
         doRegister, doRotate, doLogout, setAgentKey, loginMvse, saveStartup, saveRole, saveProfile,
         doImportProfile, savePrefs, sendApply, sendSupport, sendOrderProposal, shareLink, sharePage, shareOrder, sharePerformer, shareStartup,
-        openOrderCard, openPerformerCard, openStartupCard, copyText,
+        openOrderCard, openPerformerCard, openStartupCard, openPerformerRole, copyText,
         publisherWallet, publisherWalletList, fromNow,
         rolesForStartup, goLegacyMvse, refreshMe, loadMine,
         setFeed, kindLabel, formatBudget, budgetView, formatMoney, installPwa, refreshEmojis,

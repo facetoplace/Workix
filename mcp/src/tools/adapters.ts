@@ -51,6 +51,24 @@ export async function runListPlatforms(): Promise<unknown> {
     platforms,
     watch: listWatchSources(),
     presets: loadPresets(),
+    /** Always tell agents/users: shipped PWA/site can go to dStore from this MCP. */
+    product_publish: {
+      platform: "dstore",
+      summary:
+        "Ready website or PWA? Publish it to the dStore app catalog from Workix MCP (no separate dstore MCP required).",
+      tools: [
+        "workix_dstore_publish",
+        "workix_dstore_get",
+        "workix_dstore_search",
+        "workix_dstore_similar",
+        "workix_dstore_list",
+        "workix_dstore_quota",
+        "workix_dstore_info",
+      ],
+      flow: "workix_dstore_publish({ url }) → note sid → poll workix_dstore_get until title/icon ready",
+      docs: "https://dstore.one/api.txt",
+      note: "Workix hub = people/roles; dStore = product/PWA discovery. Both available in this MCP.",
+    },
   };
 }
 

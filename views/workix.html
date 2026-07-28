@@ -22,8 +22,7 @@
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-  <link rel="manifest" href="/pwa.json" />
-  <link rel="manifest" href="/site.webmanifest" />
+  <link rel="manifest" href="/manifest.json" />
   <meta name="theme-color" content="#0b0f14" />
   <meta name="msapplication-TileColor" content="#0b0f14" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -62,9 +61,9 @@
     <header class="wx-header">
       <div class="wx-header-row max-w-6xl mx-auto px-4 py-3">
         <a href="/" class="wx-brand" @click.prevent="goHome()">
-          <img class="wx-logo-img" src="/img/logo-pwa.png" width="40" height="40" alt="Workix" />
+          <img class="wx-logo-img" :src="siteBrand.logo" width="40" height="40" :alt="siteBrand.name" />
           <div class="wx-brand-text">
-            <div class="font-semibold tracking-tight leading-none">{{ t('brand') }}</div>
+            <div class="font-semibold tracking-tight leading-none">{{ siteBrand.name }}</div>
             <div class="wx-flip" :aria-label="currentSlogan">
               <span
                 v-if="prevSlogan"
@@ -235,6 +234,7 @@
             :href="p.href"
             :target="p.href.startsWith('http') ? '_blank' : null"
             :rel="p.href.startsWith('http') ? 'noopener' : null"
+            @click="p.href === '/support' && ($event.preventDefault(), navigate('support'))"
           >
             <div class="text-xs wx-muted uppercase tracking-wide">{{ p.kind }}</div>
             <div class="font-semibold mt-1">{{ p.title }}</div>
@@ -242,7 +242,7 @@
           </a>
         </div>
         <div class="mt-8">
-          <a class="wx-btn wx-btn-primary" href="https://t.me/f2p_mg" target="_blank" rel="noopener">{{ t('partners_cta') }}</a>
+          <a class="wx-btn wx-btn-primary" href="/support" @click.prevent="navigate('support')">{{ t('partners_cta') }}</a>
         </div>
       </section>
 
@@ -266,7 +266,7 @@
           </article>
         </div>
         <div class="mt-8">
-          <a class="wx-btn wx-btn-primary" href="https://t.me/f2p_mg" target="_blank" rel="noopener">{{ t('cases_submit') }}</a>
+          <a class="wx-btn wx-btn-primary" href="/support" @click.prevent="navigate('support')">{{ t('cases_submit') }}</a>
         </div>
       </section>
 
@@ -398,7 +398,9 @@
               <article v-for="st in filteredProjects" :key="st.id" class="wx-card wx-row-card p-4 mb-3" :class="{ 'is-featured': st.featured }">
                 <div v-if="st.featured" class="wx-featured-badge" :title="t('featured_hint')">{{ t('featured_site') }}</div>
                 <div class="flex gap-4">
-                  <div class="wx-avatar" :style="st.logo ? 'background-image:url(' + st.logo + ')' : ''">{{ (st.name || '?').slice(0,1) }}</div>
+                  <div class="wx-avatar" :style="projectLogo(st) ? 'background-image:url(' + projectLogo(st) + ')' : ''">
+                    <template v-if="!projectLogo(st)">{{ (st.name || '?').slice(0,1) }}</template>
+                  </div>
                   <div class="min-w-0 flex-1">
                     <div class="flex flex-wrap items-start justify-between gap-2">
                       <div>
@@ -631,16 +633,23 @@
             </div>
           </div>
 
-          <aside class="wx-order-side">
+          <aside class="wx-order-side" v-if="currentOrder.publisher && !currentOrder.scraped">
             <div class="wx-card p-5">
               <div class="flex gap-3 items-center mb-4">
-                <div
-                  class="wx-avatar"
-                  :style="currentOrder.publisher && currentOrder.publisher.avatar ? 'background-image:url(' + currentOrder.publisher.avatar + ')' : ''"
-                >{{ ((currentOrder.publisher && currentOrder.publisher.name) || '?').slice(0,1) }}</div>
+                <a
+                  href="#/catalog"
+                  class="wx-avatar shrink-0"
+                  :style="currentOrder.publisher.avatar ? 'background-image:url(' + currentOrder.publisher.avatar + ')' : ''"
+                  @click.prevent="openPerformerCard(currentOrder.publisher.performerId || currentOrder.publisher.id || currentOrder.publisher.userId)"
+                >{{ (currentOrder.publisher.name || '?').slice(0,1) }}</a>
                 <div class="min-w-0">
-                  <div class="font-semibold truncate" translate="no">{{ (currentOrder.publisher && currentOrder.publisher.name) || '—' }}</div>
-                  <div class="text-xs wx-muted">{{ t('posted') }} {{ fromNow(currentOrder.published || currentOrder.date) }}</div>
+                  <a
+                    href="#/catalog"
+                    class="font-semibold truncate block hover:underline"
+                    translate="no"
+                    @click.prevent="openPerformerCard(currentOrder.publisher.performerId || currentOrder.publisher.id || currentOrder.publisher.userId)"
+                  >{{ currentOrder.publisher.name || '—' }}</a>
+                  <div class="text-xs wx-muted">{{ t('performer_title') }} · {{ t('posted') }} {{ fromNow(currentOrder.published || currentOrder.date) }}</div>
                   <div
                     class="text-xs wx-muted"
                     v-if="currentOrder.updated && currentOrder.updated !== currentOrder.published"
@@ -763,6 +772,107 @@
             <span v-else-if="!currentPerformer.github" class="wx-muted text-sm self-center">{{ t('no_contact') }}</span>
           </div>
         </div>
+
+        <div
+          class="mt-8"
+          v-if="(performerProjects || []).length || (performerOrders || []).length || (performerRoles || []).length"
+        >
+          <section v-if="(performerProjects || []).length" class="mb-8">
+            <h2 class="text-lg font-semibold mb-3">{{ t('performer_projects') }}</h2>
+            <article
+              v-for="st in performerProjects"
+              :key="st.id || st.slug"
+              class="wx-card wx-row-card p-4 mb-3 cursor-pointer hover:border-sky-500/40"
+              @click="openStartupCard(st.slug)"
+            >
+              <div class="flex gap-4">
+                <div class="wx-avatar wx-avatar-sm" :style="projectLogo(st) ? 'background-image:url(' + projectLogo(st) + ')' : ''">
+                  <template v-if="!projectLogo(st)">{{ (st.name || '?').slice(0,1) }}</template>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <h3 class="text-lg font-semibold leading-snug">
+                    <a
+                      class="hover:underline"
+                      :href="'/' + encodeURIComponent(st.slug)"
+                      @click.prevent="openStartupCard(st.slug)"
+                    >{{ st.name }}</a>
+                  </h3>
+                  <p class="text-sm wx-muted mt-1 line-clamp-2">{{ st.description }}</p>
+                  <div class="mt-3">
+                    <button type="button" class="wx-btn wx-btn-ghost text-sm" @click.stop="openStartupCard(st.slug)">{{ t('open') }}</button>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </section>
+
+          <section v-if="(performerOrders || []).length || (performerRoles || []).length">
+            <h2 class="text-lg font-semibold mb-3">{{ t('performer_orders') }}</h2>
+            <article
+              v-for="r in performerOrders"
+              :key="'o-' + (r.id || r.sid)"
+              class="wx-card wx-row-card p-4 mb-3 cursor-pointer hover:border-sky-500/40"
+              @click="openOrderCard(r.sid || r.id)"
+            >
+              <div
+                class="wx-price-corner"
+                :class="budgetView(r).empty ? 'is-empty' : 'is-paid'"
+                translate="no"
+              >
+                <template v-if="budgetView(r).empty">—</template>
+                <template v-else>
+                  <span>{{ formatMoney(budgetView(r).amount) }}</span>
+                  <emoji v-if="budgetView(r).currency === 'USDT'" id="6035288280562404083" class="wx-cur-emoji"></emoji>
+                  <span v-else class="wx-cur-code">{{ budgetView(r).currency }}</span>
+                </template>
+              </div>
+              <div class="flex gap-4">
+                <div class="wx-avatar" :style="r.cover ? 'background-image:url(' + r.cover + ')' : ''">
+                  <emoji v-if="r.emoji && !r.cover" :id="r.emoji"></emoji>
+                  <template v-else-if="!r.cover">{{ (r.title || '?').slice(0,1) }}</template>
+                </div>
+                <div class="min-w-0 flex-1 pr-16">
+                  <h3 class="text-lg font-semibold leading-snug">
+                    <a
+                      class="hover:underline"
+                      :href="'/order/' + encodeURIComponent(r.sid || r.id)"
+                      @click.prevent="openOrderCard(r.sid || r.id)"
+                    >{{ r.title }}</a>
+                  </h3>
+                  <p class="text-sm wx-muted mt-1 line-clamp-2">{{ r.description }}</p>
+                  <div class="text-xs wx-muted mt-1">{{ kindLabel(r.kind || r.type) }}</div>
+                  <div class="mt-3">
+                    <button type="button" class="wx-btn wx-btn-primary text-sm" @click.stop="openOrderCard(r.sid || r.id)">{{ t('open') }}</button>
+                  </div>
+                </div>
+              </div>
+            </article>
+            <article
+              v-for="r in performerRoles"
+              :key="'role-' + r.id"
+              class="wx-card wx-row-card p-4 mb-3 cursor-pointer hover:border-sky-500/40"
+              @click="openPerformerRole(r)"
+            >
+              <div class="flex gap-4">
+                <div class="wx-avatar">{{ (r.title || '?').slice(0,1) }}</div>
+                <div class="min-w-0 flex-1">
+                  <h3 class="text-lg font-semibold leading-snug">
+                    <a
+                      class="hover:underline"
+                      :href="r.startupSlug ? ('/' + encodeURIComponent(r.startupSlug) + '/' + encodeURIComponent(r.slug || r.id)) : ('#/role/' + r.id)"
+                      @click.prevent="openPerformerRole(r)"
+                    >{{ r.title }}</a>
+                  </h3>
+                  <p class="text-sm wx-muted mt-1 line-clamp-2">{{ r.description }}</p>
+                  <div class="text-xs wx-muted mt-1" v-if="r.startupSlug || r.startupName">{{ r.startupName || r.startupSlug }}</div>
+                  <div class="mt-3">
+                    <button type="button" class="wx-btn wx-btn-ghost text-sm" @click.stop="openPerformerRole(r)">{{ t('open') }}</button>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </section>
+        </div>
       </section>
 
       <!-- STARTUP UNAVAILABLE (moderation / rejected for non-owner) -->
@@ -819,6 +929,30 @@
             <a class="wx-btn wx-btn-ghost" :href="'#/new-role/' + currentStartup.id">{{ t('create_role') }}</a>
           </div>
         </div>
+
+        <article
+          v-if="currentStartup.publisher"
+          class="wx-card wx-row-card p-4 mt-4 cursor-pointer hover:border-sky-500/40"
+          @click="openPerformerCard(currentStartup.publisher.id || currentStartup.publisher.userId)"
+        >
+          <div class="text-xs wx-muted mb-2">{{ t('project_publisher') }}</div>
+          <div class="flex gap-4 items-center">
+            <div
+              class="wx-avatar"
+              :style="currentStartup.publisher.avatar ? 'background-image:url(' + currentStartup.publisher.avatar + ')' : ''"
+            >
+              <emoji v-if="currentStartup.publisher.emoji && !currentStartup.publisher.avatar" :id="currentStartup.publisher.emoji"></emoji>
+              <template v-else-if="!currentStartup.publisher.avatar">{{ (currentStartup.publisher.name || '?').slice(0,1) }}</template>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="font-semibold truncate">{{ currentStartup.publisher.name }}</div>
+              <p class="text-sm wx-muted mt-0.5 line-clamp-2" v-if="currentStartup.publisher.headline">{{ currentStartup.publisher.headline }}</p>
+              <div class="text-xs wx-muted mt-1">{{ t('performer_title') }}</div>
+            </div>
+            <button type="button" class="wx-btn wx-btn-ghost text-sm shrink-0" @click.stop="openPerformerCard(currentStartup.publisher.id || currentStartup.publisher.userId)">{{ t('open') }}</button>
+          </div>
+        </article>
+
         <h2 class="text-xl font-semibold mt-8 mb-3">{{ t('roles') }}</h2>
         <div v-if="!roles.length" class="wx-muted">{{ t('no_roles') }}</div>
         <div class="grid md:grid-cols-2 gap-4">
@@ -1172,9 +1306,9 @@
       </section>
 
       <!-- SUPPORT -->
-      <section v-else-if="route.name==='support'" class="max-w-xl">
-        <h1 class="text-2xl font-semibold mb-2">{{ t('support_title') }}</h1>
-        <p class="wx-muted mb-6">{{ t('support_sub') }}</p>
+      <section v-else-if="route.name==='support'" class="max-w-xl mx-auto w-full">
+        <h1 class="text-2xl font-semibold mb-2 text-center">{{ t('support_title') }}</h1>
+        <p class="wx-muted mb-6 text-center">{{ t('support_sub') }}</p>
         <div class="wx-card p-5 grid gap-4">
           <label class="text-sm">
             <span class="wx-field-label">{{ t('support_contact') }}<span class="wx-help" tabindex="0" :data-tip="t('hint_support_contact')">?</span></span>
@@ -1256,7 +1390,8 @@
             <li><a href="/agent">{{ t('footer_agents') }}</a></li>
             <li><a href="/api.txt">{{ t('footer_api') }}</a></li>
             <li><a href="/openapi-v1.yaml">{{ t('footer_openapi') }}</a></li>
-            <li><a href="https://github.com/facetoplace/Workix" target="_blank" rel="noopener">{{ t('footer_mcp') }}</a></li>
+            <li><a href="https://github.com/facetoplace/Workix" target="_blank" rel="noopener">{{ t('footer_source') }}</a></li>
+            <li><a href="https://github.com/facetoplace/Workix/tree/main/mcp" target="_blank" rel="noopener">{{ t('footer_mcp') }}</a></li>
             <li><a href="/legacy">Legacy</a></li>
             <li><a href="/support">{{ t('footer_support') }}</a></li>
             <li><a href="https://liber.ws/workix" target="_blank" rel="noopener">{{ t('footer_sponsor') }}</a></li>
@@ -1279,11 +1414,11 @@
     >↑</button>
   </div>
 
-  <script data-cfasync="false" src="/hub/i18n.js?v=0.1.37"></script>
-  <script data-cfasync="false" src="/hub/stories.js?v=0.1.2"></script>
+  <script data-cfasync="false" src="/hub/i18n.js?v=0.1.39"></script>
+  <script data-cfasync="false" src="/hub/stories.js?v=0.1.3"></script>
   <script data-cfasync="false" src="/hub/mock-db.js?v=0.1.17"></script>
   <script data-cfasync="false" src="/hub/auth.js?v=0.1.16"></script>
   <script data-cfasync="false" src="/hub/api.js?v=0.1.28"></script>
-  <script data-cfasync="false" src="/hub/app.js?v=1.2.10"></script>
+  <script data-cfasync="false" src="/hub/app.js?v=1.2.21"></script>
 </body>
 </html>

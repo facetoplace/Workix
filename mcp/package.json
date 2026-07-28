@@ -1,15 +1,25 @@
 {
-  "name": "workix-mcp",
-  "version": "0.1.0",
-  "private": true,
-  "description": "Workix MCP — freelance digest, search, and proposal helpers",
+  "name": "@workix/mcp",
+  "version": "0.1.3",
+  "description": "Workix MCP for AI agents: search the Workix hub (projects/startups, roles, orders, performers), create or update your listings and performer profile with WORKIX_AGENT_KEY, collect freelance/job digests from supported boards (adapters stay local — platform credentials never go to the hub), draft proposals, and prepare browser apply checklists. Also talks to the dStore app catalog. Hub: https://workix.co — agent docs: https://workix.co/agent",
   "type": "module",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "bin": {
     "workix-mcp": "dist/index.js"
   },
+  "files": [
+    "dist",
+    "platforms.json",
+    "presets.json",
+    "profile.example.md",
+    "telegram-channels.example.json",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc",
+    "prepublishOnly": "npm run build",
     "pack:adapters": "node scripts/pack-adapters.mjs",
     "build:all": "npm run build && npm run pack:adapters",
     "start": "node dist/index.js",
@@ -23,12 +33,38 @@
   "engines": {
     "node": ">=20"
   },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "workix",
+    "freelance",
+    "jobs",
+    "ai-agents",
+    "cursor"
+  ],
+  "author": "Workix <mail@workix.co>",
+  "homepage": "https://workix.co",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/facetoplace/Workix.git",
+    "directory": "mcp"
+  },
+  "bugs": {
+    "url": "https://github.com/facetoplace/Workix/issues"
+  },
+  "license": "SEE LICENSE IN LICENSE",
+  "mcpName": "co.workix/mcp",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
     "dotenv": "^17.4.2",
     "https-proxy-agent": "^9.1.0",
     "kwork-api": "^1.3.3",
     "rss-parser": "^3.13.0",
+    "socket.io-client": "^2.5.0",
     "socks-proxy-agent": "^10.1.0",
     "tar": "^7.4.3",
     "zod": "^3.25.76"

@@ -1,12 +1,32 @@
 # Workix MCP
 
-Local MCP server for the [workix.co](https://workix.co) hub and freelance boards. **Published in this public repo** so communities and projects can extend adapters and tools with us — see [CONTRIBUTING.md](../CONTRIBUTING.md).
+Local MCP server for AI agents ([Cursor](https://cursor.com), Claude, etc.) that work with the [Workix hub](https://workix.co) and freelance boards.
+
+Workix is a shared catalog where **projects** (startups/products/communities), **roles & orders**, and **performers** find each other. It is not a closed freelance marketplace: listings point to the owner’s preferred contact or apply flow. Agents use this MCP to search that catalog, manage your listings, and also pull opportunities from external boards while keeping platform credentials on the user’s machine.
+
+**Install:** `npx -y @workix/mcp` · Docs: [workix.co/agent](https://workix.co/agent) · [api.txt](https://workix.co/api.txt) · [llms.txt](https://workix.co/llms.txt)
+
+### Where it is published
+
+| Channel | Link / id |
+|---------|-----------|
+| npm | [@workix/mcp](https://www.npmjs.com/package/@workix/mcp) |
+| Official MCP Registry | [`co.workix/mcp`](https://registry.modelcontextprotocol.io/v0.1/servers?search=co.workix/mcp) |
+| Source | [facetoplace/Workix](https://github.com/facetoplace/Workix) → `mcp/` |
+| Community catalogs | [mcp.so](https://mcp.so/) · [mcpservers.org](https://mcpservers.org/) · [mcpmarket.com](https://mcpmarket.com/) |
+
+### What you can use it for
+
+- **Discover** — search hub projects, roles, orders, and performers relevant to a skill or niche
+- **Publish / update** — create or edit a startup or role, maintain a performer profile (`WORKIX_AGENT_KEY`)
+- **Freelance workflow** — digests and search across supported boards, draft proposals, prepare browser apply steps (submit only with human confirmation)
+- **Ship a product card** — publish a live site/PWA URL into the dStore catalog and find similar apps
 
 - **Hub tools** — search/list/create projects, roles, profile; feedback/support (needs `WORKIX_AGENT_KEY`)
 - **Board tools** — digest / search / draft / prepare-apply on Upwork, Freelancehunt, Kwork, FL RSS, … (credentials stay in your env)
 - **Downloadable adapters** — heavy board modules are **not** required at install; MCP downloads them from the hub registry on first use and caches locally
 
-Install & agent prompt: [../README.md](../README.md) · Hub docs: https://workix.co/api.txt · https://workix.co/llms.txt
+Open contribution: see [CONTRIBUTING.md](../CONTRIBUTING.md). Agent prompt & storefront: [../README.md](../README.md).
 
 ## Downloadable platform modules
 
@@ -65,12 +85,14 @@ On Windows ARM, native scripts may be disabled (`.npmrc`: `ignore-scripts=true`)
 
 ## Cursor `mcp.json`
 
+Recommended (npm):
+
 ```json
 {
   "mcpServers": {
     "workix": {
-      "command": "node",
-      "args": ["FULL/PATH/TO/Workix/mcp/dist/index.js"],
+      "command": "npx",
+      "args": ["-y", "@workix/mcp"],
       "env": {
         "WORKIX_API": "https://workix.co",
         "WORKIX_AGENT_KEY": "wix_…"
@@ -79,6 +101,8 @@ On Windows ARM, native scripts may be disabled (`.npmrc`: `ignore-scripts=true`)
   }
 }
 ```
+
+From a local clone (dev): `"command": "node"`, `"args": ["FULL/PATH/TO/Workix/mcp/dist/index.js"]`.
 
 Optional board credentials (examples — see `.env.example`):
 
@@ -101,10 +125,14 @@ Optional: `WORKIX_PROFILE_PATH`, `WORKIX_MCP_DATA`.
 
 | Tool | Role |
 |------|------|
-| `workix_hub_health` / `workix_hub_register` / `workix_hub_me` | Auth & health |
-| `workix_list_startups` / `workix_get_startup` / `workix_create_startup` / `workix_update_startup` | Projects |
-| `workix_list_roles` / `workix_create_role` / `workix_update_role` | Roles / orders |
-| `workix_get_profile` / `workix_update_profile` | Performer profile |
+| `workix_hub_health` / `workix_hub_register` / `workix_hub_me` / `workix_hub_rotate_key` | Auth & health (`rotate_key` needs `confirm:true`; writes `mcp/.env` by default) |
+| `workix_list_startups` / `workix_get_startup` / `workix_create_startup` / `workix_update_startup` | Projects — products, startups, early ideas OK (`pending` = publish) |
+| `workix_list_performers` / `workix_get_performer` | Performers (builders + bloggers/creators) + their listings |
+| `workix_list_hub_orders` / `workix_get_hub_order` | Hub orders (`scraped` → no publisher card) |
+| `workix_list_roles` / `workix_create_role` / `workix_update_role` | Roles / orders (concrete asks; paid or cofounder) |
+| `workix_get_profile` / `workix_update_profile` | Own performer profile (encourage public card + `openTo`) |
+
+Write tools echo a short **who can publish** guide: early stage welcome; moderation (`pending`) is normal — do not discourage listing.
 | `workix_hub_apply` | Apply on hub |
 | `workix_feedback` | bug / suggestion / support / other → hub admins (rate-limited) |
 
@@ -112,6 +140,8 @@ Optional: `WORKIX_PROFILE_PATH`, `WORKIX_MCP_DATA`.
 
 | Tool | Role |
 |------|------|
+| `workix_dstore_search` / `_similar` / `_get` / `_publish` / `_list` / `_quota` | [dStore](https://dstore.one) catalog — same REST as official **dstore-mcp** ([api.txt](https://dstore.one/api.txt)) |
+| _(optional)_ separate MCP `dstore` | `search_catalog`, `get_app`, `get_similar`, `add_url`, `get_list`, `quota_status` — see api.txt §0 |
 | `workix_digest` / `workix_search` / `workix_get_job` | Read boards (auto-downloads adapters) |
 | `workix_draft_proposal` | Draft reply |
 | `workix_submit_proposal` | Submit only with `confirm: true` after human OK |

@@ -3,6 +3,8 @@
  * Keep in sync with UI hints (assets/hub/i18n.js) and Hub API.
  */
 import { z } from "zod";
+/** Tell agents: early listings are welcome — do not scare users off publishing. */
+export declare const HUB_PUBLISH_GUIDE: string;
 export declare const HUB_FIELD_GUIDE: string;
 export declare const zSlug: z.ZodString;
 export declare const zUrlSoft: z.ZodString;

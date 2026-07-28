@@ -8,7 +8,7 @@
       "platforms": [
         "kwork"
       ],
-      "sha256": "751532321deb0eaf1053107174a7d6d8e1cfe064b7f5d286ccf146e2184ae02c",
+      "sha256": "111592afbca96705b88431f6390b3d52b82c92bcb9f16e2fe6fd56f262c37cfc",
       "url": "/mcp/adapters/kwork-1.0.0.tgz",
       "envKeys": [
         "KWORK_LOGIN",
@@ -24,7 +24,7 @@
       "platforms": [
         "freelancehunt"
       ],
-      "sha256": "a086a7c7fb7b6622ff6117c6eec9c18bf4c102e13ec6f43066f7cc43c6f20ab4",
+      "sha256": "8ec1b987af62f564993065c6eed6f54d450abd1e4f24f0411678f86a7ceeea6c",
       "url": "/mcp/adapters/freelancehunt-1.0.0.tgz",
       "envKeys": [
         "FREELANCEHUNT_TOKEN"
@@ -37,7 +37,7 @@
       "platforms": [
         "hh"
       ],
-      "sha256": "716b9c173a3197c74cafd4461aa36259799e251fec07c19950cf50ad0d23ce97",
+      "sha256": "3e815288861291137e21cc8dc0e09e5453fc55f771bcaf11f1a449613d30569b",
       "url": "/mcp/adapters/hh-1.0.0.tgz",
       "envKeys": [
         "HH_USER_AGENT",
@@ -51,7 +51,7 @@
       "platforms": [
         "remoteok"
       ],
-      "sha256": "e0b3d3d3c8e92c8b0fc56b2c2cde156a3892c811c36ddc989260ce482457b4f4",
+      "sha256": "7ee778d035bd583195b148606fded88235a25b8b8a853962d317957a126208ba",
       "url": "/mcp/adapters/remoteok-1.0.0.tgz",
       "envKeys": [],
       "minCore": "0.3.0"
@@ -62,7 +62,7 @@
       "platforms": [
         "upwork"
       ],
-      "sha256": "2d191d2844cf1897b5c1616b32e9cc660051b8f7898b266d1fe52bf74879cf3b",
+      "sha256": "a38cda8145293e9c6d683a3e9546550e457089b0663a085948d69356339da143",
       "url": "/mcp/adapters/upwork-1.0.0.tgz",
       "envKeys": [
         "UPWORK_CLIENT_ID",
@@ -79,11 +79,25 @@
       "platforms": [
         "freelancer_com"
       ],
-      "sha256": "19263d28a2d41b0c4d626d3c1252f2910975acf791037298fd4912fee94fc1bd",
+      "sha256": "5ee710d88488eeeb15540c9d9bf405638c29a78400e882fff14cd9e3bac767cc",
       "url": "/mcp/adapters/freelancer-1.0.0.tgz",
       "envKeys": [
         "FREELANCER_TOKEN",
         "FREELANCER_ACCESS_TOKEN"
+      ],
+      "minCore": "0.3.0"
+    },
+    {
+      "id": "dstore",
+      "version": "1.1.0",
+      "platforms": [
+        "dstore"
+      ],
+      "sha256": "681e911fecb8f0463b32b1198644dfab6b5dff7a7245a1dfc1e3052ab4ac1535",
+      "url": "/mcp/adapters/dstore-1.1.0.tgz",
+      "envKeys": [
+        "DSTORE_API_KEY",
+        "DSTORE_API_BASE"
       ],
       "minCore": "0.3.0"
     }

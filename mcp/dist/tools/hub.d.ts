@@ -46,6 +46,62 @@ export declare function hubMe(): Promise<{
     data: unknown;
     error?: undefined;
 }>;
+/**
+ * Rotate hub agent API key. Old key stops working immediately.
+ * Requires confirm:true. By default writes the new key to mcp/.env and process.env.
+ */
+export declare function hubRotateAgentKey(args?: {
+    confirm?: boolean;
+    persist_env?: boolean;
+}): Promise<{
+    ok: boolean;
+    error: string;
+    status?: undefined;
+    data?: undefined;
+} | {
+    ok: boolean;
+    status: number;
+    error: string;
+    data: unknown;
+} | {
+    ok: boolean;
+    status: number;
+    data: unknown;
+    error?: undefined;
+} | {
+    ok: boolean;
+    error: string;
+    data: unknown;
+    status?: undefined;
+    agentApiKey?: undefined;
+    hasAgentKey?: undefined;
+    persistedEnv?: undefined;
+    warning?: undefined;
+    envPath?: undefined;
+    note?: undefined;
+} | {
+    ok: boolean;
+    status: number | undefined;
+    agentApiKey: string;
+    hasAgentKey: boolean;
+    persistedEnv: boolean;
+    warning: string;
+    error?: undefined;
+    data?: undefined;
+    envPath?: undefined;
+    note?: undefined;
+} | {
+    ok: boolean;
+    status: number | undefined;
+    agentApiKey: string;
+    hasAgentKey: boolean;
+    persistedEnv: boolean;
+    envPath: string | undefined;
+    note: string;
+    error?: undefined;
+    data?: undefined;
+    warning?: undefined;
+}>;
 export declare function hubListMyStartups(): Promise<{
     ok: boolean;
     error: string;
@@ -64,6 +120,8 @@ export declare function hubListMyStartups(): Promise<{
 }>;
 export declare function hubListStartups(args?: {
     q?: string;
+    limit?: number;
+    offset?: number;
 }): Promise<{
     ok: boolean;
     error: string;
@@ -82,6 +140,7 @@ export declare function hubListStartups(args?: {
 }>;
 export declare function hubGetStartup(args: {
     slug: string;
+    include_roles?: boolean;
 }): Promise<{
     ok: boolean;
     error: string;
@@ -97,6 +156,115 @@ export declare function hubGetStartup(args: {
     status: number;
     data: unknown;
     error?: undefined;
+} | {
+    data: {
+        pageUrl: string;
+        publisher: Record<string, unknown> | null;
+        roles: {} | undefined;
+        note: string;
+    };
+    ok: boolean;
+    error: string;
+    status?: undefined;
+}>;
+export declare function hubListPerformers(args?: {
+    q?: string;
+    tags?: string[];
+    limit?: number;
+    offset?: number;
+}): Promise<{
+    ok: boolean;
+    error: string;
+    status?: undefined;
+    data?: undefined;
+} | {
+    ok: boolean;
+    status: number;
+    error: string;
+    data: unknown;
+} | {
+    ok: boolean;
+    status: number;
+    data: unknown;
+    error?: undefined;
+}>;
+export declare function hubGetPerformer(args: {
+    id: string;
+}): Promise<{
+    ok: boolean;
+    error: string;
+    status?: undefined;
+    data?: undefined;
+} | {
+    ok: boolean;
+    status: number;
+    error: string;
+    data: unknown;
+} | {
+    ok: boolean;
+    status: number;
+    data: unknown;
+    error?: undefined;
+} | {
+    data: {
+        pageUrl: string;
+        projects: (Record<string, unknown> | null)[];
+        orders: (Record<string, unknown> | null)[];
+        roles: (Record<string, unknown> | null)[];
+        note: string;
+    };
+    ok: boolean;
+    error: string;
+    status?: undefined;
+}>;
+export declare function hubListOrders(args?: {
+    q?: string;
+    limit?: number;
+    offset?: number;
+    publisher?: string;
+}): Promise<{
+    ok: boolean;
+    error: string;
+    status?: undefined;
+    data?: undefined;
+} | {
+    ok: boolean;
+    status: number;
+    error: string;
+    data: unknown;
+} | {
+    ok: boolean;
+    status: number;
+    data: unknown;
+    error?: undefined;
+}>;
+export declare function hubGetOrder(args: {
+    id: string;
+}): Promise<{
+    ok: boolean;
+    error: string;
+    status?: undefined;
+    data?: undefined;
+} | {
+    ok: boolean;
+    status: number;
+    error: string;
+    data: unknown;
+} | {
+    ok: boolean;
+    status: number;
+    data: unknown;
+    error?: undefined;
+} | {
+    data: {
+        scraped: boolean;
+        publisher: Record<string, unknown> | null;
+        pageUrl: string;
+        note: string;
+    };
+    ok: boolean;
+    error: string;
+    status?: undefined;
 }>;
 export type InfoLink = {
     label?: string;

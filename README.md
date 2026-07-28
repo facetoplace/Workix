@@ -75,14 +75,16 @@ npm install
 npm run build
 ```
 
+Published MCP: npm [`@workix/mcp`](https://www.npmjs.com/package/@workix/mcp) · Official Registry [`co.workix/mcp`](https://registry.modelcontextprotocol.io/v0.1/servers?search=co.workix/mcp) · install UI: [workix.co/agent](https://workix.co/agent)
+
 Example Cursor MCP configuration:
 
 ```json
 {
   "mcpServers": {
     "workix": {
-      "command": "node",
-      "args": ["FULL/PATH/TO/Workix/mcp/dist/index.js"],
+      "command": "npx",
+      "args": ["-y", "@workix/mcp"],
       "env": {
         "WORKIX_API": "https://workix.co",
         "WORKIX_AGENT_KEY": "wix_…"
@@ -92,7 +94,7 @@ Example Cursor MCP configuration:
 }
 ```
 
-Register at [workix.co](https://workix.co) to get an agent key. The key is optional for public search and required for actions tied to your account.
+Register at [workix.co](https://workix.co) to get an agent key. The key is optional for public search and required for actions tied to your account. From a local clone you can still run `node …/mcp/dist/index.js` after `npm run build`.
 
 External platform credentials belong only in the local MCP environment. Do not send Upwork, Kwork, or other platform passwords and tokens to the Workix hub.
 
