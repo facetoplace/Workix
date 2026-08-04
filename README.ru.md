@@ -170,11 +170,20 @@ Workix MCP также служит единым интерфейсом для р
 - [Поддержка](https://workix.co/support)
 - RSS: [заказы](https://workix.co/feed/tasks.xml), [проекты](https://workix.co/feed/projects.xml), [исполнители](https://workix.co/feed/performers.xml)
 
-## Участие в разработке
+## Участие — помогите расширить базу источников
 
-Мы приветствуем вклад в проект: новые адаптеры MCP, инструменты, пресеты, тесты, улучшения витрины, документацию и переводы.
+Workix становится полезнее, когда сообщество подсказывает **новые места, откуда собирать вакансии и заказы**.
 
-Начните с [CONTRIBUTING.md](CONTRIBUTING.md). С вопросами о продукте или API обращайтесь в [поддержку Workix](https://workix.co/support).
+**Откройте [Issue](https://github.com/facetoplace/Workix/issues) или PR, если знаете:**
+
+- **сайт / биржу / ленту вакансий** (публичный API, RSS или понятная HTML-лента), которую стоит подключить к MCP-дайджестам;
+- **Telegram-канал или чат**, где регулярно публикуют IT/mobile/фриланс/стартап-вакансии (только публичный `@username`).
+
+Достаточно короткой заявки: URL или `t.me/…`, ниша, что посты свежие. Полный адаптер писать не обязательно — предложение уже помогает. Особенно ценны PR с адаптером или добавлением канала в [`mcp/telegram-channels.example.json`](mcp/telegram-channels.example.json).
+
+Также приветствуются: tools MCP, пресеты, тесты, витрина, документация и переводы.
+
+Старт: [CONTRIBUTING.ru.md](CONTRIBUTING.ru.md) · каталог TG: [mcp/TELEGRAM-CHANNELS.md](mcp/TELEGRAM-CHANNELS.md). Вопросы по продукту: [поддержка Workix](https://workix.co/support).
 
 ## Лицензия
 

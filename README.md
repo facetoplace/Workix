@@ -172,11 +172,20 @@ The source catalog is [`mcp/platforms.json`](mcp/platforms.json). Run `workix_li
 - [Support](https://workix.co/support)
 - RSS: [orders](https://workix.co/feed/tasks.xml), [projects](https://workix.co/feed/projects.xml), [performers](https://workix.co/feed/performers.xml)
 
-## Contributing
+## Contributing — help grow the job & channel coverage
 
-Contributions are welcome: new MCP adapters, tools, presets, tests, storefront improvements, documentation, and translations.
+Workix gets better when the community points us at **more places to collect work**.
 
-Start with [CONTRIBUTING.md](CONTRIBUTING.md). For product or API questions, use [Workix support](https://workix.co/support).
+**Please open a GitHub [Issue](https://github.com/facetoplace/Workix/issues) or PR if you know:**
+
+- a **website / job board / hiring feed** (public API, RSS, or a clear HTML list) worth wiring into MCP digests;
+- a **Telegram channel or chat** where people regularly post IT/mobile/freelance/startup vacancies (public `@username` only).
+
+Even a short note helps: URL or `t.me/…`, what niche it covers, and that posts are recent. You do not need to ship a full adapter — a proposal is enough. PRs that add an adapter or a channel to [`mcp/telegram-channels.example.json`](mcp/telegram-channels.example.json) are especially welcome.
+
+Also welcome: MCP tools, presets, tests, storefront improvements, docs, and translations.
+
+Start with [CONTRIBUTING.md](CONTRIBUTING.md) · Telegram catalog: [mcp/TELEGRAM-CHANNELS.md](mcp/TELEGRAM-CHANNELS.md). Product questions: [Workix support](https://workix.co/support).
 
 ## License
 
