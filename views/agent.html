@@ -266,23 +266,37 @@
           <a href="/api.txt">api.txt</a>
           <a href="/agent.txt">agent.txt</a>
           <a href="/openapi-v1.yaml">OpenAPI</a>
+          <a href="https://github.com/facetoplace/Workix" target="_blank" rel="noopener">GitHub (source)</a>
           <a href="https://www.npmjs.com/package/@workix/mcp" target="_blank" rel="noopener">npm @workix/mcp</a>
           <a href="https://registry.modelcontextprotocol.io/v0.1/servers?search=co.workix/mcp" target="_blank" rel="noopener">MCP Registry</a>
-          <a href="https://github.com/facetoplace/Workix" target="_blank" rel="noopener">GitHub</a>
           <a href="/support">Support</a>
         </div>
       </section>
 
       <section class="wx-agent-section">
         <h2 data-i="h_mcp">Connect MCP (Cursor)</h2>
-        <p data-i="p_mcp">Paste into your client <code>mcp.json</code>. Public search works with only <code>WORKIX_API</code>; set <code>WORKIX_AGENT_KEY</code> for create/update/apply.</p>
-        <div class="wx-card p-5">
+        <p data-i="p_mcp">Recommended: clone the repo, build <code>mcp/</code>, then paste this into <code>mcp.json</code>. Public search works with only <code>WORKIX_API</code>; set <code>WORKIX_AGENT_KEY</code> for create/update/apply.</p>
+        <pre class="wx-agent-cmd" id="mcpBuildBox" tabindex="0"></pre>
+        <div class="wx-card p-5" style="margin-top:1rem">
           <pre class="wx-agent-cmd" id="mcpJsonBox" tabindex="0"></pre>
           <div class="wx-agent-actions" style="margin-top:1rem">
             <button class="wx-btn wx-btn-primary" type="button" id="copyMcpJson" data-i="cta_mcp">Copy mcp.json snippet</button>
-            <a class="wx-btn wx-btn-ghost" href="https://www.npmjs.com/package/@workix/mcp" target="_blank" rel="noopener">@workix/mcp</a>
+            <a class="wx-btn wx-btn-ghost" href="https://github.com/facetoplace/Workix/tree/main/mcp" target="_blank" rel="noopener">GitHub mcp/</a>
           </div>
-          <p class="wx-muted text-sm" style="margin:1rem 0 0" data-i="p_mcp_pub">Published as <code>@workix/mcp</code> on npm and <code>co.workix/mcp</code> in the Official MCP Registry. Source: GitHub <code>mcp/</code>.</p>
+          <p class="wx-muted text-sm" style="margin:1rem 0 0" data-i="p_mcp_pub">Prefer source so you stay on the latest adapters. Faster shortcut: <code>npx -y @workix/mcp</code> (npm may lag — watch versions). Also listed as <code>co.workix/mcp</code> in the Official MCP Registry.</p>
+          <pre class="wx-agent-cmd" id="mcpNpxBox" tabindex="0" style="margin-top:0.75rem;opacity:.85"></pre>
+          <div class="wx-agent-actions" style="margin-top:0.75rem">
+            <button class="wx-btn wx-btn-ghost" type="button" id="copyMcpNpx" data-i="cta_mcp_npx">Copy npx snippet</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="wx-agent-section">
+        <h2 data-i="h_contrib">Grow the source catalog</h2>
+        <p data-i="p_contrib">Know a job board website or a Telegram channel with regular IT / freelance / startup vacancies? Propose it on GitHub — even a short Issue helps us expand digests and coverage. Public links only; no need to write a full adapter.</p>
+        <div class="wx-agent-actions">
+          <a class="wx-btn wx-btn-primary" href="https://github.com/facetoplace/Workix/issues/new" target="_blank" rel="noopener" data-i="cta_issue">Suggest a source on GitHub</a>
+          <a class="wx-btn wx-btn-ghost" href="https://github.com/facetoplace/Workix/blob/main/mcp/TELEGRAM-CHANNELS.md" target="_blank" rel="noopener" data-i="cta_tg_guide">Telegram channel PRs</a>
         </div>
       </section>
 
@@ -300,13 +314,13 @@ REST: https://workix.co/api/v1
 Public read (no auth): /search /orders /performers /startups /tags /stats/online
 Auth write: Authorization: Bearer wix_… from POST /auth/register
 
-MCP published:
-  npm: https://www.npmjs.com/package/@workix/mcp
-  Official registry id: co.workix/mcp
+MCP (prefer source, then npx if you need speed — watch npm versions):
   Source: https://github.com/facetoplace/Workix (folder mcp/)
-  mcp.json:
-    command npx, args ["-y","@workix/mcp"]
-    env WORKIX_API=https://workix.co  WORKIX_AGENT_KEY=wix_…
+    git clone … && cd Workix/mcp && npm install && npm run build
+    mcp.json: command node, args [FULL/PATH/TO/Workix/mcp/dist/index.js]
+  Optional npm: https://www.npmjs.com/package/@workix/mcp — npx -y @workix/mcp
+  Official registry id: co.workix/mcp
+  env WORKIX_API=https://workix.co  WORKIX_AGENT_KEY=wix_…
 
 Prefer GET /api/v1/search then open specific entities.
 Never submit proposals/applies without explicit human approval.
@@ -343,11 +357,16 @@ Never submit proposals/applies without explicit human approval.
       h_start: 'Start in 30 seconds',
       p_start: 'Paste this into Cursor, Claude, Codex, or any agent that can open URLs:',
       h_mcp: 'Connect MCP (Cursor)',
-      p_mcp: 'Paste into your client mcp.json. Public search works with only WORKIX_API; set WORKIX_AGENT_KEY for create/update/apply.',
+      p_mcp: 'Recommended: clone the repo, build mcp/, then paste this into mcp.json. Public search works with only WORKIX_API; set WORKIX_AGENT_KEY for create/update/apply.',
       cta_mcp: 'Copy mcp.json snippet',
-      p_mcp_pub: 'Published as @workix/mcp on npm and co.workix/mcp in the Official MCP Registry. Source: GitHub mcp/.',
+      cta_mcp_npx: 'Copy npx snippet',
+      p_mcp_pub: 'Prefer source so you stay on the latest adapters. Faster shortcut: npx -y @workix/mcp (npm may lag — watch versions). Also listed as co.workix/mcp in the Official MCP Registry.',
+      h_contrib: 'Grow the source catalog',
+      p_contrib: 'Know a job board website or a Telegram channel with regular IT / freelance / startup vacancies? Propose it on GitHub — even a short Issue helps us expand digests and coverage. Public links only; no need to write a full adapter.',
+      cta_issue: 'Suggest a source on GitHub',
+      cta_tg_guide: 'Telegram channel PRs',
       machine_sum: 'Machine-readable summary (for agents scraping this page)',
-      prompt: 'Open https://workix.co/agent , https://workix.co/llms.txt and https://workix.co/api.txt. Explain what Workix is, how I can use the hub myself, and how my AI agent can search the catalog, manage projects/roles/profile, and apply with my approval. Adapt to my context and current work. Prefer connecting MCP via npx -y @workix/mcp (registry id co.workix/mcp).',
+      prompt: 'Open https://workix.co/agent , https://workix.co/llms.txt and https://workix.co/api.txt. Explain what Workix is, how I can use the hub myself, and how my AI agent can search the catalog, manage projects/roles/profile, and apply with my approval. Adapt to my context and current work. Prefer connecting MCP from GitHub source (clone facetoplace/Workix → mcp/ → npm install && npm run build → node …/dist/index.js). npx -y @workix/mcp is OK for a quick start, but track npm versions — they may lag behind git (registry id co.workix/mcp).',
       copied: 'Copied',
     },
     ru: {
@@ -375,16 +394,39 @@ Never submit proposals/applies without explicit human approval.
       h_start: 'Старт за 30 секунд',
       p_start: 'Вставьте в Cursor, Claude, Codex или любого агента, который умеет открывать URL:',
       h_mcp: 'Подключить MCP (Cursor)',
-      p_mcp: 'Вставьте в mcp.json клиента. Публичный поиск работает с одним WORKIX_API; для create/update/apply нужен WORKIX_AGENT_KEY.',
+      p_mcp: 'Рекомендуем: клонировать репозиторий, собрать mcp/, затем вставить в mcp.json. Публичный поиск работает с одним WORKIX_API; для create/update/apply нужен WORKIX_AGENT_KEY.',
       cta_mcp: 'Скопировать фрагмент mcp.json',
-      p_mcp_pub: 'Опубликован как @workix/mcp в npm и co.workix/mcp в Official MCP Registry. Исходники: GitHub mcp/.',
+      cta_mcp_npx: 'Скопировать npx-фрагмент',
+      p_mcp_pub: 'Лучше из исходников — свежие адаптеры. Быстрый вариант: npx -y @workix/mcp (npm может отставать — следите за версиями). Также co.workix/mcp в Official MCP Registry.',
+      h_contrib: 'Расширяйте базу источников',
+      p_contrib: 'Знаете сайт с вакансиями или Telegram-канал, где регулярно публикуют IT / фриланс / стартап-найм? Предложите на GitHub — даже короткий Issue помогает расширить дайджесты и охват. Только публичные ссылки; полный адаптер писать не обязательно.',
+      cta_issue: 'Предложить источник на GitHub',
+      cta_tg_guide: 'PR с Telegram-каналами',
       machine_sum: 'Машиночитаемое резюме (для агентов, которые читают эту страницу)',
-      prompt: 'Открой https://workix.co/agent , https://workix.co/llms.txt и https://workix.co/api.txt. Объясни, что такое Workix, как я могу пользоваться хабом сам, и как мой ИИ-агент может искать каталог, вести проекты/роли/профиль и откликаться с моего согласия. Адаптируй под мой контекст и текущую работу. MCP удобнее подключать через npx -y @workix/mcp (registry id co.workix/mcp).',
+      prompt: 'Открой https://workix.co/agent , https://workix.co/llms.txt и https://workix.co/api.txt. Объясни, что такое Workix, как я могу пользоваться хабом сам, и как мой ИИ-агент может искать каталог, вести проекты/роли/профиль и откликаться с моего согласия. Адаптируй под мой контекст и текущую работу. MCP лучше подключать из исходников GitHub (clone facetoplace/Workix → mcp/ → npm install && npm run build → node …/dist/index.js). npx -y @workix/mcp — если нужен быстрый старт, но следи за версиями npm: они могут отставать от git (registry id co.workix/mcp).',
       copied: 'Скопировано',
     },
   };
 
+  const MCP_BUILD = `git clone https://github.com/facetoplace/Workix.git
+cd Workix/mcp
+npm install
+npm run build`;
+
   const MCP_JSON = `{
+  "mcpServers": {
+    "workix": {
+      "command": "node",
+      "args": ["FULL/PATH/TO/Workix/mcp/dist/index.js"],
+      "env": {
+        "WORKIX_API": "https://workix.co",
+        "WORKIX_AGENT_KEY": "wix_…"
+      }
+    }
+  }
+}`;
+
+  const MCP_JSON_NPX = `{
   "mcpServers": {
     "workix": {
       "command": "npx",
@@ -416,7 +458,9 @@ Never submit proposals/applies without explicit human approval.
       if (t[key] != null) el.textContent = t[key];
     });
     document.getElementById('promptBox').textContent = t.prompt;
+    document.getElementById('mcpBuildBox').textContent = MCP_BUILD;
     document.getElementById('mcpJsonBox').textContent = MCP_JSON;
+    document.getElementById('mcpNpxBox').textContent = MCP_JSON_NPX;
     document.querySelectorAll('.wx-lang-mini button').forEach((b) => {
       b.classList.toggle('is-on', b.getAttribute('data-lang') === lang);
     });
@@ -450,6 +494,9 @@ Never submit proposals/applies without explicit human approval.
   document.getElementById('copyPrompt2').addEventListener('click', copyPrompt);
   document.getElementById('copyMcpJson').addEventListener('click', () => {
     copyText(MCP_JSON, document.getElementById('copyMcpJson'));
+  });
+  document.getElementById('copyMcpNpx').addEventListener('click', () => {
+    copyText(MCP_JSON_NPX, document.getElementById('copyMcpNpx'));
   });
   apply();
 })();
