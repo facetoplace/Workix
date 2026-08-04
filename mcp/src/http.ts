@@ -34,10 +34,13 @@ export async function fetchText(
     timeoutMs?: number;
     retries?: number;
     maxProxies?: number;
+    /** When false, never hit origin without PROXY_1 (RU boards / DDoS-Guard). Default true. */
+    directFallback?: boolean;
   },
 ): Promise<FetchResult> {
   const timeoutMs = opts?.timeoutMs ?? 20000;
   const maxProxies = opts?.maxProxies ?? 6;
+  const directFallback = opts?.directFallback !== false;
 
   let last: FetchResult = {
     ok: false,
@@ -65,8 +68,8 @@ export async function fetchText(
   for (let i = 0; i < Math.min(maxProxies, Math.max(pool.length, 1)); i++) {
     tryList.push(pool.length ? await nextProxy() : undefined);
   }
-  // direct fallback last
-  tryList.push(undefined);
+  // direct fallback last (skip for geo-locked RU boards)
+  if (directFallback) tryList.push(undefined);
 
   const seen = new Set<string>();
   for (const useProxy of tryList) {

@@ -8,4 +8,5 @@ export declare function runSearch(args: {
     offset?: number;
     refresh?: boolean;
     include_jobs?: boolean;
+    include_agent_gigs?: boolean;
 }): Promise<unknown>;

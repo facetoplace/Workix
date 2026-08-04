@@ -14,5 +14,10 @@ export function v1Platforms() {
     return loadPlatforms().filter((p) => p.tier === "v1");
 }
 export function rssPlatforms(ids) {
-    return v1Platforms().filter((p) => p.access === "rss" && p.rss && (!ids?.length || ids.includes(p.id)));
+    const all = loadPlatforms().filter((p) => p.access === "rss" && p.rss);
+    if (!ids?.length) {
+        // Default digest: core v1 boards only (FL / Freelance.ru / Weblancer).
+        return all.filter((p) => p.tier === "v1");
+    }
+    return all.filter((p) => ids.includes(p.id));
 }

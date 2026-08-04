@@ -17,6 +17,7 @@ function makeAgent(proxy) {
 export async function fetchText(url, opts) {
     const timeoutMs = opts?.timeoutMs ?? 20000;
     const maxProxies = opts?.maxProxies ?? 6;
+    const directFallback = opts?.directFallback !== false;
     let last = {
         ok: false,
         status: 0,
@@ -40,8 +41,9 @@ export async function fetchText(url, opts) {
     for (let i = 0; i < Math.min(maxProxies, Math.max(pool.length, 1)); i++) {
         tryList.push(pool.length ? await nextProxy() : undefined);
     }
-    // direct fallback last
-    tryList.push(undefined);
+    // direct fallback last (skip for geo-locked RU boards)
+    if (directFallback)
+        tryList.push(undefined);
     const seen = new Set();
     for (const useProxy of tryList) {
         const key = useProxy || "__direct__";

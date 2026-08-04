@@ -10,7 +10,7 @@ export declare const zSlug: z.ZodString;
 export declare const zUrlSoft: z.ZodString;
 export declare const zEmailSoft: z.ZodString;
 export declare const zTelegram: z.ZodString;
-export declare const zTags: z.ZodArray<z.ZodString, "many">;
+export declare const zTags: z.ZodEffects<z.ZodArray<z.ZodString, "many">, string[], string[]>;
 export declare const zPayment: z.ZodObject<{
     budget: z.ZodUnion<[z.ZodString, z.ZodNumber]>;
     type: z.ZodOptional<z.ZodEnum<["hour", "work"]>>;
@@ -39,18 +39,22 @@ export declare const zApplyDefaults: z.ZodObject<{
 }>;
 export declare const zRoleKind: z.ZodEnum<["task", "project", "time_job", "full_job", "fixes"]>;
 export declare const zStatus: z.ZodEnum<["draft", "pending"]>;
+/** Owner lifecycle on update (projects, roles, orders). */
+export declare const zLifecycleStatus: z.ZodEnum<["draft", "pending", "active", "approved", "closed", "frozen"]>;
+export declare const zProjectStage: z.ZodEnum<["idea", "stealth", "preseed", "seed", "mvp", "early", "growth", "scale", "mature", "project"]>;
+export declare const zAvailability: z.ZodEnum<["open", "working", "resting", "ideas", "busy"]>;
 export declare const zDisplayCurrency: z.ZodEnum<["USDT", "USD", "RUB", "CNY", "GBP", "UAH", "EUR", "TON"]>;
 export declare const zInfoLink: z.ZodObject<{
     label: z.ZodString;
     url: z.ZodString;
     kind: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
-    label: string;
     url: string;
+    label: string;
     kind?: string | undefined;
 }, {
-    label: string;
     url: string;
+    label: string;
     kind?: string | undefined;
 }>;
 export declare const zInfoLinks: z.ZodArray<z.ZodUnion<[z.ZodObject<{
@@ -58,11 +62,11 @@ export declare const zInfoLinks: z.ZodArray<z.ZodUnion<[z.ZodObject<{
     url: z.ZodString;
     kind: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
-    label: string;
     url: string;
+    label: string;
     kind?: string | undefined;
 }, {
-    label: string;
     url: string;
+    label: string;
     kind?: string | undefined;
 }>, z.ZodString]>, "many">;

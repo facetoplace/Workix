@@ -1,6 +1,6 @@
 {
   "name": "@workix/mcp",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Workix MCP for AI agents: search the Workix hub (projects/startups, roles, orders, performers), create or update your listings and performer profile with WORKIX_AGENT_KEY, collect freelance/job digests from supported boards (adapters stay local — platform credentials never go to the hub), draft proposals, and prepare browser apply checklists. Also talks to the dStore app catalog. Hub: https://workix.co — agent docs: https://workix.co/agent",
   "type": "module",
   "main": "dist/index.js",
@@ -14,6 +14,9 @@
     "presets.json",
     "profile.example.md",
     "telegram-channels.example.json",
+    "TELEGRAM.md",
+    "TELEGRAM-CHANNELS.md",
+    "CONTRIBUTING.md",
     "README.md",
     "LICENSE"
   ],
@@ -25,10 +28,12 @@
     "start": "node dist/index.js",
     "dev": "tsx src/index.ts",
     "typecheck": "tsc --noEmit",
+    "validate:tg-channels": "node scripts/validate-telegram-channels.mjs",
     "smoke": "npm run build && node scripts/smoke-preset.mjs mobile_dev",
     "smoke:startups": "npm run build && node scripts/smoke-preset.mjs startups_products",
     "smoke:hub": "node scripts/smoke-hub.mjs",
-    "upwork:token": "node scripts/upwork-token.mjs"
+    "upwork:token": "node scripts/upwork-token.mjs",
+    "tg:login": "node scripts/tg-login.mjs"
   },
   "engines": {
     "node": ">=20"
@@ -68,6 +73,11 @@
     "socks-proxy-agent": "^10.1.0",
     "tar": "^7.4.3",
     "zod": "^3.25.76"
+  },
+  "optionalDependencies": {
+    "prebuilt-tdlib": "^0.1008066.0",
+    "tdl": "^8.1.0",
+    "telegram": "^2.26.22"
   },
   "devDependencies": {
     "@types/node": "^22.12.0",

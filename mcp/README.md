@@ -4,7 +4,8 @@ Local MCP server for AI agents ([Cursor](https://cursor.com), Claude, etc.) that
 
 Workix is a shared catalog where **projects** (startups/products/communities), **roles & orders**, and **performers** find each other. It is not a closed freelance marketplace: listings point to the owner’s preferred contact or apply flow. Agents use this MCP to search that catalog, manage your listings, and also pull opportunities from external boards while keeping platform credentials on the user’s machine.
 
-**Install:** `npx -y @workix/mcp` · Docs: [workix.co/agent](https://workix.co/agent) · [api.txt](https://workix.co/api.txt) · [llms.txt](https://workix.co/llms.txt)
+**Install (recommended):** clone this repo → `mcp/` → `npm install && npm run build` · Docs: [workix.co/agent](https://workix.co/agent) · [api.txt](https://workix.co/api.txt) · [llms.txt](https://workix.co/llms.txt)  
+Optional shortcut: `npx -y @workix/mcp` (npm may lag behind git).
 
 ### Where it is published
 
@@ -26,11 +27,13 @@ Workix is a shared catalog where **projects** (startups/products/communities), *
 - **Board tools** — digest / search / draft / prepare-apply on Upwork, Freelancehunt, Kwork, FL RSS, … (credentials stay in your env)
 - **Downloadable adapters** — heavy board modules are **not** required at install; MCP downloads them from the hub registry on first use and caches locally
 
-Open contribution: see [CONTRIBUTING.md](../CONTRIBUTING.md). Agent prompt & storefront: [../README.md](../README.md).
+Open contribution: see [CONTRIBUTING.md](./CONTRIBUTING.md) (adapters + **Telegram channels catalog** PRs). Agent prompt & storefront: [../README.md](../README.md).
+
+**Telegram channels:** shared list [`telegram-channels.example.json`](./telegram-channels.example.json) — how to add via PR: [TELEGRAM-CHANNELS.md](./TELEGRAM-CHANNELS.md).
 
 ## Downloadable platform modules
 
-Core MCP always includes hub tools + generic **RSS** (FL / Freelance.ru / Weblancer).
+Core MCP always includes hub tools + **RSS** (FL / Weblancer), Freelance.ru HTML (`/task` via RU SOCKS5), and Product Radar hiring HTML (`/category/hiring/?page=N`, direct).
 
 Other boards ship as modules from the hub:
 
@@ -39,6 +42,8 @@ Other boards ship as modules from the hub:
 | Local cache | `$WORKIX_MCP_DATA/adapters/<id>/<version>/` (default `mcp/data/adapters`) |
 
 On `workix_digest` / `workix_search`, MCP calls `ensure` for needed platforms, verifies **sha256**, extracts, and `import()`s the module. Later runs reuse the cache.
+
+**Trust model:** a module is executable code inside the MCP process. Downloads are limited to **https** hosts on an allowlist (`workix.co` + registry host; override with `WORKIX_MCP_TRUSTED_HOSTS`). Size is capped; tarball paths cannot escape the install dir. `sha256` in the registry only proves integrity against that registry — if the hub itself is compromised, treat it as RCE on every client that installs. Mitigations: keep registry on a host you control, prefer bundled `assets/mcp/adapters/*.tgz` when present, set `WORKIX_MCP_REGISTRY` to a local file for air‑gapped installs. Opt-out for custom registries: `WORKIX_MCP_ALLOW_UNTRUSTED_REGISTRY=1`.
 
 | Tool | Role |
 |------|------|
@@ -85,14 +90,14 @@ On Windows ARM, native scripts may be disabled (`.npmrc`: `ignore-scripts=true`)
 
 ## Cursor `mcp.json`
 
-Recommended (npm):
+Recommended (from source — always the freshest build):
 
 ```json
 {
   "mcpServers": {
     "workix": {
-      "command": "npx",
-      "args": ["-y", "@workix/mcp"],
+      "command": "node",
+      "args": ["FULL/PATH/TO/Workix/mcp/dist/index.js"],
       "env": {
         "WORKIX_API": "https://workix.co",
         "WORKIX_AGENT_KEY": "wix_…"
@@ -102,7 +107,7 @@ Recommended (npm):
 }
 ```
 
-From a local clone (dev): `"command": "node"`, `"args": ["FULL/PATH/TO/Workix/mcp/dist/index.js"]`.
+Optional npm shortcut: `"command": "npx"`, `"args": ["-y", "@workix/mcp"]` (may lag behind the GitHub `mcp/` tree).
 
 Optional board credentials (examples — see `.env.example`):
 
@@ -128,9 +133,10 @@ Optional: `WORKIX_PROFILE_PATH`, `WORKIX_MCP_DATA`.
 | `workix_hub_health` / `workix_hub_register` / `workix_hub_me` / `workix_hub_rotate_key` | Auth & health (`rotate_key` needs `confirm:true`; writes `mcp/.env` by default) |
 | `workix_list_startups` / `workix_get_startup` / `workix_create_startup` / `workix_update_startup` | Projects — products, startups, early ideas OK (`pending` = publish) |
 | `workix_list_performers` / `workix_get_performer` | Performers (builders + bloggers/creators) + their listings |
-| `workix_list_hub_orders` / `workix_get_hub_order` | Hub orders (`scraped` → no publisher card) |
+| `workix_list_hub_orders` / `workix_get_hub_order` | Hub orders (`scraped` / `external` → no personal publisher card; detail may include `external`) |
 | `workix_list_roles` / `workix_create_role` / `workix_update_role` | Roles / orders (concrete asks; paid or cofounder) |
-| `workix_get_profile` / `workix_update_profile` | Own performer profile (encourage public card + `openTo`) |
+| `workix_share_jobs` | Mirror local board job ids → hub catalog (`POST /orders/share`; prefer digest flag) |
+| `workix_get_profile` / `workix_update_profile` | Own performer profile (`openTo`, vanity `slug` → `workix.co/{slug}` when free) |
 
 Write tools echo a short **who can publish** guide: early stage welcome; moderation (`pending`) is normal — do not discourage listing.
 | `workix_hub_apply` | Apply on hub |
@@ -142,13 +148,29 @@ Write tools echo a short **who can publish** guide: early stage welcome; moderat
 |------|------|
 | `workix_dstore_search` / `_similar` / `_get` / `_publish` / `_list` / `_quota` | [dStore](https://dstore.one) catalog — same REST as official **dstore-mcp** ([api.txt](https://dstore.one/api.txt)) |
 | _(optional)_ separate MCP `dstore` | `search_catalog`, `get_app`, `get_similar`, `add_url`, `get_list`, `quota_status` — see api.txt §0 |
-| `workix_digest` / `workix_search` / `workix_get_job` | Read boards (auto-downloads adapters) |
+| `workix_digest` / `workix_search` / `workix_get_job` | Read boards (auto-downloads adapters). `share_to_hub:true` on digest batch-mirrors cards to hub (no per-item confirm; needs `WORKIX_AGENT_KEY`) |
 | `workix_draft_proposal` | Draft reply |
+| `workix_outreach_log` / `workix_outreach_list` | Local log: contact, channel, full text, status (`draft`/`sent`/`ok`…). Mirror into `docs/apply-log-*.md` |
+| `workix_checkpoint_set` / `workix_checkpoint_get` | Search pause/resume: where stopped, next, surfaces. Mirror CHECKPOINT in apply-log |
+| `workix_hub_share_status` / `workix_history` | What is already on workix.co vs local-only; unified hubShares + outreach + checkpoints |
 | `workix_submit_proposal` | Submit only with `confirm: true` after human OK |
 | `workix_prepare_browser_apply` | Browser checklist |
 | `workix_sources_status` / `workix_list_platforms` / `workix_open_watch_source` | Status & watch |
 | `workix_ensure_platforms` / `workix_install_platform` / `workix_remove_platform` | Adapter cache |
 | `workix_upwork_auth_url` / `workix_upwork_exchange_code` | Upwork OAuth |
+| `workix_tg_status` / `workix_tg_auth` / `workix_tg_search` | Optional Telegram (GramJS; TDLib where native works). Install: `npm install telegram`. Env: `TG_APP_API_ID` + `TG_APP_API_HASH`. Login: `npm run tg:login`. |
+
+### Optional Telegram
+
+Полная инструкция: **[TELEGRAM.md](./TELEGRAM.md)**. На **Windows ARM64** — только GramJS (`telegram`), не `prebuilt-tdlib`.
+
+```bash
+cd mcp
+npm install telegram
+# TG_APP_API_ID + TG_APP_API_HASH in .env
+npm run tg:login          # phone/code в терминале
+# restart MCP → workix_tg_status → workix_tg_search
+```
 
 **Rule:** never submit a proposal without explicit user approval.
 

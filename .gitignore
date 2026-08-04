@@ -11,16 +11,10 @@ Thumbs.db
 
 # mcp/dist is published on purpose (clone → run without local tsc)
 
-# Local / private / scratch — do not publish
+# Never publish secrets / publisher tooling
+mcp/key.pem
+mcp/*.hex
+mcp/mcp-publisher.exe
 mcp/registry.local.json
-mcp/.adapter-pack/
-mcp/scripts/_dstore-sample.js
 assets/indexnow-key.txt
-assets/gist/
-assets/src/
-views/test.html
-views/app_1.5.html
-/.cursor
-/.cursor
-views/workix.legacy.html
-views/workix.legacy.html
+

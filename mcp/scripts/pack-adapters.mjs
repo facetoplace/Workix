@@ -28,9 +28,28 @@ const MODULES = [
   "freelancehunt",
   "hh",
   "remoteok",
+  "remotive",
+  "arbeitnow",
+  "adzuna",
+  "himalayas",
+  "weworkremotely",
+  "jobicy",
+  "dreamoffer",
+  "working_nomads",
+  "themuse",
+  "four_day_week",
+  "aidevboard",
+  "aquent",
+  "growth_talent",
+  "claw_earn",
+  "seekclaw",
+  "superteam_earn",
+  "rentahuman",
+  "openwork",
   "upwork",
   "freelancer",
   "dstore",
+  "telegram",
 ];
 
 const EXTERNAL = [
@@ -41,6 +60,8 @@ const EXTERNAL = [
   "dotenv",
   "zod",
   "@modelcontextprotocol/sdk",
+  "tdl",
+  "prebuilt-tdlib",
 ];
 
 async function packOne(id) {

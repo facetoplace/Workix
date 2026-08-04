@@ -66,7 +66,7 @@ Catalog data is served by the central Workix API. Production secrets are not req
 
 With `WORKIX_API=https://workix.co`, an agent can search projects, roles, orders, and performers. With a `WORKIX_AGENT_KEY`, it can also create or update listings and manage a performer profile.
 
-To run the MCP server locally:
+**Recommended:** install MCP from this repository’s source (freshest tools and adapters). npm/`npx` is optional and may lag behind git.
 
 ```bash
 git clone https://github.com/facetoplace/Workix.git
@@ -75,16 +75,14 @@ npm install
 npm run build
 ```
 
-Published MCP: npm [`@workix/mcp`](https://www.npmjs.com/package/@workix/mcp) · Official Registry [`co.workix/mcp`](https://registry.modelcontextprotocol.io/v0.1/servers?search=co.workix/mcp) · install UI: [workix.co/agent](https://workix.co/agent)
-
-Example Cursor MCP configuration:
+Example Cursor MCP configuration (from source):
 
 ```json
 {
   "mcpServers": {
     "workix": {
-      "command": "npx",
-      "args": ["-y", "@workix/mcp"],
+      "command": "node",
+      "args": ["FULL/PATH/TO/Workix/mcp/dist/index.js"],
       "env": {
         "WORKIX_API": "https://workix.co",
         "WORKIX_AGENT_KEY": "wix_…"
@@ -94,7 +92,9 @@ Example Cursor MCP configuration:
 }
 ```
 
-Register at [workix.co](https://workix.co) to get an agent key. The key is optional for public search and required for actions tied to your account. From a local clone you can still run `node …/mcp/dist/index.js` after `npm run build`.
+Optional shortcut: `npx -y @workix/mcp` · npm [`@workix/mcp`](https://www.npmjs.com/package/@workix/mcp) · Official Registry [`co.workix/mcp`](https://registry.modelcontextprotocol.io/v0.1/servers?search=co.workix/mcp) · install UI: [workix.co/agent](https://workix.co/agent)
+
+Register at [workix.co](https://workix.co) to get an agent key. The key is optional for public search and required for actions tied to your account.
 
 External platform credentials belong only in the local MCP environment. Do not send Upwork, Kwork, or other platform passwords and tokens to the Workix hub.
 

@@ -1,42 +1,214 @@
 {
-  "updated": "2026-07-26",
-  "note": "Скопируй в telegram-channels.json и дополни. Не коммить личные чаты.",
+  "updated": "2026-08-04",
+  "note": "Canonical shared catalog for Workix MCP. Copy to local telegram-channels.json (gitignored) for personal overrides. PRs: edit THIS file — see TELEGRAM-CHANNELS.md / CONTRIBUTING.md. Do not commit private invites or personal lists. Login: TELEGRAM.md.",
   "channels": [
+    {
+      "id": "siliconpravdachat",
+      "title": "Silicon Pravda Chat",
+      "url": "https://t.me/siliconpravdachat",
+      "kind": "startups",
+      "priority": "high",
+      "note": "Стартапы/инвестиции; антиспам"
+    },
     {
       "id": "productradar_official",
       "title": "Product Radar",
       "url": "https://t.me/productradar_official",
-      "kind": "startups_products",
+      "kind": "startups",
       "priority": "high"
     },
     {
-      "id": "mobile_jobs_feed",
-      "title": "Mobile Jobs feed (пример из devops_jobs экосистемы)",
-      "url": "https://t.me/mobile_jobs_feed",
+      "id": "startupfellows",
+      "title": "Startup Fellows",
+      "url": "https://t.me/startupfellows",
+      "kind": "startups",
+      "priority": "high",
+      "note": "Также startupfellows.ru"
+    },
+    {
+      "id": "startup_job_russia",
+      "title": "Startup Job Russia",
+      "url": "https://t.me/startup_job_russia",
       "kind": "roles",
+      "priority": "high",
+      "note": "Outreach в личку, не спам в канал"
+    },
+    {
+      "id": "runello_rus_mobileappdevelopment",
+      "title": "Runello — Mobile (iOS / Android / Flutter)",
+      "url": "https://t.me/runello_rus_mobileappdevelopment",
+      "kind": "jobs_feed",
+      "priority": "high",
+      "note": "Runello агрегатор; отклик через @RunelloBot / source ATS"
+    },
+    {
+      "id": "runello_rus_webdevelopment",
+      "title": "Runello — Fullstack / Web",
+      "url": "https://t.me/runello_rus_webdevelopment",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "note": "Часто Flutter/mobile fullstack; @RunelloBot"
+    },
+    {
+      "id": "dartlang_jobs",
+      "title": "Dart Jobs (Flutter)",
+      "url": "https://t.me/dartlang_jobs",
+      "kind": "jobs_feed",
+      "priority": "high",
+      "note": "Узкий Flutter/Dart feed"
+    },
+    {
+      "id": "mobjobskz",
+      "title": "Mobile Dev Jobs",
+      "url": "https://t.me/mobjobskz",
+      "kind": "jobs_feed",
+      "priority": "high",
+      "note": "iOS/Android/Flutter/RN"
+    },
+    {
+      "id": "fintech_vacancy",
+      "title": "Вакансии в Финтех",
+      "url": "https://t.me/fintech_vacancy",
+      "kind": "jobs_feed",
       "priority": "high"
     },
     {
-      "id": "habr_career_tg",
-      "title": "Habr Карьера (если есть официальный TG)",
-      "url": "https://t.me/",
+      "id": "it_vakansii_jobs",
+      "title": "СЕТИ — IT & Digital вакансии",
+      "url": "https://t.me/it_vakansii_jobs",
+      "kind": "jobs_feed",
+      "priority": "high",
+      "note": "Крупный RU IT/Digital feed; vseti.app"
+    },
+    {
+      "id": "remocate",
+      "title": "Remocate",
+      "url": "https://t.me/remocate",
+      "kind": "jobs_feed",
+      "priority": "high",
+      "note": "Remote/релокация; зеркало @evacuatejobs"
+    },
+    {
+      "id": "theyseeku_it",
+      "title": "Удаленка — IT и Digital (Finder.work)",
+      "url": "https://t.me/theyseeku_it",
+      "kind": "jobs_feed",
+      "priority": "high",
+      "note": "IT-ветка Finder"
+    },
+    {
+      "id": "jobs_in_it_remoute",
+      "title": "Job in IT / Remote",
+      "url": "https://t.me/jobs_in_it_remoute",
+      "kind": "jobs_feed",
+      "priority": "high",
+      "note": "Username с typo remoute"
+    },
+    {
+      "id": "digital_hr",
+      "title": "DigitalHR",
+      "url": "https://t.me/digital_hr",
+      "kind": "jobs_feed",
+      "priority": "high"
+    },
+    {
+      "id": "getitrussia",
+      "title": "Get IT",
+      "url": "https://t.me/getitrussia",
+      "kind": "jobs_feed",
+      "priority": "high"
+    },
+    {
+      "id": "choicy_work",
+      "title": "CHOICY.WORK",
+      "url": "https://t.me/choicy_work",
+      "kind": "jobs_feed",
+      "priority": "medium"
+    },
+    {
+      "id": "workayte",
+      "title": "Работа в ИТ",
+      "url": "https://t.me/workayte",
+      "kind": "jobs_feed",
+      "priority": "medium"
+    },
+    {
+      "id": "fordev",
+      "title": "fordev",
+      "url": "https://t.me/fordev",
+      "kind": "jobs_feed",
+      "priority": "medium"
+    },
+    {
+      "id": "hireproproduct",
+      "title": "hireproproduct",
+      "url": "https://t.me/hireproproduct",
       "kind": "roles",
       "priority": "medium"
     },
     {
-      "id": "getmatch_bot",
-      "title": "getmatch @g_jobbot",
-      "url": "https://t.me/g_jobbot",
-      "kind": "roles",
-      "priority": "medium",
-      "note": "бот с вилками, не канал заказов"
+      "id": "mnogovakansiy",
+      "title": "Многовакансий | Design, IT",
+      "url": "https://t.me/mnogovakansiy",
+      "kind": "jobs_feed",
+      "priority": "medium"
     },
     {
-      "id": "it_freelance_custom",
-      "title": "Свой IT-фриланс канал (подставь @)",
-      "url": "https://t.me/",
-      "kind": "gigs",
-      "priority": "high"
+      "id": "flutter_react_native_job",
+      "title": "Вакансии Flutter / React Native",
+      "url": "https://t.me/flutter_react_native_job",
+      "kind": "jobs_feed",
+      "priority": "medium"
+    },
+    {
+      "id": "python_jobs",
+      "title": "Python Jobs",
+      "url": "https://t.me/python_jobs",
+      "kind": "jobs_feed",
+      "priority": "medium"
+    },
+    {
+      "id": "javascript_jobs",
+      "title": "JavaScript Jobs",
+      "url": "https://t.me/javascript_jobs",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "note": "Вакансии + резюме"
+    },
+    {
+      "id": "web3hiring",
+      "title": "Web3 Jobs",
+      "url": "https://t.me/web3hiring",
+      "kind": "jobs_feed",
+      "priority": "medium"
+    },
+    {
+      "id": "young_june",
+      "title": "Young & Junior — IT",
+      "url": "https://t.me/young_june",
+      "kind": "jobs_feed",
+      "priority": "low"
+    },
+    {
+      "id": "NLP_jobs",
+      "title": "NLP jobs",
+      "url": "https://t.me/NLP_jobs",
+      "kind": "jobs_feed",
+      "priority": "low"
     }
+  ],
+  "removed_dead": [
+    { "id": "mobile_jobs_feed", "reason": "USERNAME_INVALID" },
+    { "id": "flutter_jobs", "reason": "USERNAME_INVALID" },
+    { "id": "react_jobs", "reason": "USERNAME_INVALID" },
+    { "id": "g_jobbot", "reason": "empty/no access" },
+    { "id": "backend__jobs", "reason": "entity not found" }
+  ],
+  "checked_skip": [
+    { "id": "rabota_flutter", "reason": "жив, но посты 2024–2025 — устарел" },
+    { "id": "android_jobs", "reason": "в основном #резюме соискателей" },
+    { "id": "ios_jobs", "reason": "мало вакансий / шум" },
+    { "id": "MobileDevRemote", "reason": "крошечный AI-агрегатор, не mobile-first" },
+    { "id": "work_hr", "reason": "вакансии для HR, не для разработчиков" }
   ]
 }

@@ -3,6 +3,10 @@ import { fetchText } from "../http.js";
 import { rssPlatforms } from "../platforms.js";
 import { jobId } from "../store.js";
 import type { Job } from "../types.js";
+import {
+  fetchFreelanceRuJobs,
+  pingFreelanceRu,
+} from "./freelance_ru.js";
 
 const parser = new Parser();
 
@@ -31,6 +35,27 @@ function stripHtml(html: string): string {
   );
 }
 
+const JOB_KIND_PLATFORMS = new Set(["habr_career"]);
+
+const ALT_URLS: Record<string, string[]> = {
+  weblancer_net: [
+    "https://www.weblancer.net/rss/jobs.rss",
+    "http://www.weblancer.net/rss/jobs.rss",
+  ],
+  freelance_ru: [
+    "https://freelance.ru/rss/projects.xml",
+    "https://www.freelance.ru/rss/projects.xml",
+  ],
+  fl_ru: ["https://www.fl.ru/rss/all.xml"],
+  habr_career: [
+    "https://career.habr.com/vacancies/rss?remote=true",
+    "https://career.habr.com/vacancies/rss",
+  ],
+};
+
+/** RU boards often DDoS-Guard on foreign IP — PROXY_1 SOCKS only, no direct. */
+const PROXY_REQUIRED = new Set(["freelance_ru", "weblancer_net"]);
+
 function normalizeItem(platform: string, item: Parser.Item): Job | null {
   const link = item.link?.trim();
   const title = decodeEntities(item.title?.trim() || "");
@@ -45,7 +70,7 @@ function normalizeItem(platform: string, item: Parser.Item): Job | null {
   return {
     id: jobId(platform, link),
     platform,
-    kind: "gig",
+    kind: JOB_KIND_PLATFORMS.has(platform) ? "job" : "gig",
     title,
     description,
     link,
@@ -54,18 +79,6 @@ function normalizeItem(platform: string, item: Parser.Item): Job | null {
     raw: { guid: item.guid, categories: item.categories },
   };
 }
-
-const ALT_URLS: Record<string, string[]> = {
-  weblancer_net: [
-    "https://www.weblancer.net/rss/jobs.rss",
-    "http://www.weblancer.net/rss/jobs.rss",
-  ],
-  freelance_ru: [
-    "https://freelance.ru/rss/projects.xml",
-    "https://www.freelance.ru/rss/projects.xml",
-  ],
-  fl_ru: ["https://www.fl.ru/rss/all.xml"],
-};
 
 export async function fetchRssJobs(platformIds?: string[]): Promise<{
   jobs: Job[];
@@ -77,6 +90,15 @@ export async function fetchRssJobs(platformIds?: string[]): Promise<{
 
   await Promise.all(
     platforms.map(async (p) => {
+      if (p.id === "freelance_ru") {
+        const fr = await fetchFreelanceRuJobs();
+        jobs.push(...fr.jobs);
+        if (!fr.jobs.length && fr.error) {
+          errors.push({ platform: p.id, error: fr.error });
+        }
+        return;
+      }
+
       const urls = ALT_URLS[p.id] || (p.rss ? [p.rss] : []);
       let lastError = "";
       for (const url of urls) {
@@ -85,6 +107,8 @@ export async function fetchRssJobs(platformIds?: string[]): Promise<{
             Accept: "application/rss+xml, application/xml, text/xml, */*",
           },
           retries: 2,
+          maxProxies: PROXY_REQUIRED.has(p.id) ? 12 : 6,
+          directFallback: !PROXY_REQUIRED.has(p.id),
         });
         if (!res.ok) {
           lastError = res.error || `HTTP ${res.status}`;
@@ -120,6 +144,10 @@ export async function pingRssPlatform(
   items?: number;
   error?: string;
 }> {
+  if (platformId === "freelance_ru") {
+    return pingFreelanceRu();
+  }
+
   const p = rssPlatforms([platformId])[0];
   if (!p?.rss) {
     return {
@@ -132,7 +160,11 @@ export async function pingRssPlatform(
     };
   }
   const url = (ALT_URLS[platformId] || [p.rss])[0];
-  const res = await fetchText(url, { retries: 1 });
+  const res = await fetchText(url, {
+    retries: 1,
+    maxProxies: PROXY_REQUIRED.has(platformId) ? 12 : 6,
+    directFallback: !PROXY_REQUIRED.has(platformId),
+  });
   if (!res.ok) {
     return {
       platform: platformId,

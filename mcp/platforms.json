@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-27",
+  "updated": "2026-07-30",
   "platforms": [
     {
       "id": "fl_ru",
@@ -22,8 +22,9 @@
       "audience": "any",
       "access": "rss",
       "apply": "browser",
-      "status": "needs_proxy",
-      "rss": "https://freelance.ru/rss/projects.xml"
+      "status": "works_proxy",
+      "rss": "https://freelance.ru/rss/projects.xml",
+      "note": "RSS /rss/projects.xml often 404. Feed: HTML https://freelance.ru/task via PROXY_1 RU SOCKS5 (no direct)."
     },
     {
       "id": "weblancer_net",
@@ -71,10 +72,15 @@
       "region": "ru",
       "audience": "company",
       "access": "official_api",
-      "apply": "browser",
-      "status": "include_jobs",
+      "apply": "api",
+      "status": "creds",
       "module": "hh",
-      "note": "remote + project/part only; HH_USER_AGENT required by HH"
+      "refs": [
+        "https://github.com/hhru/api",
+        "https://api.hh.ru/openapi/redoc",
+        "https://dev.hh.ru"
+      ],
+      "note": "Official API: GET /vacancies (app UA+token); apply POST negotiations needs applicant OAuth. MCP: search only (include_jobs); no apply tool yet. Without registered app → 403. remote+project/part filters in adapter."
     },
     {
       "id": "remoteok",
@@ -89,6 +95,266 @@
       "module": "remoteok"
     },
     {
+      "id": "remotive",
+      "name": "Remotive",
+      "tier": "v2",
+      "kind": "job_board",
+      "region": "global",
+      "audience": "company",
+      "access": "official_api",
+      "apply": "browser",
+      "status": "include_jobs",
+      "module": "remotive",
+      "url": "https://remotive.com",
+      "note": "public JSON API; default category software-dev; REMOTIVE_CATEGORY optional"
+    },
+    {
+      "id": "arbeitnow",
+      "name": "Arbeitnow",
+      "tier": "v2",
+      "kind": "job_board",
+      "region": "eu",
+      "audience": "company",
+      "access": "official_api",
+      "apply": "browser",
+      "status": "include_jobs",
+      "module": "arbeitnow",
+      "url": "https://www.arbeitnow.com",
+      "note": "free job-board API; default remoteOnly; ARBEITNOW_REMOTE_ONLY=0 for all"
+    },
+    {
+      "id": "adzuna",
+      "name": "Adzuna",
+      "tier": "v2",
+      "kind": "job_board",
+      "region": "global",
+      "audience": "company",
+      "access": "official_api",
+      "apply": "browser",
+      "status": "include_jobs",
+      "module": "adzuna",
+      "url": "https://www.adzuna.com",
+      "note": "ADZUNA_APP_ID + ADZUNA_APP_KEY; ADZUNA_COUNTRY=gb; ADZUNA_WHAT optional"
+    },
+    {
+      "id": "himalayas",
+      "name": "Himalayas",
+      "tier": "v2",
+      "kind": "job_board",
+      "region": "global",
+      "audience": "company",
+      "access": "official_api",
+      "apply": "browser",
+      "status": "include_jobs",
+      "module": "himalayas",
+      "url": "https://himalayas.app",
+      "refs": ["https://himalayas.app/api", "https://himalayas.app/docs/remote-jobs-rss"],
+      "note": "Public JSON /jobs/api + RSS; apply → employer ATS. Credit Himalayas per their ToS."
+    },
+    {
+      "id": "weworkremotely",
+      "name": "We Work Remotely",
+      "tier": "v2",
+      "kind": "job_board",
+      "region": "global",
+      "audience": "company",
+      "access": "rss",
+      "apply": "browser",
+      "status": "include_jobs",
+      "module": "weworkremotely",
+      "url": "https://weworkremotely.com",
+      "note": "Public category RSS; default WWR_CATEGORY=programming; apply → employer"
+    },
+    {
+      "id": "jobicy",
+      "name": "Jobicy",
+      "tier": "v2",
+      "kind": "job_board",
+      "region": "global",
+      "audience": "company",
+      "access": "official_api",
+      "apply": "browser",
+      "status": "include_jobs",
+      "module": "jobicy",
+      "url": "https://jobicy.com",
+      "note": "Public API v2; default JOBICY_TAG=dev; credit Jobicy + link to original URL"
+    },
+    {
+      "id": "dreamoffer",
+      "name": "Dream Offer",
+      "tier": "v2",
+      "kind": "job_board",
+      "region": "ru_global",
+      "audience": "company",
+      "access": "public_http",
+      "apply": "browser",
+      "status": "include_jobs",
+      "module": "dreamoffer",
+      "url": "https://find.dreamoffer.app",
+      "note": "Search via GET /initial-dataset (+ vacancy.html SSR scan). No native apply API — open source_link (TG/LinkedIn/ATS) after user ok. Env: DREAMOFFER_PROFESSION=Mobile, DREAMOFFER_WORK_FORMAT=remote, DREAMOFFER_LANG=ru, DREAMOFFER_SCAN_EXTRA=40"
+    },
+    {
+      "id": "working_nomads",
+      "name": "Working Nomads",
+      "tier": "v2",
+      "kind": "job_board",
+      "region": "global",
+      "audience": "company",
+      "access": "official_api",
+      "apply": "browser",
+      "status": "include_jobs",
+      "module": "working_nomads",
+      "url": "https://www.workingnomads.com",
+      "note": "Public GET /api/exposed_jobs/; WORKING_NOMADS_CATEGORY optional filter"
+    },
+    {
+      "id": "themuse",
+      "name": "The Muse",
+      "tier": "v2",
+      "kind": "job_board",
+      "region": "global",
+      "audience": "company",
+      "access": "official_api",
+      "apply": "browser",
+      "status": "include_jobs",
+      "module": "themuse",
+      "url": "https://www.themuse.com",
+      "note": "Public /api/public/jobs; THEMUSE_CATEGORY optional; apply → employer"
+    },
+    {
+      "id": "four_day_week",
+      "name": "4 Day Week",
+      "tier": "v2",
+      "kind": "job_board",
+      "region": "global",
+      "audience": "company",
+      "access": "official_api",
+      "apply": "browser",
+      "status": "include_jobs",
+      "module": "four_day_week",
+      "url": "https://4dayweek.io",
+      "note": "Public /api/jobs; FOUR_DAY_WEEK_REMOTE_ONLY=1 to keep remote-only"
+    },
+    {
+      "id": "aidevboard",
+      "name": "AI Dev Jobs",
+      "tier": "v2",
+      "kind": "job_board",
+      "region": "global",
+      "audience": "company",
+      "access": "official_api",
+      "apply": "browser",
+      "status": "include_jobs",
+      "module": "aidevboard",
+      "url": "https://aidevboard.com",
+      "note": "REST /api/v1/jobs + OpenAPI + MCP; default workplace=remote; AIDEV_API_KEY optional"
+    },
+    {
+      "id": "aquent",
+      "name": "Aquent",
+      "tier": "v2",
+      "kind": "job_board",
+      "region": "global",
+      "audience": "company",
+      "access": "rss",
+      "apply": "browser",
+      "status": "include_jobs",
+      "module": "aquent",
+      "url": "https://aquent.com",
+      "note": "Public feeds/jobs.xml; default AQUENT_REMOTE_ONLY; credit Aquent; MCP at jobs.mcp.skill.com"
+    },
+    {
+      "id": "growth_talent",
+      "name": "Growth.Talent",
+      "tier": "v2",
+      "kind": "agent_jobs",
+      "region": "global",
+      "audience": "company",
+      "access": "official_api",
+      "apply": "api_or_browser",
+      "status": "include_agent_gigs",
+      "module": "growth_talent",
+      "url": "https://www.growthtalent.org",
+      "note": "Public GET /api/v1/jobs; apply needs gt_live_… key. GROWTH_TALENT_REMOTE=1 / GROWTH_TALENT_Q optional"
+    },
+    {
+      "id": "claw_earn",
+      "name": "Claw Earn",
+      "tier": "v2",
+      "kind": "agent_gigs",
+      "region": "global",
+      "audience": "any",
+      "access": "official_api",
+      "apply": "api",
+      "status": "include_agent_gigs",
+      "module": "claw_earn",
+      "url": "https://aiagentstore.ai/claw-earn",
+      "refs": [
+        "https://aiagentstore.ai/.well-known/claw-earn.json",
+        "https://aiagentstore.ai/docs/claw-earn-agent-api.md"
+      ],
+      "note": "GET /claw/tasks?tab=available (not /api/claw/*); USDC Base escrow; CLAW_EARN_TAB optional; feed often sparse"
+    },
+    {
+      "id": "seekclaw",
+      "name": "SeekClaw",
+      "tier": "v2",
+      "kind": "agent_gigs",
+      "region": "global",
+      "audience": "any",
+      "access": "official_api",
+      "apply": "api",
+      "status": "include_agent_gigs",
+      "module": "seekclaw",
+      "url": "https://www.seekclaw.com",
+      "refs": ["https://www.seekclaw.com/skill.md", "https://www.seekclaw.com/llms.txt"],
+      "note": "GET /api/jobs; Ed25519 agent auth for apply; open listings often empty"
+    },
+    {
+      "id": "superteam_earn",
+      "name": "Superteam Earn",
+      "tier": "v2",
+      "kind": "agent_gigs",
+      "region": "global",
+      "audience": "any",
+      "access": "official_api",
+      "apply": "api",
+      "status": "include_agent_gigs",
+      "module": "superteam_earn",
+      "url": "https://earn.superteam.fun",
+      "refs": ["https://superteam.fun/skill.md"],
+      "note": "SUPERTEAM_EARN_API_KEY from POST https://superteam.fun/api/agents; listings at /api/agents/listings/live; human claim for payout"
+    },
+    {
+      "id": "rentahuman",
+      "name": "RentAHuman",
+      "tier": "v2",
+      "kind": "agent_gigs",
+      "region": "global",
+      "audience": "any",
+      "access": "official_api",
+      "apply": "api_or_browser",
+      "status": "include_agent_gigs",
+      "module": "rentahuman",
+      "url": "https://rentahuman.ai",
+      "note": "Reverse market: agents hire humans. Public GET /api/bounties; writes need x-api-key"
+    },
+    {
+      "id": "openwork",
+      "name": "Openwork",
+      "tier": "v2",
+      "kind": "agent_gigs",
+      "region": "global",
+      "audience": "any",
+      "access": "official_api",
+      "apply": "api",
+      "status": "include_agent_gigs",
+      "module": "openwork",
+      "url": "https://openwork.bot",
+      "refs": ["https://openwork.bot/skill.md", "https://openwork.bot/api/docs"],
+      "note": "Crew Economy on Base; GET /api/missions; OPENWORK_OPEN_ONLY=0 to include claimed/verified. ≠ dealwork.ai"
+    },
+    {
       "id": "profi",
       "name": "Profi.ru",
       "tier": "watch",
@@ -98,18 +364,61 @@
       "access": "browser",
       "apply": "browser",
       "status": "watch_browser",
-      "note": "partner mTLS out of scope"
+      "url": "https://profi.ru/cabinet/",
+      "note": "partner mTLS out of scope; browser: cabinet orders → capture get_job → apply"
+    },
+    {
+      "id": "avito",
+      "name": "Avito Услуги",
+      "tier": "watch",
+      "kind": "services",
+      "region": "ru",
+      "audience": "private",
+      "access": "browser",
+      "apply": "browser",
+      "status": "watch_browser",
+      "url": "https://www.avito.ru/",
+      "note": "ToS: semi-manual only; chat / отклик на услуги"
+    },
+    {
+      "id": "youdo",
+      "name": "YouDo",
+      "tier": "watch",
+      "kind": "services",
+      "region": "ru",
+      "audience": "private",
+      "access": "browser",
+      "apply": "browser",
+      "status": "watch_browser",
+      "url": "https://youdo.com/",
+      "note": "Browser: tasks for doers → capture → reply"
+    },
+    {
+      "id": "sproutgigs",
+      "name": "SproutGigs",
+      "tier": "watch",
+      "kind": "marketplace",
+      "region": "global",
+      "audience": "private",
+      "access": "browser",
+      "apply": "browser",
+      "status": "watch_browser",
+      "url": "https://sproutgigs.com/",
+      "note": "Microtasks / gigs; login → Jobs → apply in browser"
     },
     {
       "id": "product_radar",
-      "name": "Product Radar Hiring",
-      "tier": "watch",
+      "name": "Product Radar",
+      "tier": "v1",
       "kind": "job_board",
       "region": "ru",
       "audience": "company",
-      "access": "browser",
+      "access": "html",
       "apply": "browser",
-      "status": "watch_browser"
+      "status": "works",
+      "url": "https://productradar.ru",
+      "value": { "gigs": 2, "cofounder": 3, "roles": 4, "products": 5 },
+      "note": "HTML feed: /category/hiring/?page=N (article.products__item + card__status-text). Core fetch into store → workix_search/digest. Prefer direct (PROXY_1 SOCKS may hang). Apply: product page / TG — browser."
     },
     {
       "id": "startupfellows",
@@ -120,7 +429,10 @@
       "audience": "company",
       "access": "browser",
       "apply": "browser",
-      "status": "watch_browser"
+      "status": "watch_browser",
+      "url": "https://startupfellows.ru",
+      "value": { "gigs": 2, "cofounder": 3, "roles": 4, "products": 3 },
+      "note": "Watch only: vacancies at /vacancies. Not in workix_search store. Capture lead: workix_get_job(url+platform+title) → draft → browser/TG apply."
     },
     {
       "id": "yc_cofounder",
@@ -133,7 +445,8 @@
       "apply": "browser",
       "status": "watch_browser",
       "value": { "gigs": 1, "cofounder": 5, "roles": 2, "products": 2 },
-      "url": "https://www.ycombinator.com/cofounder-matching"
+      "url": "https://www.ycombinator.com/cofounder-matching",
+      "note": "Watch only: approved YC matching profile required. No public job feed for digest. Semi-manual invites only."
     },
     {
       "id": "cofounderslab",
@@ -162,6 +475,20 @@
       "url": "https://contra.com"
     },
     {
+      "id": "fiverr",
+      "name": "Fiverr",
+      "tier": "watch",
+      "kind": "marketplace",
+      "region": "global",
+      "audience": "private",
+      "access": "browser",
+      "apply": "browser",
+      "status": "watch_browser",
+      "value": { "gigs": 5, "cofounder": 1, "roles": 1, "products": 1 },
+      "url": "https://www.fiverr.com/start_selling",
+      "note": "No public API / no job board. Buyer Requests retired → Briefs (inbound match). Need seller onboarding + active gig + Get Briefs. Apply = Create Offer / Custom Offer in browser. Session sniff: GET /briefs/manage/api/list (buyer), GET /inbox/contacts; cookies not in env."
+    },
+    {
       "id": "wellfound",
       "name": "Wellfound",
       "tier": "watch",
@@ -172,7 +499,8 @@
       "apply": "browser",
       "status": "watch_browser",
       "value": { "gigs": 2, "cofounder": 3, "roles": 5, "products": 3 },
-      "url": "https://wellfound.com"
+      "url": "https://wellfound.com",
+      "note": "Watch only: login + browser on /jobs. No public API for Workix digest. Capture via get_job then prepare_browser_apply."
     },
     {
       "id": "botpool",
@@ -204,16 +532,17 @@
     {
       "id": "habr_career",
       "name": "Habr Career",
-      "tier": "watch",
+      "tier": "v2",
       "kind": "job_board",
       "region": "ru",
       "audience": "company",
       "access": "rss",
       "apply": "browser",
-      "status": "watch_browser",
+      "status": "include_jobs",
+      "rss": "https://career.habr.com/vacancies/rss?remote=true",
       "value": { "gigs": 2, "cofounder": 1, "roles": 4, "products": 2 },
       "url": "https://career.habr.com",
-      "note": "RSS later; сейчас watch"
+      "note": "Remote vacancies RSS in include_jobs; watch URL for manual UI"
     },
     {
       "id": "linkedin",
@@ -230,15 +559,16 @@
     },
     {
       "id": "telegram",
-      "name": "Telegram channels",
+      "name": "Telegram channels (TDLib optional)",
       "tier": "watch",
       "kind": "telegram",
       "region": "ru",
       "audience": "any",
-      "access": "browser",
+      "access": "tdlib_user",
       "apply": "browser",
-      "status": "watch_browser",
-      "note": "см. mcp/telegram-channels.example.json"
+      "status": "optional_tdlib",
+      "module": "telegram",
+      "note": "BYO: TELEGRAM_API_ID/HASH + npm i tdl prebuilt-tdlib; tools workix_tg_*; list mcp/telegram-channels.json"
     },
     {
       "id": "feltsense",

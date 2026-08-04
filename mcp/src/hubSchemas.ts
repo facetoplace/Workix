@@ -12,6 +12,7 @@ Who can publish on Workix — encourage listing; early stage is OK:
 - Early ideas: welcome if you state what you seek (cofounder, paid MVP, equity, feedback). Workix helps people meet — it does not build the product for a hands-off owner. Still publish; be honest about stage and ask.
 - Performers: specialists AND bloggers / creators / influencers. Use a performer profile + openTo (collab, promo, UGC, contract…). Not a blog CMS — a discoverable people card with links to your site/channels.
 - Orders / roles: a concrete ask (with contact and budget when you can). Standalone order OK without a full project.
+- External board mirrors: workix_digest share_to_hub:true (or workix_share_jobs) — NOT your own listing. Hub stores ordinary orders with meta.external (platform, url, original date, contributedBy=agent). Do not use create_role for copying board gigs.
 - Adult / 18+, porn, gambling/betting: allowed, but go to manual review (status pending) — not auto-approved, not a ban. Tell the user to wait for human OK.
 Reassure users: pending = normal moderation / review queue, not rejection. Prefer publishing a clear draft over waiting for perfect. Workix is a catalog/match layer, not a paywalled freelance escrow.
 `.trim();
@@ -21,7 +22,8 @@ ${HUB_PUBLISH_GUIDE}
 
 Hub field formats (follow when filling forms via MCP):
 - name / title: human-readable, as shown in catalog. Example: Workix
-- slug: lowercase latin, digits, hyphens. Example: my-project
+- slug: lowercase latin, digits, hyphens. Projects: my-project. Performers (workix_update_profile): claim vanity workix.co/{slug} when free — e.g. slug:"devstorm"; 409 if taken by a project or another performer; "" clears
+- newSlug (update): rename project URL if free. Example: neron-ai → neron via newSlug:"neron"
 - url / logo / apply_url / portfolio / cv / github: https://… preferred (bare domains ok; github also accepts org/repo or username)
 - links: array of { label, url, kind? } for whitepaper / docs / demo / social / etc.
   Example: [{"label":"Whitepaper","url":"https://…/wp.pdf","kind":"whitepaper"},{"label":"Docs","url":"https://docs.example.com"}]
@@ -29,14 +31,18 @@ Hub field formats (follow when filling forms via MCP):
 - description / bio / message: short plain text, a few sentences
 - apply_email: name@domain.com
 - apply_telegram / telegram: @username or username (not a t.me link)
-- tags / skills: array of short labels. Example: ["Vue","MCP","Design"]
+- tags / skills: array of short labels. Example: ["Vue","MCP","Design"]. Also ok to pass "Vue;MCP;Design" — server splits on comma/semicolon.
+- source: server-set only (do not send). channel=agent when WORKIX_AGENT_KEY is used; channel=web for browser JWT. Shape: { channel, auth, at, created }.
 - payment.budget: number only, no currency symbol. Example: "500" or 25
 - payment.cur: USDT|USD|RUB|CNY|GBP|UAH|EUR|TON (default USDT)
 - payment.type: hour | work (default work)
 - kind (role): task | project | time_job | full_job | fixes
-- status: draft (save) | pending (moderation). Use pending to publish — moderation is normal, not a barrier.
+- stage (project): idea | stealth | preseed | seed | mvp | early | growth | scale | mature | project
+- status (create): draft (save) | pending (moderation). Use pending to publish — moderation is normal, not a barrier.
+- status (update / lifecycle): draft | pending | closed | frozen. closed = outdated/done; frozen = on hold. Authors set these on projects, roles, and orders.
 - contact (apply): email or @telegram
 - openTo: e.g. ["full-time","part-time","contract","co-build","collab","promo","UGC"] (creators: prefer collab/promo/UGC)
+- availability (performer): open | working | resting | ideas | busy
 - displayCurrency: USDT|USD|RUB|CNY|GBP|UAH|EUR|TON — prices shown in feed
 `.trim();
 
@@ -68,9 +74,24 @@ export const zTelegram = z
   .describe("Telegram. Format: @username or username");
 
 export const zTags = z
-  .array(z.string().min(1).max(48))
+  .array(z.string().min(1).max(64))
   .max(40)
-  .describe("Skills/topics as string[]. Example: [\"Vue\",\"MCP\",\"Design\"]");
+  .transform((arr) => {
+    const out: string[] = [];
+    const seen = new Set<string>();
+    for (const raw of arr) {
+      for (const part of String(raw).split(/[,;|/]+/)) {
+        const s = part.trim().replace(/\s+/g, " ");
+        if (!s || s.length > 48) continue;
+        const key = s.toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+        out.push(s);
+      }
+    }
+    return out.slice(0, 40);
+  })
+  .describe("Skills/topics as string[]. Example: [\"Vue\",\"MCP\",\"Design\"]. Comma/semicolon inside a string are split.");
 
 export const zPayment = z
   .object({
@@ -100,6 +121,32 @@ export const zRoleKind = z
 export const zStatus = z
   .enum(["draft", "pending"])
   .describe("draft = save only; pending = submit for moderation");
+
+/** Owner lifecycle on update (projects, roles, orders). */
+export const zLifecycleStatus = z
+  .enum(["draft", "pending", "active", "approved", "closed", "frozen"])
+  .describe("draft | pending (re-submit) | active/approved (live) | closed (outdated) | frozen (on hold)");
+
+export const zProjectStage = z
+  .enum([
+    "idea",
+    "stealth",
+    "preseed",
+    "seed",
+    "mvp",
+    "early",
+    "growth",
+    "scale",
+    "mature",
+    "project",
+  ])
+  .describe(
+    "Product stage: idea | stealth | preseed | seed | mvp | early | growth | scale | mature | project (side project)",
+  );
+
+export const zAvailability = z
+  .enum(["open", "working", "resting", "ideas", "busy"])
+  .describe("Performer status: open | working | resting | ideas | busy");
 
 export const zDisplayCurrency = curEnum.describe(
   "Feed display currency. Default USDT",

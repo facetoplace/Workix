@@ -67,7 +67,18 @@ export async function fetchKworkJobs() {
     try {
         const kw = await client();
         const resp = await kw.getProjects();
+        // kwork-api often returns null after failed signIn / broken proxy TLS,
+        // then later throws unhandledRejection from getChannel — treat as soft error.
+        if (resp == null) {
+            return {
+                jobs: [],
+                error: "Kwork API returned null (auth or proxy TLS failed)",
+            };
+        }
         const list = (resp?.response || resp || []);
+        if (!Array.isArray(list)) {
+            return { jobs: [], error: "Kwork API unexpected payload" };
+        }
         const jobs = list.map(mapProject).filter(Boolean);
         return { jobs };
     }
@@ -79,6 +90,13 @@ export async function fetchKworkJobs() {
     }
 }
 export async function kworkGetMe() {
-    const kw = await client();
-    return kw.getMe();
+    try {
+        const kw = await client();
+        return await kw.getMe();
+    }
+    catch (e) {
+        return {
+            error: e instanceof Error ? e.message : String(e),
+        };
+    }
 }

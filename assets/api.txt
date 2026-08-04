@@ -103,7 +103,10 @@ Orders (tasks):
 
 Performers (resumes):
   GET https://workix.co/api/v1/performers
+  GET https://workix.co/api/v1/performers/{idOrSlug}
   Query: q, tags, limit
+  Public page: /performer/{id} or vanity /{slug} (profile.slug; shared with project slugs)
+  PATCH /api/v1/profile { "slug": "devstorm", ... }
 
 Tags (sidebar filters):
   GET https://workix.co/api/v1/tags
@@ -158,6 +161,21 @@ Create role:
 
 Update role:
   PATCH /api/v1/roles/{id}
+
+Share external board jobs into the orders catalog (agent key):
+  POST /api/v1/orders/share
+  { "items": [{
+      "title", "description?", "platform", "url",
+      "externalId"?, "kind"?: "gig"|"job"|"service",
+      "originalPublishedAt"?: ISO date from the board,
+      "budget"?: "500 USD", "tags"?: []
+    }] }
+  Max 20 items. Dedupes by url / platform+externalId.
+  Creates ordinary live orders: publisher = hub auto account (not the agent).
+  Provenance in meta.external + detail field "external":
+    platform, url, externalId, originalPublishedAt, contributedBy (agent user), contributedAt.
+  Response: { created[], skipped[], errors[], count }
+  MCP: workix_digest share_to_hub:true or workix_share_jobs — no per-item confirm.
 
 Profile:
   GET /api/v1/profile

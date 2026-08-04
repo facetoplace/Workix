@@ -2,6 +2,7 @@ import Parser from "rss-parser";
 import { fetchText } from "../http.js";
 import { rssPlatforms } from "../platforms.js";
 import { jobId } from "../store.js";
+import { fetchFreelanceRuJobs, pingFreelanceRu, } from "./freelance_ru.js";
 const parser = new Parser();
 function decodeEntities(s) {
     return s
@@ -22,25 +23,7 @@ function stripHtml(html) {
         .replace(/\s+/g, " ")
         .trim());
 }
-function normalizeItem(platform, item) {
-    const link = item.link?.trim();
-    const title = decodeEntities(item.title?.trim() || "");
-    if (!link || !link.startsWith("http") || !title)
-        return null;
-    const description = stripHtml(item.contentSnippet || item.content || item.summary || "").replace(/Показать полностью/gi, "Подробности дальше");
-    const date = item.isoDate || item.pubDate || new Date().toISOString();
-    return {
-        id: jobId(platform, link),
-        platform,
-        kind: "gig",
-        title,
-        description,
-        link,
-        date: new Date(date).toISOString(),
-        fetchedAt: new Date().toISOString(),
-        raw: { guid: item.guid, categories: item.categories },
-    };
-}
+const JOB_KIND_PLATFORMS = new Set(["habr_career"]);
 const ALT_URLS = {
     weblancer_net: [
         "https://www.weblancer.net/rss/jobs.rss",
@@ -51,12 +34,45 @@ const ALT_URLS = {
         "https://www.freelance.ru/rss/projects.xml",
     ],
     fl_ru: ["https://www.fl.ru/rss/all.xml"],
+    habr_career: [
+        "https://career.habr.com/vacancies/rss?remote=true",
+        "https://career.habr.com/vacancies/rss",
+    ],
 };
+/** RU boards often DDoS-Guard on foreign IP — PROXY_1 SOCKS only, no direct. */
+const PROXY_REQUIRED = new Set(["freelance_ru", "weblancer_net"]);
+function normalizeItem(platform, item) {
+    const link = item.link?.trim();
+    const title = decodeEntities(item.title?.trim() || "");
+    if (!link || !link.startsWith("http") || !title)
+        return null;
+    const description = stripHtml(item.contentSnippet || item.content || item.summary || "").replace(/Показать полностью/gi, "Подробности дальше");
+    const date = item.isoDate || item.pubDate || new Date().toISOString();
+    return {
+        id: jobId(platform, link),
+        platform,
+        kind: JOB_KIND_PLATFORMS.has(platform) ? "job" : "gig",
+        title,
+        description,
+        link,
+        date: new Date(date).toISOString(),
+        fetchedAt: new Date().toISOString(),
+        raw: { guid: item.guid, categories: item.categories },
+    };
+}
 export async function fetchRssJobs(platformIds) {
     const platforms = rssPlatforms(platformIds);
     const jobs = [];
     const errors = [];
     await Promise.all(platforms.map(async (p) => {
+        if (p.id === "freelance_ru") {
+            const fr = await fetchFreelanceRuJobs();
+            jobs.push(...fr.jobs);
+            if (!fr.jobs.length && fr.error) {
+                errors.push({ platform: p.id, error: fr.error });
+            }
+            return;
+        }
         const urls = ALT_URLS[p.id] || (p.rss ? [p.rss] : []);
         let lastError = "";
         for (const url of urls) {
@@ -65,6 +81,8 @@ export async function fetchRssJobs(platformIds) {
                     Accept: "application/rss+xml, application/xml, text/xml, */*",
                 },
                 retries: 2,
+                maxProxies: PROXY_REQUIRED.has(p.id) ? 12 : 6,
+                directFallback: !PROXY_REQUIRED.has(p.id),
             });
             if (!res.ok) {
                 lastError = res.error || `HTTP ${res.status}`;
@@ -90,6 +108,9 @@ export async function fetchRssJobs(platformIds) {
     return { jobs, errors };
 }
 export async function pingRssPlatform(platformId) {
+    if (platformId === "freelance_ru") {
+        return pingFreelanceRu();
+    }
     const p = rssPlatforms([platformId])[0];
     if (!p?.rss) {
         return {
@@ -102,7 +123,11 @@ export async function pingRssPlatform(platformId) {
         };
     }
     const url = (ALT_URLS[platformId] || [p.rss])[0];
-    const res = await fetchText(url, { retries: 1 });
+    const res = await fetchText(url, {
+        retries: 1,
+        maxProxies: PROXY_REQUIRED.has(platformId) ? 12 : 6,
+        directFallback: !PROXY_REQUIRED.has(platformId),
+    });
     if (!res.ok) {
         return {
             platform: platformId,

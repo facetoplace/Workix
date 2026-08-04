@@ -190,7 +190,7 @@
       <header class="wx-agent-hero">
         <div class="wx-agent-brand" data-i="brand">Workix</div>
         <p class="wx-agent-lede" data-i="lede">
-          The same hub for you and your AI agent: find a place in a project, browse orders, or let Cursor / Claude / ChatGPT do the busywork through API and MCP.
+          The same hub for you and your AI agent: find a place in a project, browse orders, or let Cursor / Claude / Codex do the busywork through API and MCP.
         </p>
         <div class="wx-agent-actions">
           <a class="wx-btn wx-btn-primary" href="/" data-i="cta_hub">Open the hub</a>
@@ -254,7 +254,7 @@
       <section class="wx-agent-section">
         <h2 data-i="h_start">Start in 30 seconds</h2>
         <div class="wx-card p-5">
-          <p class="wx-muted text-sm mb-3" data-i="p_start">Paste this into Cursor, Claude, ChatGPT, or any agent that can open URLs:</p>
+          <p class="wx-muted text-sm mb-3" data-i="p_start">Paste this into Cursor, Claude, Codex, or any agent that can open URLs:</p>
           <pre class="wx-agent-cmd" id="promptBox" tabindex="0"></pre>
           <div class="wx-agent-actions" style="margin-top:1rem">
             <button class="wx-btn wx-btn-primary" type="button" id="copyPrompt2" data-i="cta_copy">Copy prompt for your agent</button>
@@ -320,7 +320,7 @@ Never submit proposals/applies without explicit human approval.
   const I18N = {
     en: {
       brand: 'Workix',
-      lede: 'The same hub for you and your AI agent: find a place in a project, browse orders, or let Cursor / Claude / ChatGPT do the busywork through API and MCP.',
+      lede: 'The same hub for you and your AI agent: find a place in a project, browse orders, or let Cursor / Claude / Codex do the busywork through API and MCP.',
       cta_hub: 'Open the hub',
       cta_copy: 'Copy prompt for your agent',
       cta_api: 'Full API for agents',
@@ -341,7 +341,7 @@ Never submit proposals/applies without explicit human approval.
       c5t: 'Freelance digests locally',
       c5d: 'Upwork, FL, Kwork… via local MCP with your credentials — not stored on the hub.',
       h_start: 'Start in 30 seconds',
-      p_start: 'Paste this into Cursor, Claude, ChatGPT, or any agent that can open URLs:',
+      p_start: 'Paste this into Cursor, Claude, Codex, or any agent that can open URLs:',
       h_mcp: 'Connect MCP (Cursor)',
       p_mcp: 'Paste into your client mcp.json. Public search works with only WORKIX_API; set WORKIX_AGENT_KEY for create/update/apply.',
       cta_mcp: 'Copy mcp.json snippet',
@@ -352,7 +352,7 @@ Never submit proposals/applies without explicit human approval.
     },
     ru: {
       brand: 'Workix',
-      lede: 'Один хаб для вас и вашего ИИ-агента: найти место в проекте, смотреть заказы — или поручить Cursor / Claude / ChatGPT рутину через API и MCP.',
+      lede: 'Один хаб для вас и вашего ИИ-агента: найти место в проекте, смотреть заказы — или поручить Cursor / Claude / Codex рутину через API и MCP.',
       cta_hub: 'Открыть хаб',
       cta_copy: 'Скопировать промпт для агента',
       cta_api: 'Полный API для агентов',
@@ -373,7 +373,7 @@ Never submit proposals/applies without explicit human approval.
       c5t: 'Дайджесты фриланса локально',
       c5d: 'Upwork, FL, Kwork… через локальный MCP с вашими доступами — хаб пароли не хранит.',
       h_start: 'Старт за 30 секунд',
-      p_start: 'Вставьте в Cursor, Claude, ChatGPT или любого агента, который умеет открывать URL:',
+      p_start: 'Вставьте в Cursor, Claude, Codex или любого агента, который умеет открывать URL:',
       h_mcp: 'Подключить MCP (Cursor)',
       p_mcp: 'Вставьте в mcp.json клиента. Публичный поиск работает с одним WORKIX_API; для create/update/apply нужен WORKIX_AGENT_KEY.',
       cta_mcp: 'Скопировать фрагмент mcp.json',
@@ -400,8 +400,10 @@ Never submit proposals/applies without explicit human approval.
   function pickLang() {
     const saved = localStorage.getItem('workix_lang');
     if (saved === 'ru' || saved === 'en') return saved;
-    const nav = (navigator.language || '').toLowerCase();
-    return nav.startsWith('ru') ? 'ru' : 'en';
+    const nav = (navigator.language || (navigator.languages && navigator.languages[0]) || '').toLowerCase();
+    // Match browser language; never force Russian as fallback.
+    if (nav.startsWith('ru')) return 'ru';
+    return 'en';
   }
 
   let lang = pickLang();

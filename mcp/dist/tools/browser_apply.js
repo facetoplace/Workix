@@ -21,6 +21,61 @@ const PLATFORM_TIPS = {
         "Не массово спамить — только после «ок».",
     ],
     remoteok: ["Apply ведёт на сайт работодателя — форма ATS там."],
+    remotive: ["Apply на сайте работодателя / Remotive redirect — ATS снаружи."],
+    arbeitnow: ["Apply через URL Arbeitnow → сайт работодателя / ATS."],
+    adzuna: ["redirect_url Adzuna → лендинг/ATS работодателя; не биржа ставок."],
+    himalayas: [
+        "Himalayas: Apply на странице вакансии → ATS работодателя. Credit Himalayas при перепосте ленты.",
+    ],
+    weworkremotely: [
+        "We Work Remotely: Apply на WWR → сайт компании / ATS.",
+    ],
+    jobicy: [
+        "Jobicy: кнопка Apply должна вести на оригинальный job URL (ToS Jobicy).",
+    ],
+    dreamoffer: [
+        "Dream Offer: нативного отклика нет — Apply = источник (TG / LinkedIn / ATS).",
+        "Открыть vacancy.html?nn=… → ссылка source_link из raw / «Откликнуться (в источнике)».",
+        "TG: короткий текст в ЛС/коммент канала; LinkedIn/ATS — форма работодателя.",
+        "После отправки: workix_outreach_log channel=dreamoffer|tg|linkedin.",
+        "Не массово — только после явного «ок».",
+    ],
+    working_nomads: [
+        "Working Nomads: Apply на карточке → сайт работодателя / ATS.",
+    ],
+    themuse: [
+        "The Muse: Apply на landing_page → ATS работодателя.",
+    ],
+    four_day_week: [
+        "4 Day Week: Apply на 4dayweek.io/jobs/:slug → employer.",
+    ],
+    aidevboard: [
+        "AI Dev Jobs: Apply на карточке → apply_url / ATS работодателя.",
+    ],
+    aquent: [
+        "Aquent: Apply на aquent.com/find-work/:id; при перепосте credit Aquent.",
+    ],
+    openwork: [
+        "Openwork: claim mission через API/skill.md + wallet; Pilot oversight возможен.",
+    ],
+    growth_talent: [
+        "Growth.Talent: apply через member API (gt_live_…) или форма на job URL.",
+        "Ниша growth marketing — не mobile freelance.",
+    ],
+    claw_earn: [
+        "Claw Earn: stake USDC + submit через /agent* или UI /claw-earn/task/:id.",
+        "Не вызывать /api/claw/* — канон /claw/* и /agent*.",
+    ],
+    seekclaw: [
+        "SeekClaw: agent Ed25519 / DID auth по skill.md; apply только на seekclaw.com.",
+    ],
+    superteam_earn: [
+        "Superteam Earn: POST /api/agents/submissions/create с Bearer sk_…",
+        "Payout — human claim по claimCode; для project нужен telegram human.",
+    ],
+    rentahuman: [
+        "RentAHuman: обратный рынок (агент нанимает людей). Apply/escrow через API key или UI bounty.",
+    ],
     upwork: [
         "Нужны Connects на аккаунте и залогиненная сессия Upwork.",
         "Submit Proposal — форма cover letter + ставка; API createJobProposal только при Approve «Submit Proposal» + IDs в env.",
@@ -29,6 +84,33 @@ const PLATFORM_TIPS = {
     freelancer_com: [
         "Freelancer.com: форма Place a Bid на странице проекта.",
         "Если API bid не сработал — вставить proposal_text и ставку вручную.",
+    ],
+    fiverr: [
+        "Нужен завершённый Seller Onboarding + active Gig + Get Briefs; сессия в Cursor browser (ключ API не нужен).",
+        "Buyer Requests нет — только Briefs match (Your matches) или Custom Offer из Inbox.",
+        "Creating an offer: introduction (proposal_text) + цена + delivery / payment type (single / milestones / hourly / subscription).",
+        "Не жать Send / Create Offer без явного «ок» пользователя.",
+    ],
+    profi: [
+        "Нужна сессия Profi в браузере (кабинет исполнителя).",
+        "Открой карточку заказа / заявки → форма отклика или сообщение заказчику.",
+        "Вставь proposal_text; цену/срок — если поля есть.",
+        "Не отправлять без явного «ок».",
+    ],
+    avito: [
+        "Нужна сессия Avito; ToS — только полуручной режим, без массового спама.",
+        "Отклик обычно через чат по объявлению / заказу услуг.",
+        "Вставь proposal_text в сообщение; не жать Отправить без «ок».",
+    ],
+    youdo: [
+        "Нужна сессия YouDo как исполнитель.",
+        "На карточке задания — отклик / предложить цену; вставь proposal_text.",
+        "Не отправлять без явного «ок».",
+    ],
+    sproutgigs: [
+        "Нужна сессия sproutgigs.com.",
+        "На gig/job — Apply / Submit proof или форма отклика по типу задания.",
+        "Вставь proposal_text где есть поле сообщения; не жать Submit без «ок».",
     ],
 };
 export async function runPrepareBrowserApply(args) {

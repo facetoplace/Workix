@@ -45,8 +45,8 @@
   },
   "startups_products": {
     "label": "Стартапы и новые продукты",
-    "hours": 72,
-    "limit": 15,
+    "hours": 168,
+    "limit": 20,
     "include_jobs": true,
     "include_services": false,
     "keywords": [
@@ -59,18 +59,21 @@
       "запуск",
       "pre-seed",
       "пилот",
-      "indie"
+      "indie",
+      "flutter",
+      "мобильн",
+      "разработчик",
+      "набираю"
     ],
     "minus": ["накрутка", "реферат"],
+    "platforms": ["fl_ru", "freelance_ru", "product_radar", "habr_career", "remoteok"],
     "watch_sources": [
-      "product_radar",
       "startupfellows",
       "wellfound",
       "yc_cofounder",
       "contra",
       "botpool",
       "linkedin_jobs",
-      "habr_career",
       "telegram_watch",
       "cofounderslab",
       "arc_dev"

@@ -12,6 +12,8 @@ export declare function fetchText(url: string, opts?: {
     timeoutMs?: number;
     retries?: number;
     maxProxies?: number;
+    /** When false, never hit origin without PROXY_1 (RU boards / DDoS-Guard). Default true. */
+    directFallback?: boolean;
 }): Promise<FetchResult>;
 export declare function fetchJson<T = unknown>(url: string, opts?: {
     headers?: Record<string, string>;

@@ -76,6 +76,18 @@ async function main() {
   });
   console.log("[smoke-hub] apply", apply);
 
+  // Always remove smoke fixtures (startup + roles + applies)
+  const keep = process.env.WORKIX_SMOKE_KEEP === "1";
+  if (!keep) {
+    const del = await req(`/api/v1/startups/${encodeURIComponent(st.slug)}`, {
+      method: "DELETE",
+      key,
+    });
+    console.log("[smoke-hub] cleaned", del);
+  } else {
+    console.log("[smoke-hub] KEEP startup", st.slug);
+  }
+
   console.log("[smoke-hub] OK");
 }
 

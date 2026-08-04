@@ -1,12 +1,14 @@
 import { callFetchJobs, getAdapter } from "../adapterLoader.js";
+import { pingProductRadar } from "../adapters/product_radar.js";
 import { pingRssPlatform } from "../adapters/rss.js";
 import { loadEnv } from "../env.js";
 import { proxyPoolInfo } from "../proxyPool.js";
 export async function runSourcesStatus() {
     loadEnv();
     const pool = await proxyPoolInfo();
-    const rssIds = ["fl_ru", "freelance_ru", "weblancer_net"];
+    const rssIds = ["fl_ru", "freelance_ru", "weblancer_net", "habr_career"];
     const rss = await Promise.all(rssIds.map((id) => pingRssPlatform(id)));
+    const product_radar = await pingProductRadar();
     const kworkMod = await getAdapter("kwork");
     const kworkConfigured = typeof kworkMod?.configured === "function" ? kworkMod.configured() : false;
     let kwork = { configured: kworkConfigured, skipped: true };
@@ -75,6 +77,7 @@ export async function runSourcesStatus() {
     return {
         proxy_pool: pool,
         rss,
+        product_radar,
         kwork,
         freelancehunt,
         upwork,
@@ -82,6 +85,6 @@ export async function runSourcesStatus() {
         adapters: {
             note: "Heavy board adapters are downloaded from the hub registry on first use",
         },
-        summary: `RSS ok ${okCount}/${rss.length}; upwork=${upworkConfigured ? "on" : "off"}; freelancer=${freelancerConfigured ? "on" : "off"}`,
+        summary: `RSS ok ${okCount}/${rss.length}; product_radar=${product_radar.ok ? "ok" : "fail"}; upwork=${upworkConfigured ? "on" : "off"}; freelancer=${freelancerConfigured ? "on" : "off"}`,
     };
 }

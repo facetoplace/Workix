@@ -172,7 +172,11 @@ function withHubUrls<T extends Record<string, unknown>>(
   } else if (kind === "order") {
     out.pageUrl = absHubUrl(`/order/${out.sid || out.id}`);
   } else if (kind === "performer" || kind === "publisher") {
-    out.pageUrl = absHubUrl(`/performer/${out.performerId || out.id || out.userId}`);
+    if (out.slug) {
+      out.pageUrl = absHubUrl(`/${out.slug}`);
+    } else {
+      out.pageUrl = absHubUrl(`/performer/${out.performerId || out.id || out.userId}`);
+    }
   } else if (kind === "role") {
     if (out.startupSlug) {
       out.pageUrl = absHubUrl(`/${out.startupSlug}/${out.slug || out.id}`);
@@ -258,11 +262,13 @@ export async function hubGetPerformer(args: { id: string }) {
     ...res,
     data: {
       ...data,
-      pageUrl: absHubUrl(`/performer/${data.id || args.id}`),
+      pageUrl: data.slug
+        ? absHubUrl(`/${data.slug}`)
+        : absHubUrl(`/performer/${data.id || args.id}`),
       projects,
       orders,
       roles,
-      note: "projects/orders/roles are this performer's public listings — follow pageUrl or workix_get_startup / workix_get_hub_order",
+      note: "projects/orders/roles are this performer's public listings — follow pageUrl or workix_get_startup / workix_get_hub_order. Performer vanity: set profile.slug → workix.co/{slug}",
     },
   };
 }
@@ -297,16 +303,30 @@ export async function hubGetOrder(args: { id: string }) {
       scraped,
       publisher,
       pageUrl: absHubUrl(String(data.url || `/order/${data.sid || data.id || args.id}`)),
-      note: scraped
-        ? "scraped/aggregator order — no publisher performer card"
-        : publisher
-          ? "publisher is a platform performer — workix_get_performer"
-          : "no publisher on this order",
+      note: data.external
+        ? "external board mirror — see external.platform/url/contributedBy; no personal publisher card"
+        : scraped
+          ? "scraped/aggregator order — no publisher performer card"
+          : publisher
+            ? "publisher is a platform performer — workix_get_performer"
+            : "no publisher on this order",
     },
   };
 }
 
 export type InfoLink = { label?: string; url: string; kind?: string };
+
+export type ProjectStage =
+  | "idea"
+  | "stealth"
+  | "preseed"
+  | "seed"
+  | "mvp"
+  | "early"
+  | "growth"
+  | "scale"
+  | "mature"
+  | "project";
 
 export async function hubCreateStartup(args: {
   name: string;
@@ -316,6 +336,7 @@ export async function hubCreateStartup(args: {
   logo?: string;
   links?: Array<InfoLink | string>;
   tags?: string[];
+  stage?: ProjectStage;
   status?: "draft" | "pending";
   applyDefaults?: Record<string, string>;
 }) {
@@ -324,13 +345,16 @@ export async function hubCreateStartup(args: {
 
 export async function hubUpdateStartup(args: {
   slug: string;
+  /** Rename project URL when the new slug is free. */
+  newSlug?: string;
   name?: string;
   description?: string;
   url?: string;
   logo?: string;
   links?: Array<InfoLink | string>;
   tags?: string[];
-  status?: "draft" | "pending";
+  stage?: ProjectStage;
+  status?: "draft" | "pending" | "active" | "approved" | "closed" | "frozen";
   applyDefaults?: Record<string, string>;
 }) {
   const { slug, ...body } = args;
@@ -376,18 +400,86 @@ export async function hubUpdateRole(args: {
   apply_telegram?: string;
   links?: Array<InfoLink | string>;
   tags?: string[];
-  status?: "draft" | "pending";
+  status?: "draft" | "pending" | "active" | "approved" | "closed" | "frozen";
 }) {
   const { id, ...body } = args;
   return hubFetch(`/api/v1/roles/${encodeURIComponent(id)}`, { method: "PATCH", body });
 }
 
+export async function hubUpdateOrder(args: {
+  id: string;
+  title?: string;
+  description?: string;
+  kind?: string;
+  project?: string;
+  payment?: { budget?: string | number; type?: string; cur?: string };
+  links?: Array<InfoLink | string>;
+  tags?: string[];
+  status?: "draft" | "pending" | "active" | "approved" | "closed" | "frozen";
+}) {
+  const { id, ...body } = args;
+  return hubFetch(`/api/v1/orders/${encodeURIComponent(id)}`, { method: "PATCH", body });
+}
+
+/** Share external board jobs into hub catalog (auto publisher + meta.external). */
+export async function hubShareOrders(
+  items: Array<{
+    title: string;
+    description?: string;
+    platform: string;
+    url: string;
+    externalId?: string;
+    kind?: string;
+    originalPublishedAt?: string;
+    date?: string;
+    budget?: string;
+    payment?: { budget?: string | number; type?: string; cur?: string };
+    tags?: string[];
+  }>,
+) {
+  return hubFetch("/api/v1/orders/share", { method: "POST", body: { items } });
+}
+
+function withProfileUrls(data: Record<string, unknown> | null | undefined) {
+  if (!data || typeof data !== "object") return data || null;
+  const slug = typeof data.slug === "string" ? data.slug.trim().toLowerCase() : "";
+  const pageUrl = slug ? absHubUrl(`/${slug}`) : undefined;
+  return {
+    ...data,
+    ...(pageUrl ? { pageUrl } : {}),
+    note: slug
+      ? `Public vanity URL: ${pageUrl} (also /performer/{id}). Rename with workix_update_profile slug when free.`
+      : "No vanity slug yet — set slug via workix_update_profile (e.g. slug:\"devstorm\") for workix.co/{slug}. Must be free (not a project or another performer).",
+  };
+}
+
 export async function hubGetProfile() {
-  return hubFetch("/api/v1/profile");
+  const res = await hubFetch("/api/v1/profile");
+  if (!res.ok) return res;
+  return { ...res, data: withProfileUrls((res.data || {}) as Record<string, unknown>) };
 }
 
 export async function hubUpdateProfile(args: Record<string, unknown>) {
-  return hubFetch("/api/v1/profile", { method: "PATCH", body: args });
+  const res = await hubFetch("/api/v1/profile", { method: "PATCH", body: args });
+  if (!res.ok) {
+    const err = String(res.error || "").toLowerCase();
+    if (res.status === 409 || err.includes("slug taken")) {
+      return {
+        ...res,
+        error: "Slug taken — choose another (shared namespace with projects and other performers).",
+        hint: "Pick a free slug, e.g. workix_update_profile { slug: \"your-name\" }. Check with workix_get_startup / workix_get_performer first.",
+      };
+    }
+    if (res.status === 400 && (err.includes("slug reserved") || err.includes("invalid slug"))) {
+      return {
+        ...res,
+        error: res.error || "Invalid or reserved slug",
+        hint: "Use lowercase latin, digits, hyphens; min 2 chars; not a reserved path (api, performer, order, …).",
+      };
+    }
+    return res;
+  }
+  return { ...res, data: withProfileUrls((res.data || {}) as Record<string, unknown>) };
 }
 
 export async function hubApply(args: {
@@ -395,6 +487,13 @@ export async function hubApply(args: {
   name?: string;
   contact?: string;
   message?: string;
+  Description?: string;
+  Interesity?: number;
+  Difficulty?: number;
+  Understandability?: number;
+  Budget?: string | number;
+  Currency?: string;
+  Time?: number;
 }) {
   return hubFetch("/api/v1/applies", { method: "POST", body: args });
 }

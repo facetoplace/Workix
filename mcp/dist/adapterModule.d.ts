@@ -42,3 +42,5 @@ export interface AdapterRegistry {
 export declare const CORE_RSS_PLATFORMS: readonly ["fl_ru", "freelance_ru", "weblancer_net"];
 /** Default module id for a platform id (when platforms.json has no module field). */
 export declare const PLATFORM_MODULE_MAP: Record<string, string>;
+/** Agent/gig marketplaces — pulled when include_agent_gigs is set. */
+export declare const AGENT_GIG_PLATFORMS: readonly ["growth_talent", "claw_earn", "seekclaw", "superteam_earn", "rentahuman", "openwork"];

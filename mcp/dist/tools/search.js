@@ -13,6 +13,7 @@ export async function runSearch(args) {
         await refreshJobs({
             platforms: args.platforms,
             include_jobs: args.include_jobs,
+            include_agent_gigs: args.include_agent_gigs,
             hh_text: keywords?.slice(0, 5).join(" "),
             upwork_query: q,
             freelancer_query: q,
