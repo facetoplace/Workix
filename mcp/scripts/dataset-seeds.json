@@ -1,0 +1,94 @@
+{
+  "_comment": "Curated natural-language queries per tool. Each entry: {q: prompt, lang, args: expected tool arguments}. Tools not listed here get templated coverage from their JSON schema.",
+  "workix_search": [
+    { "q": "Найди свежие заказы по React за последние сутки", "lang": "ru", "args": { "keywords": ["react"], "hours": 24 } },
+    { "q": "Find remote Python jobs posted this week, 20 results", "lang": "en", "args": { "keywords": ["python", "remote"], "hours": 168, "limit": 20 } },
+    { "q": "Search Upwork and Kwork for Node.js gigs, skip anything mentioning WordPress", "lang": "en", "args": { "keywords": ["node.js"], "minus": ["wordpress"], "platforms": ["upwork", "kwork"] } },
+    { "q": "Покажи вакансии на hh по Go, без стажировок", "lang": "ru", "args": { "keywords": ["go"], "minus": ["стажировка"], "platforms": ["hh"], "include_jobs": true } },
+    { "q": "Busca proyectos de diseño UX en los últimos 3 días", "lang": "es", "args": { "keywords": ["ux", "diseño"], "hours": 72 } }
+  ],
+  "workix_digest": [
+    { "q": "Собери дайджест новых заказов за сегодня", "lang": "ru", "args": { "hours": 24 } },
+    { "q": "Give me today's freelance digest across all connected boards", "lang": "en", "args": {} }
+  ],
+  "workix_get_job": [
+    { "q": "Открой подробности вакансии с этим id", "lang": "ru", "args": {} },
+    { "q": "Show me the full description for that job posting", "lang": "en", "args": {} }
+  ],
+  "workix_list_platforms": [
+    { "q": "Какие площадки сейчас подключены?", "lang": "ru", "args": {} },
+    { "q": "Which job boards can I search right now?", "lang": "en", "args": {} }
+  ],
+  "workix_install_platform": [
+    { "q": "Подключи адаптер hh", "lang": "ru", "args": { "id": "hh" } },
+    { "q": "Install the Upwork adapter", "lang": "en", "args": { "id": "upwork" } }
+  ],
+  "workix_sources_status": [
+    { "q": "Проверь, какие источники сейчас живые, а какие отвалились", "lang": "ru", "args": {} },
+    { "q": "Are any of my job sources failing?", "lang": "en", "args": {} }
+  ],
+  "workix_draft_proposal": [
+    { "q": "Набросай отклик на этот заказ, упор на мой опыт с Postgres", "lang": "ru", "args": {} },
+    { "q": "Draft a proposal for this gig, keep it under 150 words", "lang": "en", "args": {} }
+  ],
+  "workix_submit_proposal": [
+    { "q": "Отправь этот отклик", "lang": "ru", "args": {} },
+    { "q": "Submit the proposal I just approved", "lang": "en", "args": {} }
+  ],
+  "workix_list_startups": [
+    { "q": "Покажи стартапы в каталоге Workix", "lang": "ru", "args": {} },
+    { "q": "List startups on the Workix hub", "lang": "en", "args": {} }
+  ],
+  "workix_list_roles": [
+    { "q": "Какие открытые роли есть в каталоге?", "lang": "ru", "args": {} },
+    { "q": "Show open roles on Workix", "lang": "en", "args": {} }
+  ],
+  "workix_list_performers": [
+    { "q": "Найди исполнителей с опытом в Rust", "lang": "ru", "args": {} },
+    { "q": "Find performers who do mobile development", "lang": "en", "args": {} }
+  ],
+  "workix_get_performer": [
+    { "q": "Покажи карточку исполнителя", "lang": "ru", "args": {} },
+    { "q": "Open that performer's profile", "lang": "en", "args": {} }
+  ],
+  "workix_create_startup": [
+    { "q": "Заведи мой проект в каталоге Workix", "lang": "ru", "args": {} },
+    { "q": "Publish my startup on the Workix hub", "lang": "en", "args": {} }
+  ],
+  "workix_create_role": [
+    { "q": "Добавь вакансию бэкенд-разработчика в мой проект", "lang": "ru", "args": {} },
+    { "q": "Post a backend engineer role under my startup", "lang": "en", "args": {} }
+  ],
+  "workix_hub_apply": [
+    { "q": "Откликнись на эту роль в Workix", "lang": "ru", "args": {} },
+    { "q": "Apply to that role on the hub", "lang": "en", "args": {} }
+  ],
+  "workix_hub_register": [
+    { "q": "Зарегистрируй меня в Workix как исполнителя", "lang": "ru", "args": {} },
+    { "q": "Register me on the Workix hub", "lang": "en", "args": {} }
+  ],
+  "workix_update_profile": [
+    { "q": "Обнови мой профиль — добавь навык TypeScript", "lang": "ru", "args": {} },
+    { "q": "Update my performer profile rate to $60/hour", "lang": "en", "args": {} }
+  ],
+  "workix_history": [
+    { "q": "Что я уже отправлял на этой неделе?", "lang": "ru", "args": {} },
+    { "q": "Show my application history", "lang": "en", "args": {} }
+  ],
+  "workix_watch": [
+    { "q": "Следи за новыми заказами по Kubernetes и пинай меня", "lang": "ru", "args": {} },
+    { "q": "Watch for new Solidity gigs", "lang": "en", "args": {} }
+  ],
+  "workix_tg_search": [
+    { "q": "Поищи заказы в телеграм-каналах по геймдеву", "lang": "ru", "args": {} },
+    { "q": "Search Telegram channels for design gigs", "lang": "en", "args": {} }
+  ],
+  "workix_hh_negotiations": [
+    { "q": "Что нового по моим откликам на hh?", "lang": "ru", "args": {} },
+    { "q": "Check my hh.ru responses", "lang": "en", "args": {} }
+  ],
+  "workix_prepare_browser_apply": [
+    { "q": "Подготовь чеклист для ручного отклика на этот заказ", "lang": "ru", "args": {} },
+    { "q": "Prepare a browser apply checklist for this posting", "lang": "en", "args": {} }
+  ]
+}

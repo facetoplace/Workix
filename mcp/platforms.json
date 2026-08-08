@@ -486,7 +486,7 @@
       "status": "watch_browser",
       "value": { "gigs": 5, "cofounder": 1, "roles": 1, "products": 1 },
       "url": "https://www.fiverr.com/start_selling",
-      "note": "No public API / no job board. Buyer Requests retired → Briefs (inbound match). Need seller onboarding + active gig + Get Briefs. Apply = Create Offer / Custom Offer in browser. Session sniff: GET /briefs/manage/api/list (buyer), GET /inbox/contacts; cookies not in env."
+      "note": "No public API / no job board. Buyer Requests retired → Briefs (inbound match). Gates: seller onboarding + ≥1 gig + Get Briefs; phone verify (required for freelancers/Gig create); ID + personal/business verify via Persona (dashboard: not visible until done — may be required for Catalog). US: Form W-9. Apply = Create Offer / Custom Offer in browser. Cookies not in env."
     },
     {
       "id": "wellfound",

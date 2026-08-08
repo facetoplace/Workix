@@ -1,7 +1,7 @@
 {
   "mcpServers": {
     "workix": {
-      "description": "Workix hub + freelance digest MCP. Hub API at https://workix.co. Docs: https://workix.co/llms.txt and https://workix.co/api.txt",
+      "description": "Workix hub + freelance digest MCP. Hub API at https://workix.co. Docs: https://workix.co/llms.txt and https://workix.co/api.txt. Prefer install from GitHub source (mcp/); npx @workix/mcp is optional and may lag.",
       "url": "https://workix.co/api.txt",
       "docs": [
         "https://workix.co/llms.txt",
@@ -13,12 +13,26 @@
       ],
       "registry": {
         "name": "co.workix/mcp",
-        "npm": "@workix/mcp"
+        "npm": "@workix/mcp",
+        "source": "https://github.com/facetoplace/Workix/tree/main/mcp"
       },
       "install": {
         "type": "stdio",
-        "command": "npx",
-        "args": ["-y", "@workix/mcp"],
+        "recommended": "source",
+        "source": {
+          "repository": "https://github.com/facetoplace/Workix",
+          "directory": "mcp",
+          "build": ["npm install", "npm run build"],
+          "command": "node",
+          "args": ["FULL/PATH/TO/Workix/mcp/dist/index.js"]
+        },
+        "command": "node",
+        "args": ["FULL/PATH/TO/Workix/mcp/dist/index.js"],
+        "npx": {
+          "command": "npx",
+          "args": ["-y", "@workix/mcp"],
+          "note": "Faster shortcut; watch npm versions — may lag behind git"
+        },
         "env": {
           "WORKIX_API": "https://workix.co",
           "WORKIX_AGENT_KEY": "wix_…"

@@ -2,6 +2,7 @@ import http from "node:http";
 import https from "node:https";
 import { HttpsProxyAgent } from "https-proxy-agent";
 import { SocksProxyAgent } from "socks-proxy-agent";
+import { cookieHeaderFor, mergeSetCookie } from "./cookies.js";
 import { getProxyPool, nextProxy } from "./proxyPool.js";
 
 const DEFAULT_UA =
@@ -36,6 +37,8 @@ export async function fetchText(
     maxProxies?: number;
     /** When false, never hit origin without PROXY_1 (RU boards / DDoS-Guard). Default true. */
     directFallback?: boolean;
+    /** Persistent cookie jar name (see cookies.ts), e.g. "hh". Sends and refreshes it. */
+    cookieJar?: string;
   },
 ): Promise<FetchResult> {
   const timeoutMs = opts?.timeoutMs ?? 20000;
@@ -52,7 +55,7 @@ export async function fetchText(
   };
 
   if (opts?.proxy === false) {
-    return once(url, { headers: opts?.headers, timeoutMs });
+    return once(url, { headers: opts?.headers, timeoutMs, cookieJar: opts?.cookieJar });
   }
 
   if (typeof opts?.proxy === "string") {
@@ -60,6 +63,7 @@ export async function fetchText(
       headers: opts.headers,
       proxy: opts.proxy,
       timeoutMs,
+      cookieJar: opts.cookieJar,
     });
   }
 
@@ -81,6 +85,7 @@ export async function fetchText(
       headers: opts?.headers,
       proxy: useProxy,
       timeoutMs,
+      cookieJar: opts?.cookieJar,
     });
     if (last.ok) return last;
     // 403/404 часто от «плохого» exit — пробуем следующий proxy
@@ -104,6 +109,7 @@ function once(
     headers?: Record<string, string>;
     proxy?: string;
     timeoutMs: number;
+    cookieJar?: string;
   },
 ): Promise<FetchResult> {
   const started = Date.now();
@@ -112,6 +118,9 @@ function once(
       const u = new URL(url);
       const lib = u.protocol === "http:" ? http : https;
       const agent = makeAgent(opts.proxy);
+      const jarHeader = opts.cookieJar
+        ? cookieHeaderFor(opts.cookieJar, url)
+        : undefined;
       const req = lib.request(
         url,
         {
@@ -121,12 +130,16 @@ function once(
             "User-Agent": DEFAULT_UA,
             Accept: "*/*",
             "Accept-Language": "ru-RU,ru;q=0.9,en;q=0.8",
+            ...(jarHeader ? { Cookie: jarHeader } : {}),
             ...(opts.headers || {}),
           },
           timeout: opts.timeoutMs,
         },
         (res) => {
           const status = res.statusCode || 0;
+          if (opts.cookieJar) {
+            mergeSetCookie(opts.cookieJar, url, res.headers["set-cookie"]);
+          }
           if (status >= 301 && status <= 308 && res.headers.location) {
             const next = new URL(res.headers.location, url).toString();
             res.resume();
@@ -191,6 +204,7 @@ export async function fetchJson<T = unknown>(
   opts?: {
     headers?: Record<string, string>;
     proxy?: string | false;
+    cookieJar?: string;
   },
 ): Promise<{ data?: T; error?: string; status: number; ms: number }> {
   const res = await fetchText(url, opts);

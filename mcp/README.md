@@ -136,11 +136,13 @@ Optional: `WORKIX_PROFILE_PATH`, `WORKIX_MCP_DATA`.
 | `workix_list_hub_orders` / `workix_get_hub_order` | Hub orders (`scraped` / `external` → no personal publisher card; detail may include `external`) |
 | `workix_list_roles` / `workix_create_role` / `workix_update_role` | Roles / orders (concrete asks; paid or cofounder) |
 | `workix_share_jobs` | Mirror local board job ids → hub catalog (`POST /orders/share`; prefer digest flag) |
-| `workix_get_profile` / `workix_update_profile` | Own performer profile (`openTo`, vanity `slug` → `workix.co/{slug}` when free) |
+| `workix_get_profile` / `workix_update_profile` | Create/update own performer card via MCP; claim vanity `slug` → shareable `https://workix.co/{slug}` + free CV PDF `https://workix.co/{slug}/pdf` (also `/{slug}.json`) |
 
 Write tools echo a short **who can publish** guide: early stage welcome; moderation (`pending`) is normal — do not discourage listing.
 | `workix_hub_apply` | Apply on hub |
 | `workix_feedback` | bug / suggestion / support / other → hub admins (rate-limited) |
+
+**Rate limits (429):** hub and dStore errors include `rateLimited: true`, human `message`, `retryAfterSec`, optional `limits`, and an agent `hint` — do not retry until the cooldown passes.
 
 ## Board tools (local credentials)
 

@@ -4,6 +4,7 @@
  * Discovery: https://dstore.one/llms.txt
  */
 import { fetchText } from "../http.js";
+import { enrichApiError } from "../apiError.js";
 
 export const DSTORE_DOCS = {
   api: "https://dstore.one/api.txt",
@@ -62,7 +63,19 @@ function parseJson(text: string): unknown {
 async function dstoreGet(
   path: string,
   query?: Record<string, string | number | boolean | undefined>,
-): Promise<{ ok: boolean; status: number; body: Record<string, unknown>; error?: string }> {
+): Promise<
+  | { ok: true; status: number; body: Record<string, unknown> }
+  | {
+      ok: false;
+      status: number;
+      body: Record<string, unknown>;
+      error?: string;
+      rateLimited?: boolean;
+      retryAfterSec?: number;
+      limits?: unknown;
+      hint?: string;
+    }
+> {
   const url = new URL(apiBase() + path);
   if (query) {
     for (const [k, v] of Object.entries(query)) {
@@ -77,18 +90,54 @@ async function dstoreGet(
   });
   const body = parseJson(res.text) as Record<string, unknown>;
   if (!res.ok) {
+    const fallback =
+      (body?.message as string) ||
+      (body?.error as string) ||
+      res.error ||
+      `HTTP ${res.status}`;
+    const enriched = enrichApiError({
+      status: res.status,
+      data: body,
+      service: "dStore",
+      fallbackError: fallback,
+    });
+    const retryAfterSec =
+      typeof enriched.retryAfterSec === "number" ? enriched.retryAfterSec : undefined;
+    const hint = typeof enriched.hint === "string" ? enriched.hint : undefined;
     return {
       ok: false,
       status: res.status,
       body,
-      error:
-        (body?.message as string) ||
-        (body?.error as string) ||
-        res.error ||
-        `HTTP ${res.status}`,
+      error: String(enriched.message || enriched.error || fallback),
+      ...(enriched.rateLimited === true ? { rateLimited: true as const } : {}),
+      ...(retryAfterSec != null ? { retryAfterSec } : {}),
+      ...(enriched.limits != null ? { limits: enriched.limits } : {}),
+      ...(hint ? { hint } : {}),
     };
   }
   return { ok: true, status: res.status, body };
+}
+
+function dstoreApiFail(
+  r: Extract<Awaited<ReturnType<typeof dstoreGet>>, { ok: false }>,
+  extra?: Record<string, unknown>,
+): Record<string, unknown> {
+  return {
+    ok: false,
+    httpStatus: r.status,
+    error: r.error,
+    body: r.body,
+    docs: DSTORE_DOCS,
+    ...(r.rateLimited
+      ? {
+          rateLimited: true,
+          retryAfterSec: r.retryAfterSec,
+          limits: r.limits,
+          hint: r.hint,
+        }
+      : {}),
+    ...extra,
+  };
 }
 
 /** Catalog search (semantic when embeddings exist). */
@@ -111,14 +160,9 @@ export async function dstoreSearch(args: {
     tld: args.tld,
   });
   if (!r.ok) {
-    return {
-      ok: false,
-      httpStatus: r.status,
-      error: r.error,
-      body: r.body,
-      docs: DSTORE_DOCS,
-      tip: "Rate limit ~12 search/min anon. See workix_dstore_quota / upgrade_hint.",
-    };
+    return dstoreApiFail(r, {
+      tip: r.hint || "Rate limit ~12 search/min anon. See workix_dstore_quota / upgrade_hint.",
+    });
   }
   return {
     ok: true,
@@ -138,15 +182,7 @@ export async function dstoreSimilar(args: {
     return { ok: false, error: "numeric sid required", docs: DSTORE_DOCS };
   }
   const r = await dstoreGet("/api/similar", { sid, limit: args.limit });
-  if (!r.ok) {
-    return {
-      ok: false,
-      httpStatus: r.status,
-      error: r.error,
-      body: r.body,
-      docs: DSTORE_DOCS,
-    };
-  }
+  if (!r.ok) return dstoreApiFail(r);
   return {
     ok: true,
     ...r.body,
@@ -157,9 +193,7 @@ export async function dstoreSimilar(args: {
 
 export async function dstoreQuota(): Promise<Record<string, unknown>> {
   const r = await dstoreGet("/api/agent/quota");
-  if (!r.ok) {
-    return { ok: false, httpStatus: r.status, error: r.error, body: r.body, docs: DSTORE_DOCS };
-  }
+  if (!r.ok) return dstoreApiFail(r);
   return { ok: true, ...r.body, docs: DSTORE_DOCS };
 }
 
@@ -169,9 +203,7 @@ export async function dstoreGetList(args: {
   const ref = String(args.list_ref || "").trim();
   if (!ref) return { ok: false, error: "list_ref required", docs: DSTORE_DOCS };
   const r = await dstoreGet(`/list/${encodeURIComponent(ref)}.json`);
-  if (!r.ok) {
-    return { ok: false, httpStatus: r.status, error: r.error, body: r.body, docs: DSTORE_DOCS };
-  }
+  if (!r.ok) return dstoreApiFail(r);
   return { ok: true, list: r.body, docs: DSTORE_DOCS };
 }
 
@@ -184,15 +216,12 @@ export async function dstorePublish(args: {
 
   const r = await dstoreGet("/", { add: url });
   if (!r.ok) {
-    return {
-      ok: false,
-      httpStatus: r.status,
-      error: r.error,
+    return dstoreApiFail(r, {
       retry_after: r.body?.retry_after,
-      body: r.body,
-      docs: DSTORE_DOCS,
-      tip: "Rate limit ~20 adds/IP/hour. Prefer reusing sid; do not re-add URL variants while polling.",
-    };
+      tip:
+        r.hint ||
+        "Rate limit ~20 adds/IP/hour. Prefer reusing sid; do not re-add URL variants while polling.",
+    });
   }
 
   const body = r.body;
@@ -242,16 +271,7 @@ export async function dstoreGetCard(args: {
   }
 
   const r = await dstoreGet(`/${sid}.json`);
-  if (!r.ok) {
-    return {
-      ok: false,
-      httpStatus: r.status,
-      sid,
-      error: r.error,
-      body: r.body,
-      docs: DSTORE_DOCS,
-    };
-  }
+  if (!r.ok) return dstoreApiFail(r, { sid });
 
   const body = r.body;
   const title = body?.title;

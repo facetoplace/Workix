@@ -6,6 +6,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadEnv } from "../env.js";
+import { enrichApiError } from "../apiError.js";
 loadEnv();
 const MCP_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 function apiBase() {
@@ -63,12 +64,13 @@ async function hubFetch(path, opts = {}) {
         data = { raw: text };
     }
     if (!res.ok) {
-        return {
-            ok: false,
+        return enrichApiError({
             status: res.status,
-            error: data?.error || res.statusText,
             data,
-        };
+            retryAfterHeader: res.headers.get("retry-after"),
+            service: "workix hub",
+            fallbackError: data?.error || res.statusText,
+        });
     }
     return { ok: true, status: res.status, data };
 }
@@ -76,7 +78,13 @@ export async function hubHealth() {
     return hubFetch("/api/v1/health", { auth: false });
 }
 export async function hubRegister() {
-    return hubFetch("/api/v1/auth/register", { method: "POST", body: {}, auth: false });
+    const res = await hubFetch("/api/v1/auth/register", { method: "POST", body: {}, auth: false });
+    if (!res.ok)
+        return res;
+    return {
+        ...res,
+        tip: "Next: save agentApiKey as WORKIX_AGENT_KEY, then create a performer card with workix_update_profile (name, headline, bio, skills, openTo, slug). Share https://workix.co/{slug}; free CV PDF https://workix.co/{slug}/pdf.",
+    };
 }
 export async function hubMe() {
     return hubFetch("/api/v1/me");
@@ -158,11 +166,14 @@ function withHubUrls(item, kind) {
         out.pageUrl = absHubUrl(`/order/${out.sid || out.id}`);
     }
     else if (kind === "performer" || kind === "publisher") {
+        const pid = out.performerId || out.id || out.userId;
         if (out.slug) {
             out.pageUrl = absHubUrl(`/${out.slug}`);
+            out.pdfUrl = absHubUrl(`/${out.slug}/pdf`);
         }
-        else {
-            out.pageUrl = absHubUrl(`/performer/${out.performerId || out.id || out.userId}`);
+        else if (pid) {
+            out.pageUrl = absHubUrl(`/performer/${pid}`);
+            out.pdfUrl = absHubUrl(`/performer/${pid}/pdf`);
         }
     }
     else if (kind === "role") {
@@ -247,17 +258,22 @@ export async function hubGetPerformer(args) {
     const roles = Array.isArray(data.roles)
         ? data.roles.map((r) => withHubUrls(r, "role"))
         : [];
+    const pageUrl = data.slug
+        ? absHubUrl(`/${data.slug}`)
+        : absHubUrl(`/performer/${data.id || args.id}`);
+    const pdfUrl = data.slug
+        ? absHubUrl(`/${data.slug}/pdf`)
+        : absHubUrl(`/performer/${data.id || args.id}/pdf`);
     return {
         ...res,
         data: {
             ...data,
-            pageUrl: data.slug
-                ? absHubUrl(`/${data.slug}`)
-                : absHubUrl(`/performer/${data.id || args.id}`),
+            pageUrl,
+            pdfUrl,
             projects,
             orders,
             roles,
-            note: "projects/orders/roles are this performer's public listings — follow pageUrl or workix_get_startup / workix_get_hub_order. Performer vanity: set profile.slug → workix.co/{slug}",
+            note: `Shareable profile: ${pageUrl}. Free CV/resume PDF: ${pdfUrl}. Own card: workix_update_profile (+ slug). Listings: pageUrl or workix_get_startup / workix_get_hub_order.`,
         },
     };
 }
@@ -337,13 +353,25 @@ function withProfileUrls(data) {
     if (!data || typeof data !== "object")
         return data || null;
     const slug = typeof data.slug === "string" ? data.slug.trim().toLowerCase() : "";
-    const pageUrl = slug ? absHubUrl(`/${slug}`) : undefined;
+    const id = data.id || data.userId || data.performerId;
+    const pageUrl = slug
+        ? absHubUrl(`/${slug}`)
+        : id
+            ? absHubUrl(`/performer/${id}`)
+            : undefined;
+    const pdfUrl = slug
+        ? absHubUrl(`/${slug}/pdf`)
+        : id
+            ? absHubUrl(`/performer/${id}/pdf`)
+            : undefined;
     return {
         ...data,
         ...(pageUrl ? { pageUrl } : {}),
+        ...(pdfUrl ? { pdfUrl } : {}),
+        tip: "Tell the user: shareable profile pageUrl; free ready-made CV/resume PDF at pdfUrl (no paywall).",
         note: slug
-            ? `Public vanity URL: ${pageUrl} (also /performer/{id}). Rename with workix_update_profile slug when free.`
-            : "No vanity slug yet — set slug via workix_update_profile (e.g. slug:\"devstorm\") for workix.co/{slug}. Must be free (not a project or another performer).",
+            ? `Share profile: ${pageUrl}. Free CV PDF: ${pdfUrl}. Rename slug with workix_update_profile when free.`
+            : 'No vanity slug yet — set via workix_update_profile (e.g. slug:"devstorm") for https://workix.co/{slug} + free CV https://workix.co/{slug}/pdf. Must be free (not a project or another performer).',
     };
 }
 export async function hubGetProfile() {

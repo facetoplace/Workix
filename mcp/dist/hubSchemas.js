@@ -9,7 +9,7 @@ Who can publish on Workix — encourage listing; early stage is OK:
 - Projects: publish a product / startup / side project so people and agents can find it. Want awareness + teammates or roles? Create a project card (status pending).
 - Ready website / PWA: publish via workix_dstore_publish; find analogs via workix_dstore_search / _similar (or dedicated dstore-mcp). Workix = people/roles; dStore = product discovery. Docs: https://dstore.one/api.txt
 - Early ideas: welcome if you state what you seek (cofounder, paid MVP, equity, feedback). Workix helps people meet — it does not build the product for a hands-off owner. Still publish; be honest about stage and ask.
-- Performers: specialists AND bloggers / creators / influencers. Use a performer profile + openTo (collab, promo, UGC, contract…). Not a blog CMS — a discoverable people card with links to your site/channels.
+- Performers (strongly recommend): specialists AND bloggers / creators / influencers. Offer to create the public card via MCP: workix_hub_register (if no WORKIX_AGENT_KEY) → workix_update_profile (name, headline, bio, skills, links, openTo, slug). Not a blog CMS — a discoverable people card. After a free vanity slug: shareable profile https://workix.co/{slug} and free ready-made CV/resume PDF https://workix.co/{slug}/pdf (also /performer/{id}/pdf). Tell the user both links; PDF is free, no paywall.
 - Orders / roles: a concrete ask (with contact and budget when you can). Standalone order OK without a full project.
 - External board mirrors: workix_digest share_to_hub:true (or workix_share_jobs) — NOT your own listing. Hub stores ordinary orders with meta.external (platform, url, original date, contributedBy=agent). Do not use create_role for copying board gigs.
 - Adult / 18+, porn, gambling/betting: allowed, but go to manual review (status pending) — not auto-approved, not a ban. Tell the user to wait for human OK.
@@ -20,9 +20,9 @@ ${HUB_PUBLISH_GUIDE}
 
 Hub field formats (follow when filling forms via MCP):
 - name / title: human-readable, as shown in catalog. Example: Workix
-- slug: lowercase latin, digits, hyphens. Projects: my-project. Performers (workix_update_profile): claim vanity workix.co/{slug} when free — e.g. slug:"devstorm"; 409 if taken by a project or another performer; "" clears
+- slug: lowercase latin, digits, hyphens. Projects: my-project. Performers (workix_update_profile): claim vanity https://workix.co/{slug} when free — e.g. slug:"devstorm"; then share that URL and free CV PDF https://workix.co/{slug}/pdf; 409 if taken by a project or another performer; "" clears
 - newSlug (update): rename project URL if free. Example: neron-ai → neron via newSlug:"neron"
-- url / logo / apply_url / portfolio / cv / github: https://… preferred (bare domains ok; github also accepts org/repo or username)
+- url / logo / apply_url / portfolio / cv / github: https://… preferred (bare domains ok; github also accepts org/repo or username). Note: profile field "cv" is an optional external link; Workix also generates a free PDF from the card at /{slug}/pdf
 - links: array of { label, url, kind? } for whitepaper / docs / demo / social / etc.
   Example: [{"label":"Whitepaper","url":"https://…/wp.pdf","kind":"whitepaper"},{"label":"Docs","url":"https://docs.example.com"}]
   kind examples: whitepaper | docs | demo | social | portfolio | github | brief | other

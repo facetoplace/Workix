@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-04",
+  "updated": "2026-08-06",
   "note": "Canonical shared catalog for Workix MCP. Copy to local telegram-channels.json (gitignored) for personal overrides. PRs: edit THIS file — see TELEGRAM-CHANNELS.md / CONTRIBUTING.md. Do not commit private invites or personal lists. Login: TELEGRAM.md.",
   "channels": [
     {
@@ -195,6 +195,15 @@
       "url": "https://t.me/NLP_jobs",
       "kind": "jobs_feed",
       "priority": "low"
+    },
+    {
+      "id": "FreelancerDesk",
+      "title": "Freelance Desk",
+      "url": "https://t.me/FreelancerDesk",
+      "kind": "gigs",
+      "priority": "high",
+      "note": "RU freelance gigs + remote jobs; ads via @StetsMedia",
+      "verified_at": "2026-08-06"
     }
   ],
   "removed_dead": [

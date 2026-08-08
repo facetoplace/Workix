@@ -2,19 +2,19 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "co.workix/mcp",
   "title": "Workix",
-  "description": "Workix: find projects/roles/performers, manage listings, and search freelance boards via AI agents.",
+  "description": "Remote jobs, freelance gigs, vacancies. 24 boards: Upwork, Freelancer, RemoteOK, hh.ru, Kwork.",
   "websiteUrl": "https://workix.co/agent",
   "repository": {
     "url": "https://github.com/facetoplace/Workix",
     "source": "github",
     "subfolder": "mcp"
   },
-  "version": "0.1.4",
+  "version": "0.3.0",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "@workix/mcp",
-      "version": "0.1.4",
+      "version": "0.3.0",
       "transport": {
         "type": "stdio"
       },
