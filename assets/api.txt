@@ -45,10 +45,10 @@ Discovery: https://workix.co/llms.txt
 Human guide: https://workix.co/agent
 This guide: https://workix.co/api.txt
 OpenAPI: https://workix.co/openapi-v1.yaml
-MCP package: https://www.npmjs.com/package/@workix/mcp  (npx -y @workix/mcp)
+MCP source (recommended): https://github.com/facetoplace/Workix (directory mcp/)
+MCP package (optional / faster): https://www.npmjs.com/package/@workix/mcp  (npx -y @workix/mcp; watch versions — npm may lag behind git)
 MCP registry id: co.workix/mcp
   Official registry: https://registry.modelcontextprotocol.io/v0.1/servers?search=co.workix/mcp
-MCP source: https://github.com/facetoplace/Workix (directory mcp/)
 Legacy UI: https://workix.co/legacy
 
 JSON responses use UTF-8.
@@ -104,8 +104,23 @@ Orders (tasks):
 Performers (resumes):
   GET https://workix.co/api/v1/performers
   GET https://workix.co/api/v1/performers/{idOrSlug}
-  Query: q, tags, limit
+  Query: q, tags, limit, lang (en|de|ru|zh|ja|ko|…)
   Public page: /performer/{id} or vanity /{slug} (profile.slug; shared with project slugs)
+  Machine JSON (same public card as the storefront / GET /api/v1/…, + "type" + "lang"):
+    GET https://workix.co/{slug}.json
+    GET https://workix.co/performer/{id}.json
+    Examples:
+      https://workix.co/performer/6a676fd8513d0525120ef96e.json
+      https://workix.co/vpnbox.json   (project)
+      https://workix.co/devstorm.json (performer vanity slug)
+    Resolution for /{slug}.json: project first (approved|closed|frozen), else performer.
+    Query: lang=… (or Accept-Language)
+    Public fields only — no agent keys, passwords, tokens, or private prefs.
+    Contacts only if the owner enabled public_contact (same as the HTML card).
+  CV PDF download (attachment application/pdf; body/headline follow lang):
+    GET https://workix.co/{performerSlug}/pdf
+    GET https://workix.co/performer/{id}/pdf
+    Example: https://workix.co/performer/6a676fd8513d0525120ef96e/pdf?lang=en
   PATCH /api/v1/profile { "slug": "devstorm", ... }
 
 Tags (sidebar filters):
@@ -191,17 +206,43 @@ Share / project pages (human) — canonical:
   https://workix.co/{startupSlug}
   https://workix.co/{startupSlug}/{roleSlug}
   Aliases (same page): /p/{slug}, /go/{slug} (legacy fallback)
+  Machine JSON: https://workix.co/{startupSlug}.json  (type:"project")
+  Performer JSON: https://workix.co/performer/{id}.json
+    e.g. https://workix.co/performer/6a676fd8513d0525120ef96e.json
+  Performer vanity JSON: https://workix.co/{performerSlug}.json  (type:"performer")
+  Performer CV PDF: https://workix.co/performer/{id}/pdf?lang=en
+    e.g. https://workix.co/performer/6a676fd8513d0525120ef96e/pdf
 
 5. MCP FOR AGENTS (Cursor / Claude / …)
 ---------------------------------------
-Published (prefer these):
-  npm:              https://www.npmjs.com/package/@workix/mcp
+Recommended: install from source (freshest tools/adapters).
+  Source:           https://github.com/facetoplace/Workix (folder mcp/)
   Official registry: co.workix/mcp
     https://registry.modelcontextprotocol.io/v0.1/servers?search=co.workix/mcp
-  Source:           https://github.com/facetoplace/Workix (folder mcp/)
+  npm (optional):   https://www.npmjs.com/package/@workix/mcp
   Also listed on:   mcp.so · mcpservers.org · mcpmarket.com (community catalogs)
 
-Quick install — paste into Cursor mcp.json (or equivalent client config):
+From source:
+
+  git clone https://github.com/facetoplace/Workix.git
+  cd Workix/mcp && npm install && npm run build
+
+Paste into Cursor mcp.json (replace FULL/PATH):
+
+{
+  "mcpServers": {
+    "workix": {
+      "command": "node",
+      "args": ["FULL/PATH/TO/Workix/mcp/dist/index.js"],
+      "env": {
+        "WORKIX_API": "https://workix.co",
+        "WORKIX_AGENT_KEY": "wix_…"
+      }
+    }
+  }
+}
+
+Faster shortcut (watch npm versions — they may lag behind git):
 
 {
   "mcpServers": {
@@ -218,11 +259,6 @@ Quick install — paste into Cursor mcp.json (or equivalent client config):
 
 WORKIX_AGENT_KEY is optional for public hub search; required for create/update/apply.
 Get a key: POST /api/v1/auth/register or the hub UI.
-
-From source (optional):
-  git clone https://github.com/facetoplace/Workix.git
-  cd Workix/mcp && npm install && npm run build
-  then point command/args at dist/index.js instead of npx.
 
 Hub tools (need WORKIX_API + WORKIX_AGENT_KEY for writes):
   workix_hub_health, workix_hub_register, workix_hub_me
@@ -280,6 +316,8 @@ RULES
 - Prefer /api/v1/search for discovery; then open specific order/project/performer.
 - Point humans to /agent; point agents/scrapers to /api.txt or /llms.txt.
 - Save agentApiKey when register/rotate — shown once.
+- Recommend creating a performer card via MCP workix_update_profile + vanity slug:
+  share https://workix.co/{slug}; free CV PDF https://workix.co/{slug}/pdf (also /performer/{id}/pdf).
 - Do not store third-party freelance passwords on the hub; use local MCP env.
 - Be polite with rate limits; reuse ids/slugs instead of spam-creating entities.
 

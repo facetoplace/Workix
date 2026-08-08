@@ -495,9 +495,11 @@
         if (!contactUrl && github) {
           contactUrl = /^https?:\/\//i.test(github) ? github : `https://github.com/${String(github).replace(/^@/, '')}`;
         }
+        const slug = String(pfl.slug || '').trim().toLowerCase() || null;
         return {
           id: u.id,
           userId: u.id,
+          slug: slug || undefined,
           name: pfl.name || u.name,
           headline: pfl.headline || '',
           bio: pfl.bio || '',
@@ -513,6 +515,7 @@
           github,
           contactUrl: contactUrl || null,
           date: null,
+          url: slug ? `/${encodeURIComponent(slug)}` : `/performer/${encodeURIComponent(u.id)}`,
         };
       }).filter((x) => {
         const hasInfo = !!(x.bio || x.headline || (x.skills && x.skills.length) || (x.openTo && x.openTo.length) || x.location);
@@ -524,8 +527,13 @@
     {
       const m = p.match(/^\/api\/v1\/performers\/([^/]+)$/);
       if (method === 'GET' && m) {
+        const key = decodeURIComponent(m[1]).toLowerCase();
         const list = await mockRequest('/api/v1/performers', { method: 'GET' });
-        const item = (list.items || []).find((x) => String(x.id) === decodeURIComponent(m[1]));
+        const item = (list.items || []).find((x) => {
+          return String(x.id) === key
+            || String(x.id).toLowerCase() === key
+            || (x.slug && String(x.slug).toLowerCase() === key);
+        });
         if (!item) { const e = new Error('Not found'); e.status = 404; throw e; }
         return item;
       }
@@ -585,8 +593,30 @@
       }
       if (method === 'PATCH') {
         const user = requireUser(db);
-        user.profile = Object.assign({}, user.profile || {}, opts.body || {});
-        if (opts.body && opts.body.name) user.name = opts.body.name;
+        const body = Object.assign({}, opts.body || {});
+        if (body.slug !== undefined) {
+          const raw = String(body.slug == null ? '' : body.slug).trim().toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '')
+            .slice(0, 64);
+          if (!raw) {
+            delete body.slug;
+            if (user.profile) delete user.profile.slug;
+          } else {
+            const taken = Object.values(db.users).some((u) => {
+              if (String(u.id) === String(user.id)) return false;
+              return String((u.profile && u.profile.slug) || '').toLowerCase() === raw;
+            }) || Object.values(db.startups || {}).some((s) => String(s.slug || '').toLowerCase() === raw);
+            if (taken) {
+              const e = new Error('Slug taken');
+              e.status = 409;
+              throw e;
+            }
+            body.slug = raw;
+          }
+        }
+        user.profile = Object.assign({}, user.profile || {}, body);
+        if (body.name) user.name = body.name;
         global.WorkixMockDb.save(db);
         return user.profile;
       }
@@ -648,13 +678,31 @@
       const user = requireUser(db);
       const role = db.roles[opts.body && opts.body.roleId];
       if (!role) { const e = new Error('Role not found'); e.status = 404; throw e; }
+      const b = opts.body || {};
+      const data = {
+        Interesity: b.Interesity != null ? Number(b.Interesity) : null,
+        Difficulty: b.Difficulty != null ? Number(b.Difficulty) : null,
+        Understandability: b.Understandability != null ? Number(b.Understandability) : null,
+        Budget: b.Budget != null && b.Budget !== '' ? b.Budget : '',
+        Currency: b.Currency || 'USDT',
+        Time: b.Time != null && b.Time !== '' ? Number(b.Time) : null,
+        Description: b.Description != null ? String(b.Description) : (b.message || ''),
+      };
+      const score = Number((
+        Number(data.Interesity || 0)
+        + Number(5 - Number(data.Difficulty || 0))
+        + Number(data.Understandability || 0)
+        + Number(100 - Number(data.Time || 0))
+      ).toFixed(0));
       const apply = {
         id: global.WorkixMockDb.uid('ap'),
         roleId: role.id,
         userId: user.id,
-        name: (opts.body && opts.body.name) || user.name,
-        contact: (opts.body && opts.body.contact) || '',
-        message: (opts.body && opts.body.message) || '',
+        name: b.name || user.name,
+        contact: b.contact || '',
+        message: data.Description || b.message || '',
+        data,
+        meta: { score },
         createdAt: global.WorkixMockDb.now(),
       };
       db.applies.push(apply);
@@ -667,20 +715,21 @@
           userId: st.publisherId,
           type: 'applies',
           title: `New apply · ${role.title || 'role'}`,
-          body: [apply.name, apply.contact, apply.message].filter(Boolean).join(' · ').slice(0, 280),
+          body: [apply.name, apply.contact, `score ${score}`, apply.message].filter(Boolean).join(' · ').slice(0, 280),
           href: `#/role/${role.id}`,
           readAt: null,
           createdAt: global.WorkixMockDb.now(),
         });
       }
       global.WorkixMockDb.save(db);
-      return { id: apply.id, ok: true, notify: 'mock-log' };
+      return { id: apply.id, ok: true, score, data, notify: 'mock-log' };
     }
 
     // PREFS
     if (p === '/api/v1/notification-prefs') {
       const user = requireUser(db);
       const defaultEvents = {
+        public_contact: { email: true, telegram: true },
         applies: { email: true, telegram: true },
         invites: { email: true, telegram: true },
         messages: { email: false, telegram: true },
@@ -702,9 +751,12 @@
           channels.email = events.applies.email;
           channels.telegram = events.applies.telegram;
         }
+        const chatId = p0.telegramChatId != null ? String(p0.telegramChatId) : '';
         return {
           email: p0.email || '',
           telegram: p0.telegram || '',
+          telegramChatId: chatId,
+          telegramLinked: !!chatId,
           channels,
           events,
         };
@@ -718,6 +770,7 @@
         const next = normalize({
           email: body.email != null ? body.email : cur.email,
           telegram: body.telegram != null ? body.telegram : cur.telegram,
+          telegramChatId: cur.telegramChatId,
           channels: Object.assign({}, cur.channels, body.channels || {}),
           events: Object.assign({}, cur.events, body.events || {}),
         });
@@ -732,6 +785,45 @@
         global.WorkixMockDb.save(db);
         return next;
       }
+    }
+
+    if (method === 'POST' && p === '/api/v1/notification-prefs/telegram-connect') {
+      const user = requireUser(db);
+      const cur = db.prefs[user.id] || {};
+      if (opts.body && opts.body.telegram != null) cur.telegram = opts.body.telegram;
+      const token = `wxn_mock${String(Date.now()).slice(-8)}`;
+      cur.telegramBindToken = token;
+      db.prefs[user.id] = cur;
+      global.WorkixMockDb.save(db);
+      // Auto-link in mock so UI can verify without a real bot
+      cur.telegramChatId = cur.telegramChatId || String(900000000 + Math.floor(Math.random() * 999999));
+      if (!cur.telegram) cur.telegram = '@mock_user';
+      delete cur.telegramBindToken;
+      db.prefs[user.id] = cur;
+      global.WorkixMockDb.save(db);
+      return {
+        url: `https://t.me/workix_tbot?start=${token}`,
+        botUsername: 'workix_tbot',
+        expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+        telegramLinked: true,
+      };
+    }
+
+    if (method === 'POST' && p === '/api/v1/notification-prefs/telegram-disconnect') {
+      const user = requireUser(db);
+      const cur = db.prefs[user.id] || {};
+      cur.telegramChatId = '';
+      delete cur.telegramBindToken;
+      db.prefs[user.id] = cur;
+      global.WorkixMockDb.save(db);
+      return {
+        email: cur.email || '',
+        telegram: cur.telegram || '',
+        telegramChatId: '',
+        telegramLinked: false,
+        channels: cur.channels || { email: true, telegram: true },
+        events: cur.events || {},
+      };
     }
 
     // FX
@@ -865,14 +957,13 @@
     createStartup: (body) => request('/api/v1/startups', { method: 'POST', body }),
     updateStartup: (slug, body) => request(`/api/v1/startups/${encodeURIComponent(slug)}`, { method: 'PATCH', body }),
     listRoles: (query = {}) => {
-      const qs = new URLSearchParams();
-      Object.entries(query || {}).forEach(([k, v]) => {
-        if (v !== undefined && v !== null && v !== '') qs.set(k, String(v));
-      });
-      const q = qs.toString();
+      const q = buildQs(query || {});
       return request(`/api/v1/roles${q ? `?${q}` : ''}`);
     },
-    getRole: (id) => request(`/api/v1/roles/${encodeURIComponent(id)}`),
+    getRole: (id) => {
+      const q = buildQs({});
+      return request(`/api/v1/roles/${encodeURIComponent(id)}${q ? `?${q}` : ''}`);
+    },
     createRole: (body) => request('/api/v1/roles', { method: 'POST', body }),
     updateRole: (id, body) => request(`/api/v1/roles/${encodeURIComponent(id)}`, { method: 'PATCH', body }),
     getProfile: (userId) => request(`/api/v1/profile${userId ? `?userId=${encodeURIComponent(userId)}` : ''}`),
@@ -889,6 +980,7 @@
       return request(`/api/v1/orders${q ? `?${q}` : ''}`);
     },
     createOrder: (body) => request('/api/v1/orders', { method: 'POST', body }),
+    updateOrder: (id, body) => request(`/api/v1/orders/${encodeURIComponent(id)}`, { method: 'PATCH', body }),
     listPerformers: (query = {}) => {
       const q = buildQs(query, { arrays: true });
       return request(`/api/v1/performers${q ? `?${q}` : ''}`);
@@ -917,6 +1009,14 @@
     feedback: (body) => request('/api/v1/feedback', { method: 'POST', body }),
     getPrefs: () => request('/api/v1/notification-prefs'),
     updatePrefs: (body) => request('/api/v1/notification-prefs', { method: 'PATCH', body }),
+    connectTelegram: (body) => request('/api/v1/notification-prefs/telegram-connect', {
+      method: 'POST',
+      body: body || {},
+    }),
+    disconnectTelegram: () => request('/api/v1/notification-prefs/telegram-disconnect', {
+      method: 'POST',
+      body: {},
+    }),
     convertFx: ({ amount, from, to }) => {
       const qs = new URLSearchParams({
         amount: String(amount),

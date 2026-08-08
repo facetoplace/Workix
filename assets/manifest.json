@@ -10,7 +10,7 @@
   "age_rating": "16+",
   "lang": ["en", "ru"],
   "categories": ["productivity", "tools", "ai", "freelance", "open-source"],
-  "version": "1.2.10",
+  "version": "1.2.11",
   "start_url": "/",
   "scope": "/",
   "id": "/",
@@ -110,6 +110,12 @@
     "contact_email": "mail@workix.co"
   },
   "updates": [
+    {
+      "version": "1.2.11",
+      "date": "2026-08-08",
+      "description": "JobPosting structured data on role pages, /role/:id canonical redirect, first-visit onboarding fix",
+      "url": "https://t.me/workix_news"
+    },
     {
       "version": "1.2.10",
       "date": "2026-07-26",

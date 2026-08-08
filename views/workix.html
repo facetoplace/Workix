@@ -1,4 +1,4 @@
-<!-- Works Version 1.2.10 -->
+<!-- Works Version 1.2.11 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -41,7 +41,7 @@
       }
     };
   </script>
-  <link rel="stylesheet" href="/hub/styles.css?v=0.1.46" />
+  <link rel="stylesheet" href="/hub/styles.css?v=0.1.63" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta20/dist/css/tabler-flags.min.css" />
   <style>
     /* Critical: prevent nav FOUC left of language switcher before styles.css */
@@ -161,7 +161,7 @@
               :class="{ active: accountOpen || route.name==='profile' || route.name==='auth' }"
               :aria-label="t('nav_account')"
               :aria-expanded="accountOpen ? 'true' : 'false'"
-              @click="accountOpen = !accountOpen; langOpen = false; notifyOpen = false"
+              @click="openAccountMenu"
             >
               <svg class="wx-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M20 21a8 8 0 1 0-16 0" />
@@ -186,16 +186,18 @@
     </header>
 
     <main class="max-w-6xl mx-auto px-4 py-8">
-      <div v-if="loading" class="wx-muted">{{ t('loading') }}</div>
+      <div v-if="loading" class="wx-muted flex items-center justify-center min-h-[50vh] text-center">{{ t('loading') }}</div>
 
       <!-- ONBOARDING -->
       <section v-else-if="route.name==='onboarding'" class="max-w-2xl mx-auto">
         <h1 class="text-3xl font-semibold wx-hero-title mb-2">{{ t('onboarding_title') }}</h1>
         <p class="wx-muted mb-6">{{ t('onboarding_sub') }}</p>
         <div class="grid gap-3 mb-8">
-          <button class="wx-btn wx-btn-primary w-full" type="button" @click="chooseSegment('projects')">{{ t('onboarding_projects') }}</button>
-          <button class="wx-btn wx-btn-ghost w-full" type="button" @click="chooseSegment('performers')">{{ t('onboarding_performers') }}</button>
+          <button class="wx-btn wx-btn-primary w-full" type="button" @click="chooseSegment('projects')">{{ t('onboarding_seeker') }}</button>
+          <button class="wx-btn wx-btn-ghost w-full" type="button" @click="chooseSegment('publish')">{{ t('onboarding_publish') }}</button>
           <button class="wx-btn wx-btn-ghost w-full" type="button" @click="chooseSegment('orders')">{{ t('onboarding_orders') }}</button>
+          <button class="wx-btn wx-btn-ghost w-full" type="button" @click="chooseSegment('roles')">{{ t('onboarding_roles') }}</button>
+          <button class="wx-btn wx-btn-ghost w-full" type="button" @click="chooseSegment('performers')">{{ t('onboarding_performers') }}</button>
           <button class="wx-btn wx-btn-ghost w-full" type="button" @click="chooseSegment('browsing')">{{ t('onboarding_browsing') }}</button>
         </div>
 
@@ -362,19 +364,23 @@
                   </template>
                 </div>
                 <div class="flex gap-4">
-                  <div class="wx-avatar" :style="r.cover ? 'background-image:url(' + r.cover + ')' : ''">
+                  <div class="wx-avatar" :style="r.cover ? { backgroundImage: 'url(' + JSON.stringify(r.cover) + ')' } : {}">
                     <emoji v-if="r.emoji && !r.cover" :id="r.emoji"></emoji>
                     <template v-else-if="!r.cover">{{ (r.title || '?').slice(0,1) }}</template>
                   </div>
                   <div class="min-w-0 flex-1 pr-16">
-                    <div class="min-w-0">
-                      <h2 class="text-lg font-semibold leading-snug">
-                        <a class="hover:underline" href="#/catalog" @click.prevent="openOrderCard(r.sid || r.id)">{{ r.title }}</a>
+                    <a
+                      class="min-w-0 block rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500/50"
+                      href="#/catalog"
+                      @click.prevent="openFeedOrder(r)"
+                    >
+                      <h2 class="text-lg font-semibold leading-snug hover:underline">
+                        {{ r.title }}
                         <emoji v-if="r.emoji && r.cover" :id="r.emoji" class="wx-inline-emoji"></emoji>
                       </h2>
-                      <p class="text-sm wx-muted mt-1 line-clamp-2">{{ r.description }}</p>
+                      <p class="text-sm wx-muted mt-1 line-clamp-2 hover:text-slate-300">{{ r.description }}</p>
                       <div class="text-xs wx-muted mt-1">{{ kindLabel(r.kind || r.type) }}</div>
-                    </div>
+                    </a>
                     <div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs wx-muted">
                       <span v-if="r.project">{{ r.project }}</span>
                       <span v-for="tag in (r.tags||[]).slice(0,5)" :key="tag.id || tag" class="wx-badge wx-tag-badge">
@@ -385,7 +391,7 @@
                       </span>
                     </div>
                     <div class="mt-3 flex flex-wrap gap-2">
-                      <button type="button" class="wx-btn wx-btn-primary text-sm" @click="openOrderCard(r.sid || r.id)">{{ t('open') }}</button>
+                      <button type="button" class="wx-btn wx-btn-primary text-sm" @click="openFeedOrder(r)">{{ t('open') }}</button>
                     </div>
                   </div>
                 </div>
@@ -398,16 +404,23 @@
               <article v-for="st in filteredProjects" :key="st.id" class="wx-card wx-row-card p-4 mb-3" :class="{ 'is-featured': st.featured }">
                 <div v-if="st.featured" class="wx-featured-badge" :title="t('featured_hint')">{{ t('featured_site') }}</div>
                 <div class="flex gap-4">
-                  <div class="wx-avatar" :style="projectLogo(st) ? 'background-image:url(' + projectLogo(st) + ')' : ''">
+                  <div class="wx-avatar" :style="projectLogoStyle(st)">
                     <template v-if="!projectLogo(st)">{{ (st.name || '?').slice(0,1) }}</template>
                   </div>
                   <div class="min-w-0 flex-1">
                     <div class="flex flex-wrap items-start justify-between gap-2">
-                      <div>
-                        <h2 class="text-lg font-semibold"><a class="hover:underline" href="#/catalog" @click.prevent="openStartupCard(st.slug)">{{ st.name }}</a></h2>
-                        <p class="text-sm wx-muted mt-1 line-clamp-2">{{ st.description }}</p>
+                      <a
+                        class="min-w-0 flex-1 block rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-500/50"
+                        href="#/catalog"
+                        @click.prevent="openStartupCard(st.slug)"
+                      >
+                        <h2 class="text-lg font-semibold hover:underline">{{ st.name }}</h2>
+                        <p class="text-sm wx-muted mt-1 line-clamp-2 hover:text-slate-300">{{ st.description }}</p>
+                      </a>
+                      <div class="flex flex-col items-end gap-1">
+                        <span class="wx-badge" :class="statusClass(st.status)">{{ statusLabel(st.status) }}</span>
+                        <span class="wx-badge wx-badge-muted">{{ stageLabel(projectKind(st)) }}</span>
                       </div>
-                      <span class="wx-badge" :class="statusClass(st.status)">{{ statusLabel(st.status) }}</span>
                     </div>
                     <div class="mt-3 flex flex-wrap gap-2" v-if="rolesForStartup(st).length">
                       <a v-for="r in rolesForStartup(st).slice(0,4)" :key="r.id" class="wx-badge hover:border-sky-400" :href="'#/role/' + r.id">{{ r.title }}</a>
@@ -440,10 +453,10 @@
                   </div>
                   <div class="min-w-0 flex-1" :class="{ 'pr-16': !budgetView(p).empty }">
                     <h2 class="text-lg font-semibold">
-                      <a class="hover:underline" href="#/catalog" @click.prevent="openPerformerCard(p.id)">{{ p.name }}</a>
+                      <a class="hover:underline" href="#/catalog" @click.prevent="openPerformerCard(p)">{{ p.name }}</a>
                       <emoji v-if="p.emoji && p.avatar" :id="p.emoji" class="wx-inline-emoji"></emoji>
                     </h2>
-                    <p class="text-sm text-sky-300/90" v-if="p.headline">{{ p.headline }}</p>
+                    <p class="text-sm wx-muted" v-if="p.headline">{{ p.headline }}</p>
                     <p class="text-sm wx-muted mt-1 line-clamp-2">{{ p.bio || p.description }}</p>
                     <div class="mt-3 flex flex-wrap gap-2">
                       <span v-for="tag in (p.tags||[]).slice(0,6)" :key="tag.id || tag" class="wx-badge wx-tag-badge">
@@ -453,20 +466,28 @@
                         <span class="name" translate="no">{{ tag.name || tag }}</span>
                       </span>
                     </div>
-                    <div class="mt-2 text-xs wx-muted" v-if="p.location || (p.openTo||[]).length">
+                    <div class="mt-2 text-xs wx-muted" v-if="p.location || p.availability || (p.openTo||[]).length">
+                      <span v-if="p.availability" class="wx-badge" :class="statusClass(p.availability === 'open' ? 'approved' : (p.availability === 'resting' || p.availability === 'ideas' ? 'pending' : 'rejected'))">{{ availabilityLabel(p.availability) }}</span>
                       <span v-if="p.location">{{ p.location }}</span>
                       <span v-if="p.location && (p.openTo||[]).length"> · </span>
                       <span v-if="(p.openTo||[]).length">{{ (p.openTo||[]).join(', ') }}</span>
                     </div>
                     <div class="mt-3 flex flex-wrap gap-2">
-                      <button type="button" class="wx-btn wx-btn-primary text-sm" @click="openPerformerCard(p.id)">{{ t('open') }}</button>
+                      <button type="button" class="wx-btn wx-btn-primary text-sm" @click="openPerformerCard(p)">{{ t('open') }}</button>
                       <a
-                        v-if="p.contactUrl"
-                        class="wx-btn wx-btn-ghost text-sm"
-                        :href="p.contactUrl"
+                        v-for="(c, ci) in performerContacts(p)"
+                        :key="'pc-' + (c.kind || 'c') + '-' + ci"
+                        class="wx-btn wx-btn-ghost text-sm wx-contact-btn"
+                        :href="c.url"
                         target="_blank"
                         rel="noopener"
-                      >{{ t('contact') }}</a>
+                        :title="contactLabel(c.kind)"
+                      >
+                        <svg v-if="c.kind==='telegram'" class="wx-contact-ico" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M9.04 15.3l-.37 5.2c.53 0 .76-.23 1.04-.5l2.5-2.4 5.18 3.8c.95.52 1.62.25 1.88-.88l3.41-16.02h.01c.3-1.4-.51-1.95-1.44-1.6L2.3 9.3c-1.36.53-1.34 1.28-.23 1.62l5.03 1.57 11.68-7.36c.55-.33 1.05-.15.64.21"/></svg>
+                        <svg v-else-if="c.kind==='email'" class="wx-contact-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16v12H4V6zm0 0l8 7 8-7"/></svg>
+                        <svg v-else class="wx-contact-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h8M12 8v8M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span>{{ contactLabel(c.kind) }}</span>
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -508,10 +529,31 @@
                     {{ currentOrder.title }}
                     <emoji v-if="currentOrder.emoji && currentOrder.cover" :id="currentOrder.emoji" class="wx-inline-emoji"></emoji>
                   </h1>
-                  <div class="mt-2 text-sm wx-muted" v-if="currentOrder.project">{{ currentOrder.project }}</div>
+                  <div class="mt-2 flex flex-wrap items-center gap-2">
+                    <span v-if="currentOrder.status" class="wx-badge" :class="statusClass(currentOrder.status)">{{ statusLabel(currentOrder.status) }}</span>
+                    <span class="text-sm wx-muted" v-if="currentOrder.project">{{ currentOrder.project }}</span>
+                  </div>
                 </div>
               </div>
-              <p class="mt-5 whitespace-pre-wrap leading-relaxed" v-if="currentOrder.description">{{ currentOrder.description }}</p>
+              <div
+                v-if="currentOrder.description"
+                class="wx-expand mt-5"
+                :class="{
+                  'is-collapsible': bodyNeedsExpand(currentOrder.description),
+                  'is-open': isBodyExpanded(bodyKey('order', currentOrder.id || currentOrder.sid))
+                }"
+              >
+                <div class="wx-expand-clip">
+                  <div class="wx-expand-body wx-md leading-relaxed" v-html="renderMarkdown(currentOrder.description)"></div>
+                  <div class="wx-expand-fade" aria-hidden="true"></div>
+                </div>
+                <button
+                  v-if="bodyNeedsExpand(currentOrder.description)"
+                  type="button"
+                  class="wx-expand-toggle"
+                  @click="toggleBodyExpand(bodyKey('order', currentOrder.id || currentOrder.sid))"
+                >{{ isBodyExpanded(bodyKey('order', currentOrder.id || currentOrder.sid)) ? t('read_less') : t('read_more') }}</button>
+              </div>
               <div class="mt-4 flex flex-wrap gap-2" v-if="(currentOrder.tags||[]).length">
                 <span v-for="tag in currentOrder.tags" :key="tag.id || tag" class="wx-badge wx-tag-badge">
                   <span class="wx-tag-emoji-slot" aria-hidden="true">
@@ -526,11 +568,11 @@
                   <a
                     v-for="(l, i) in currentOrder.links"
                     :key="i"
-                    class="wx-btn wx-btn-ghost text-sm"
+                    class="wx-btn wx-btn-ghost text-sm wx-info-link"
                     :href="l.url || l"
                     target="_blank"
                     rel="noopener"
-                  >{{ l.label || l.url || l }}</a>
+                  ><img v-if="linkIcon(l)" class="wx-info-link-ico" :src="linkIcon(l)" alt="" width="16" height="16" loading="lazy" decoding="async" /><span class="wx-info-link-label">{{ l.label || l.url || l }}</span></a>
                 </div>
               </div>
               <div class="mt-6 flex flex-wrap gap-2">
@@ -640,14 +682,14 @@
                   href="#/catalog"
                   class="wx-avatar shrink-0"
                   :style="currentOrder.publisher.avatar ? 'background-image:url(' + currentOrder.publisher.avatar + ')' : ''"
-                  @click.prevent="openPerformerCard(currentOrder.publisher.performerId || currentOrder.publisher.id || currentOrder.publisher.userId)"
+                  @click.prevent="openPerformerCard(currentOrder.publisher)"
                 >{{ (currentOrder.publisher.name || '?').slice(0,1) }}</a>
                 <div class="min-w-0">
                   <a
                     href="#/catalog"
                     class="font-semibold truncate block hover:underline"
                     translate="no"
-                    @click.prevent="openPerformerCard(currentOrder.publisher.performerId || currentOrder.publisher.id || currentOrder.publisher.userId)"
+                    @click.prevent="openPerformerCard(currentOrder.publisher)"
                   >{{ currentOrder.publisher.name || '—' }}</a>
                   <div class="text-xs wx-muted">{{ t('performer_title') }} · {{ t('posted') }} {{ fromNow(currentOrder.published || currentOrder.date) }}</div>
                   <div
@@ -703,22 +745,35 @@
       <!-- PERFORMER DETAIL -->
       <section v-else-if="route.name==='performer' && currentPerformer" class="max-w-3xl">
         <a href="#/catalog" class="text-sm wx-muted hover:text-white" @click.prevent="setFeed('performers'); navigate('catalog')">← {{ t('back') }}</a>
-        <div class="wx-card p-6 mt-3">
+        <div class="wx-card wx-performer-card p-6 mt-3">
+          <button
+            type="button"
+            class="wx-icon-btn wx-pdf-btn"
+            :disabled="pdfSaving"
+            :aria-label="pdfSaving ? t('save_pdf_loading') : t('save_pdf')"
+            :title="pdfSaving ? t('save_pdf_loading') : t('save_pdf')"
+            @click="savePerformerPdf(currentPerformer)"
+          >
+            <svg class="wx-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v11m0 0l-4-4m4 4l4-4M5 20h14"/>
+            </svg>
+            <span class="wx-pdf-tip">{{ pdfSaving ? t('save_pdf_loading') : t('save_pdf') }}</span>
+          </button>
           <div class="flex gap-4 items-start">
             <div class="wx-avatar !w-16 !h-16 text-xl" :style="currentPerformer.avatar ? 'background-image:url(' + currentPerformer.avatar + ')' : ''">
               <emoji v-if="currentPerformer.emoji && !currentPerformer.avatar" :id="currentPerformer.emoji"></emoji>
               <template v-else-if="!currentPerformer.avatar">{{ (currentPerformer.name || '?').slice(0,1) }}</template>
             </div>
-            <div class="min-w-0 flex-1">
+            <div class="min-w-0 flex-1 pr-12">
               <div class="text-xs wx-muted mb-1">{{ t('performer_title') }}</div>
               <h1 class="text-3xl font-semibold leading-tight">
                 {{ currentPerformer.name }}
                 <emoji v-if="currentPerformer.emoji && currentPerformer.avatar" :id="currentPerformer.emoji" class="wx-inline-emoji"></emoji>
               </h1>
-              <p class="text-sky-300 mt-1" v-if="currentPerformer.headline">{{ currentPerformer.headline }}</p>
-              <div class="mt-2 text-sm wx-muted" v-if="currentPerformer.location || (currentPerformer.openTo||[]).length">
+              <p class="wx-muted mt-1" v-if="currentPerformer.headline">{{ currentPerformer.headline }}</p>
+              <div class="mt-2 flex flex-wrap items-center gap-2 text-sm wx-muted" v-if="currentPerformer.availability || currentPerformer.location || (currentPerformer.openTo||[]).length">
+                <span v-if="currentPerformer.availability" class="wx-badge" :class="statusClass(currentPerformer.availability === 'open' ? 'approved' : (currentPerformer.availability === 'working' || currentPerformer.availability === 'busy' ? 'rejected' : 'pending'))">{{ availabilityLabel(currentPerformer.availability) }}</span>
                 <span v-if="currentPerformer.location">{{ currentPerformer.location }}</span>
-                <span v-if="currentPerformer.location && (currentPerformer.openTo||[]).length"> · </span>
                 <span v-if="(currentPerformer.openTo||[]).length">{{ (currentPerformer.openTo||[]).join(', ') }}</span>
               </div>
               <div class="mt-2 text-sm" v-if="!budgetView(currentPerformer).empty">
@@ -731,7 +786,25 @@
               </div>
             </div>
           </div>
-          <p class="mt-5 whitespace-pre-wrap leading-relaxed" v-if="currentPerformer.bio || currentPerformer.description">{{ currentPerformer.bio || currentPerformer.description }}</p>
+          <div
+            v-if="currentPerformer.bio || currentPerformer.description"
+            class="wx-expand mt-5"
+            :class="{
+              'is-collapsible': bodyNeedsExpand(currentPerformer.bio || currentPerformer.description),
+              'is-open': isBodyExpanded(bodyKey('performer', currentPerformer.id))
+            }"
+          >
+            <div class="wx-expand-clip">
+              <div class="wx-expand-body wx-md leading-relaxed" v-html="renderMarkdown(currentPerformer.bio || currentPerformer.description)"></div>
+              <div class="wx-expand-fade" aria-hidden="true"></div>
+            </div>
+            <button
+              v-if="bodyNeedsExpand(currentPerformer.bio || currentPerformer.description)"
+              type="button"
+              class="wx-expand-toggle"
+              @click="toggleBodyExpand(bodyKey('performer', currentPerformer.id))"
+            >{{ isBodyExpanded(bodyKey('performer', currentPerformer.id)) ? t('read_less') : t('read_more') }}</button>
+          </div>
           <div class="mt-4 flex flex-wrap gap-2" v-if="(currentPerformer.tags||[]).length">
             <span v-for="tag in currentPerformer.tags" :key="tag.id || tag" class="wx-badge wx-tag-badge">
               <span class="wx-tag-emoji-slot" aria-hidden="true">
@@ -746,11 +819,11 @@
               <a
                 v-for="(l, i) in currentPerformer.links"
                 :key="i"
-                class="wx-btn wx-btn-ghost text-sm"
+                class="wx-btn wx-btn-ghost text-sm wx-info-link"
                 :href="l.url || l"
                 target="_blank"
                 rel="noopener"
-              >{{ l.label || l.url || l }}</a>
+              ><img v-if="linkIcon(l)" class="wx-info-link-ico" :src="linkIcon(l)" alt="" width="16" height="16" loading="lazy" decoding="async" /><span class="wx-info-link-label">{{ l.label || l.url || l }}</span></a>
             </div>
           </div>
           <div class="mt-6 flex flex-wrap gap-2">
@@ -763,13 +836,20 @@
               rel="noopener"
             >GitHub</a>
             <a
-              v-if="currentPerformer.contactUrl"
-              class="wx-btn wx-btn-ghost"
-              :href="currentPerformer.contactUrl"
+              v-for="(c, ci) in performerContacts(currentPerformer)"
+              :key="'cpc-' + (c.kind || 'c') + '-' + ci"
+              class="wx-btn wx-btn-ghost wx-contact-btn"
+              :href="c.url"
               target="_blank"
               rel="noopener"
-            >{{ t('contact') }}</a>
-            <span v-else-if="!currentPerformer.github" class="wx-muted text-sm self-center">{{ t('no_contact') }}</span>
+              :title="contactLabel(c.kind)"
+            >
+              <svg v-if="c.kind==='telegram'" class="wx-contact-ico" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M9.04 15.3l-.37 5.2c.53 0 .76-.23 1.04-.5l2.5-2.4 5.18 3.8c.95.52 1.62.25 1.88-.88l3.41-16.02h.01c.3-1.4-.51-1.95-1.44-1.6L2.3 9.3c-1.36.53-1.34 1.28-.23 1.62l5.03 1.57 11.68-7.36c.55-.33 1.05-.15.64.21"/></svg>
+              <svg v-else-if="c.kind==='email'" class="wx-contact-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16v12H4V6zm0 0l8 7 8-7"/></svg>
+              <svg v-else class="wx-contact-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h8M12 8v8M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span>{{ contactLabel(c.kind) }}</span>
+            </a>
+            <span v-if="!performerContacts(currentPerformer).length" class="wx-muted text-sm self-center">{{ t('no_contact') }}</span>
           </div>
         </div>
 
@@ -786,7 +866,7 @@
               @click="openStartupCard(st.slug)"
             >
               <div class="flex gap-4">
-                <div class="wx-avatar wx-avatar-sm" :style="projectLogo(st) ? 'background-image:url(' + projectLogo(st) + ')' : ''">
+                <div class="wx-avatar wx-avatar-sm" :style="projectLogoStyle(st)">
                   <template v-if="!projectLogo(st)">{{ (st.name || '?').slice(0,1) }}</template>
                 </div>
                 <div class="min-w-0 flex-1">
@@ -859,7 +939,7 @@
                   <h3 class="text-lg font-semibold leading-snug">
                     <a
                       class="hover:underline"
-                      :href="r.startupSlug ? ('/' + encodeURIComponent(r.startupSlug) + '/' + encodeURIComponent(r.slug || r.id)) : ('#/role/' + r.id)"
+                      :href="r.startupSlug ? ('/' + encodeURIComponent(r.startupSlug) + '/' + encodeURIComponent(r.slug || r.id)) : ('/role/' + encodeURIComponent(r.id))"
                       @click.prevent="openPerformerRole(r)"
                     >{{ r.title }}</a>
                   </h3>
@@ -894,46 +974,85 @@
         <a href="#/catalog" class="text-sm wx-muted hover:text-white" @click.prevent="setFeed('projects'); navigate('catalog')">← {{ t('back') }}</a>
         <div class="wx-card p-6 mt-3">
           <div class="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <h1 class="text-3xl font-semibold">{{ currentStartup.name }}</h1>
-              <a v-if="currentStartup.url" class="text-sky-300 text-sm block" :href="currentStartup.url" target="_blank" rel="noopener">{{ currentStartup.url }}</a>
-              <a v-if="currentStartup.github" class="text-sky-300 text-sm block mt-1" :href="currentStartup.github" target="_blank" rel="noopener">{{ currentStartup.github }}</a>
-              <div class="mt-2 space-y-0.5" v-if="currentStartup.createdAt || currentStartup.updatedAt">
-                <div class="text-xs wx-muted" v-if="currentStartup.createdAt">{{ t('posted') }} {{ fromNow(currentStartup.createdAt) }}</div>
-                <div
-                  class="text-xs wx-muted"
-                  v-if="currentStartup.updatedAt && currentStartup.updatedAt !== currentStartup.createdAt"
-                >{{ t('updated') }} {{ fromNow(currentStartup.updatedAt) }}</div>
+            <div class="flex gap-4 min-w-0 flex-1">
+              <div class="wx-avatar !w-16 !h-16 text-xl" :style="projectLogoStyle(currentStartup)">
+                <template v-if="!projectLogo(currentStartup)">{{ (currentStartup.name || '?').slice(0,1) }}</template>
+              </div>
+              <div class="min-w-0">
+                <h1 class="text-3xl font-semibold">{{ currentStartup.name }}</h1>
+                <a v-if="currentStartup.url" class="text-sky-300 text-sm block" :href="currentStartup.url" target="_blank" rel="noopener">{{ currentStartup.url }}</a>
+                <a v-if="currentStartup.github" class="text-sky-300 text-sm block mt-1" :href="currentStartup.github" target="_blank" rel="noopener">{{ currentStartup.github }}</a>
+                <div class="mt-2 space-y-0.5" v-if="currentStartup.createdAt || currentStartup.updatedAt">
+                  <div class="text-xs wx-muted" v-if="currentStartup.createdAt">{{ t('posted') }} {{ fromNow(currentStartup.createdAt) }}</div>
+                  <div
+                    class="text-xs wx-muted"
+                    v-if="currentStartup.updatedAt && currentStartup.updatedAt !== currentStartup.createdAt"
+                  >{{ t('updated') }} {{ fromNow(currentStartup.updatedAt) }}</div>
+                </div>
               </div>
             </div>
-            <span class="wx-badge" :class="statusClass(currentStartup.status)">{{ statusLabel(currentStartup.status) }}</span>
+            <div class="flex flex-col items-end gap-1">
+              <span class="wx-badge" :class="statusClass(currentStartup.status)">{{ statusLabel(currentStartup.status) }}</span>
+              <span class="wx-badge wx-badge-muted">{{ stageLabel(projectKind(currentStartup)) }}</span>
+            </div>
           </div>
-          <p class="mt-4 text-slate-200 whitespace-pre-wrap">{{ currentStartup.description }}</p>
+          <div
+            v-if="currentStartup.description"
+            class="wx-expand mt-4"
+            :class="{
+              'is-collapsible': bodyNeedsExpand(currentStartup.description),
+              'is-open': isBodyExpanded(bodyKey('startup', currentStartup.id || currentStartup.slug))
+            }"
+          >
+            <div class="wx-expand-clip">
+              <div class="wx-expand-body wx-md text-slate-200 leading-relaxed" v-html="renderMarkdown(currentStartup.description)"></div>
+              <div class="wx-expand-fade" aria-hidden="true"></div>
+            </div>
+            <button
+              v-if="bodyNeedsExpand(currentStartup.description)"
+              type="button"
+              class="wx-expand-toggle"
+              @click="toggleBodyExpand(bodyKey('startup', currentStartup.id || currentStartup.slug))"
+            >{{ isBodyExpanded(bodyKey('startup', currentStartup.id || currentStartup.slug)) ? t('read_less') : t('read_more') }}</button>
+          </div>
           <div class="mt-5 wx-info-links" v-if="(currentStartup.links||[]).length">
             <div class="text-xs wx-muted mb-2">{{ t('info_links') }}</div>
             <div class="flex flex-wrap gap-2">
               <a
                 v-for="(l, i) in currentStartup.links"
                 :key="i"
-                class="wx-btn wx-btn-ghost text-sm"
+                class="wx-btn wx-btn-ghost text-sm wx-info-link"
                 :href="l.url || l"
                 target="_blank"
                 rel="noopener"
-              >{{ l.label || l.url || l }}</a>
+              ><img v-if="linkIcon(l)" class="wx-info-link-ico" :src="linkIcon(l)" alt="" width="16" height="16" loading="lazy" decoding="async" /><span class="wx-info-link-label">{{ l.label || l.url || l }}</span></a>
             </div>
           </div>
           <div class="mt-5 flex flex-wrap gap-2">
-            <button type="button" class="wx-btn wx-btn-primary" @click="shareStartup(currentStartup)">{{ t('share') }}</button>
+            <button
+              v-if="canManageStartup(currentStartup)"
+              type="button"
+              class="wx-btn wx-btn-primary"
+              @click="shareStartup(currentStartup)"
+            >{{ t('share') }}</button>
             <a v-if="currentStartup.github" class="wx-btn wx-btn-ghost" :href="currentStartup.github" target="_blank" rel="noopener">GitHub</a>
-            <a class="wx-btn wx-btn-ghost" :href="'/p/' + currentStartup.slug + '/edit'">Edit</a>
-            <a class="wx-btn wx-btn-ghost" :href="'#/new-role/' + currentStartup.id">{{ t('create_role') }}</a>
+            <a
+              v-if="canManageStartup(currentStartup)"
+              class="wx-btn wx-btn-ghost"
+              :href="'/p/' + currentStartup.slug + '/edit'"
+            >{{ t('edit_startup') }}</a>
+            <a
+              v-if="canManageStartup(currentStartup)"
+              class="wx-btn wx-btn-ghost"
+              :href="'#/new-role/' + currentStartup.id"
+            >{{ t('create_role') }}</a>
           </div>
         </div>
 
         <article
           v-if="currentStartup.publisher"
           class="wx-card wx-row-card p-4 mt-4 cursor-pointer hover:border-sky-500/40"
-          @click="openPerformerCard(currentStartup.publisher.id || currentStartup.publisher.userId)"
+          @click="openPerformerCard(currentStartup.publisher)"
         >
           <div class="text-xs wx-muted mb-2">{{ t('project_publisher') }}</div>
           <div class="flex gap-4 items-center">
@@ -949,7 +1068,7 @@
               <p class="text-sm wx-muted mt-0.5 line-clamp-2" v-if="currentStartup.publisher.headline">{{ currentStartup.publisher.headline }}</p>
               <div class="text-xs wx-muted mt-1">{{ t('performer_title') }}</div>
             </div>
-            <button type="button" class="wx-btn wx-btn-ghost text-sm shrink-0" @click.stop="openPerformerCard(currentStartup.publisher.id || currentStartup.publisher.userId)">{{ t('open') }}</button>
+            <button type="button" class="wx-btn wx-btn-ghost text-sm shrink-0" @click.stop="openPerformerCard(currentStartup.publisher)">{{ t('open') }}</button>
           </div>
         </article>
 
@@ -958,7 +1077,25 @@
         <div class="grid md:grid-cols-2 gap-4">
           <article v-for="r in roles" :key="r.id" class="wx-card p-5">
             <h3 class="text-lg font-semibold">{{ r.title }}</h3>
-            <p class="text-sm wx-muted mt-2 line-clamp-3">{{ r.description }}</p>
+            <div
+              v-if="r.description"
+              class="wx-expand mt-2"
+              :class="{
+                'is-collapsible': bodyNeedsExpand(r.description),
+                'is-open': isBodyExpanded(bodyKey('role-card', r.id))
+              }"
+            >
+              <div class="wx-expand-clip">
+                <div class="wx-expand-body wx-md text-sm wx-muted leading-relaxed" v-html="renderMarkdown(r.description)"></div>
+                <div class="wx-expand-fade" aria-hidden="true"></div>
+              </div>
+              <button
+                v-if="bodyNeedsExpand(r.description)"
+                type="button"
+                class="wx-expand-toggle"
+                @click.stop="toggleBodyExpand(bodyKey('role-card', r.id))"
+              >{{ isBodyExpanded(bodyKey('role-card', r.id)) ? t('read_less') : t('read_more') }}</button>
+            </div>
             <div class="mt-3 flex flex-wrap gap-2">
               <span v-for="tag in (r.tags||[])" :key="tag" class="wx-badge">{{ tag }}</span>
             </div>
@@ -977,18 +1114,36 @@
         <article class="wx-card highlight p-6" v-if="currentRole">
           <div class="text-sm wx-muted mb-1">{{ currentStartup.name }}</div>
           <h1 class="text-3xl font-semibold">{{ currentRole.title }}</h1>
-          <p class="mt-3 whitespace-pre-wrap">{{ currentRole.description }}</p>
+          <div
+            v-if="currentRole.description"
+            class="wx-expand mt-3"
+            :class="{
+              'is-collapsible': bodyNeedsExpand(currentRole.description),
+              'is-open': isBodyExpanded(bodyKey('go-role', currentRole.id))
+            }"
+          >
+            <div class="wx-expand-clip">
+              <div class="wx-expand-body wx-md leading-relaxed" v-html="renderMarkdown(currentRole.description)"></div>
+              <div class="wx-expand-fade" aria-hidden="true"></div>
+            </div>
+            <button
+              v-if="bodyNeedsExpand(currentRole.description)"
+              type="button"
+              class="wx-expand-toggle"
+              @click="toggleBodyExpand(bodyKey('go-role', currentRole.id))"
+            >{{ isBodyExpanded(bodyKey('go-role', currentRole.id)) ? t('read_less') : t('read_more') }}</button>
+          </div>
           <div class="mt-4 wx-info-links" v-if="(currentRole.links||[]).length">
             <div class="text-xs wx-muted mb-2">{{ t('info_links') }}</div>
             <div class="flex flex-wrap gap-2">
               <a
                 v-for="(l, i) in currentRole.links"
                 :key="i"
-                class="wx-btn wx-btn-ghost text-sm"
+                class="wx-btn wx-btn-ghost text-sm wx-info-link"
                 :href="l.url || l"
                 target="_blank"
                 rel="noopener"
-              >{{ l.label || l.url || l }}</a>
+              ><img v-if="linkIcon(l)" class="wx-info-link-ico" :src="linkIcon(l)" alt="" width="16" height="16" loading="lazy" decoding="async" /><span class="wx-info-link-label">{{ l.label || l.url || l }}</span></a>
             </div>
           </div>
           <div class="mt-5 flex flex-wrap gap-2">
@@ -999,18 +1154,18 @@
         </article>
         <article class="wx-card p-6" v-else>
           <h1 class="text-3xl font-semibold">{{ currentStartup.name }}</h1>
-          <p class="mt-3">{{ currentStartup.description }}</p>
+          <div class="wx-md mt-3" v-if="currentStartup.description" v-html="renderMarkdown(currentStartup.description)"></div>
           <div class="mt-4 wx-info-links" v-if="(currentStartup.links||[]).length">
             <div class="text-xs wx-muted mb-2">{{ t('info_links') }}</div>
             <div class="flex flex-wrap gap-2">
               <a
                 v-for="(l, i) in currentStartup.links"
                 :key="i"
-                class="wx-btn wx-btn-ghost text-sm"
+                class="wx-btn wx-btn-ghost text-sm wx-info-link"
                 :href="l.url || l"
                 target="_blank"
                 rel="noopener"
-              >{{ l.label || l.url || l }}</a>
+              ><img v-if="linkIcon(l)" class="wx-info-link-ico" :src="linkIcon(l)" alt="" width="16" height="16" loading="lazy" decoding="async" /><span class="wx-info-link-label">{{ l.label || l.url || l }}</span></a>
             </div>
           </div>
         </article>
@@ -1030,38 +1185,185 @@
         <article class="wx-card p-6 mt-3">
           <div class="text-sm wx-muted" v-if="currentStartup">{{ currentStartup.name }}</div>
           <h1 class="text-3xl font-semibold">{{ currentRole.title }}</h1>
-          <p class="mt-4 whitespace-pre-wrap">{{ currentRole.description }}</p>
+          <div
+            v-if="currentRole.description"
+            class="wx-expand mt-4"
+            :class="{
+              'is-collapsible': bodyNeedsExpand(currentRole.description),
+              'is-open': isBodyExpanded(bodyKey('role', currentRole.id))
+            }"
+          >
+            <div class="wx-expand-clip">
+              <div class="wx-expand-body wx-md leading-relaxed" v-html="renderMarkdown(currentRole.description)"></div>
+              <div class="wx-expand-fade" aria-hidden="true"></div>
+            </div>
+            <button
+              v-if="bodyNeedsExpand(currentRole.description)"
+              type="button"
+              class="wx-expand-toggle"
+              @click="toggleBodyExpand(bodyKey('role', currentRole.id))"
+            >{{ isBodyExpanded(bodyKey('role', currentRole.id)) ? t('read_less') : t('read_more') }}</button>
+          </div>
           <div class="mt-4 wx-info-links" v-if="(currentRole.links||[]).length">
             <div class="text-xs wx-muted mb-2">{{ t('info_links') }}</div>
             <div class="flex flex-wrap gap-2">
               <a
                 v-for="(l, i) in currentRole.links"
                 :key="i"
-                class="wx-btn wx-btn-ghost text-sm"
+                class="wx-btn wx-btn-ghost text-sm wx-info-link"
                 :href="l.url || l"
                 target="_blank"
                 rel="noopener"
-              >{{ l.label || l.url || l }}</a>
+              ><img v-if="linkIcon(l)" class="wx-info-link-ico" :src="linkIcon(l)" alt="" width="16" height="16" loading="lazy" decoding="async" /><span class="wx-info-link-label">{{ l.label || l.url || l }}</span></a>
             </div>
           </div>
           <div class="mt-5 flex flex-wrap gap-2">
             <a class="wx-btn wx-btn-primary" :href="'#/apply/' + currentRole.id">{{ t('apply') }}</a>
-            <a class="wx-btn wx-btn-ghost" :href="'#/role/' + currentRole.id + '/edit'">Edit</a>
-            <button class="wx-btn wx-btn-ghost" @click="shareLink(currentRole.startupSlug, currentRole.slug)">{{ t('share') }}</button>
+            <a
+              v-if="canManageRole(currentRole)"
+              class="wx-btn wx-btn-ghost"
+              :href="'#/role/' + currentRole.id + '/edit'"
+            >{{ t('edit_role') || 'Edit' }}</a>
+            <button
+              v-if="canManageRole(currentRole)"
+              class="wx-btn wx-btn-ghost"
+              type="button"
+              @click="shareLink(currentRole.startupSlug, currentRole.slug)"
+            >{{ t('share') }}</button>
           </div>
         </article>
       </section>
 
       <!-- APPLY -->
-      <section v-else-if="route.name==='apply' && currentRole" class="max-w-xl">
-        <h1 class="text-2xl font-semibold mb-1">{{ t('apply_title') }}</h1>
-        <p class="wx-muted mb-6">{{ currentRole.title }}</p>
-        <div class="wx-card p-5 grid gap-3">
-          <label class="text-sm"><span class="wx-field-label">{{ t('apply_name') }}<span class="wx-help" tabindex="0" :data-tip="t('hint_apply_name')">?</span></span><input class="wx-input mt-1" v-model="formApply.name" /></label>
-          <label class="text-sm"><span class="wx-field-label">{{ t('apply_contact') }}<span class="wx-help" tabindex="0" :data-tip="t('hint_apply_contact')">?</span></span><input class="wx-input mt-1" v-model="formApply.contact" /></label>
-          <label class="text-sm"><span class="wx-field-label">{{ t('apply_message') }}<span class="wx-help" tabindex="0" :data-tip="t('hint_apply_message')">?</span></span><textarea class="wx-textarea mt-1" rows="5" v-model="formApply.message"></textarea></label>
-          <button class="wx-btn wx-btn-primary" @click="sendApply">{{ t('apply_send') }}</button>
-          <a v-if="currentRole.apply_url" class="wx-btn wx-btn-ghost" :href="currentRole.apply_url" target="_blank" rel="noopener">{{ t('apply_external') }}</a>
+      <section v-else-if="route.name==='apply' && currentRole" class="wx-apply-page max-w-xl mx-auto w-full">
+        <header class="wx-apply-head text-center mb-5">
+          <h1 class="text-2xl sm:text-3xl font-semibold tracking-tight">{{ t('apply_title') }}</h1>
+          <p class="wx-muted text-sm mt-1.5">{{ t('apply_target_hint') }}</p>
+        </header>
+
+        <a
+          class="wx-card wx-apply-target"
+          :href="currentRole.startupSlug && currentRole.slug
+            ? ('/' + currentRole.startupSlug + '/' + currentRole.slug)
+            : ('#/role/' + currentRole.id)"
+        >
+          <div class="flex gap-3 items-start">
+            <div
+              class="wx-avatar wx-avatar-sm shrink-0"
+              :style="projectLogoStyle(currentStartup || { slug: currentRole.startupSlug, name: currentRole.startupSlug })"
+            >
+              <template v-if="!projectLogo(currentStartup || { slug: currentRole.startupSlug })">
+                {{ ((currentStartup && currentStartup.name) || currentRole.startupSlug || '?').slice(0,1) }}
+              </template>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="text-xs wx-muted truncate" v-if="currentStartup || currentRole.startupSlug">
+                {{ (currentStartup && currentStartup.name) || currentRole.startupSlug }}
+              </div>
+              <div class="font-semibold text-lg leading-snug mt-0.5">{{ currentRole.title }}</div>
+              <p v-if="currentRole.description" class="text-sm wx-muted mt-2 line-clamp-3 whitespace-pre-wrap">{{ currentRole.description }}</p>
+              <div class="flex flex-wrap items-center gap-2 mt-3">
+                <span v-if="currentRole.kind" class="wx-badge">{{ kindLabel(currentRole.kind) }}</span>
+                <span
+                  v-if="currentRole.payment && currentRole.payment.budget"
+                  class="wx-badge"
+                  translate="no"
+                >{{ currentRole.payment.budget }} {{ currentRole.payment.cur || 'USDT' }}</span>
+                <span v-for="tag in (currentRole.tags || []).slice(0, 4)" :key="tag" class="wx-badge">{{ tag }}</span>
+              </div>
+            </div>
+          </div>
+        </a>
+
+        <div class="wx-card p-5 sm:p-6 mt-4">
+          <div v-if="!me" class="grid gap-3 text-center">
+            <p class="text-sm wx-muted">{{ t('proposal_login') }}</p>
+            <a href="#/auth" class="wx-btn wx-btn-primary w-full sm:w-auto mx-auto">{{ t('nav_auth') }}</a>
+          </div>
+          <form v-else class="grid gap-4" @submit.prevent="sendApply">
+            <label class="block text-sm">
+              <span class="wx-field-label">{{ t('apply_name') }}<span class="wx-help" tabindex="0" :data-tip="t('hint_apply_name')">?</span></span>
+              <input class="wx-input mt-1" v-model="formApply.name" />
+            </label>
+            <label class="block text-sm">
+              <span class="wx-field-label">{{ t('apply_contact') }}<span class="wx-help" tabindex="0" :data-tip="t('hint_apply_contact')">?</span></span>
+              <input class="wx-input mt-1" v-model="formApply.contact" />
+            </label>
+            <div class="wx-rate-grid">
+              <label class="wx-rate-field">
+                <span class="wx-filter-label">{{ t('proposal_interest') }}</span>
+                <div class="wx-rate-dots">
+                  <button
+                    v-for="n in 5"
+                    :key="'ai'+n"
+                    type="button"
+                    class="wx-rate-dot"
+                    :class="{ on: formApply.Interesity >= n }"
+                    :title="t('rate_' + n)"
+                    @click="formApply.Interesity = n"
+                  ></button>
+                </div>
+              </label>
+              <label class="wx-rate-field">
+                <span class="wx-filter-label">{{ t('proposal_difficulty') }}</span>
+                <div class="wx-rate-dots">
+                  <button
+                    v-for="n in 5"
+                    :key="'ad'+n"
+                    type="button"
+                    class="wx-rate-dot"
+                    :class="{ on: formApply.Difficulty >= n }"
+                    :title="t('rate_' + n)"
+                    @click="formApply.Difficulty = n"
+                  ></button>
+                </div>
+              </label>
+              <label class="wx-rate-field">
+                <span class="wx-filter-label">{{ t('proposal_understand') }}</span>
+                <div class="wx-rate-dots">
+                  <button
+                    v-for="n in 5"
+                    :key="'au'+n"
+                    type="button"
+                    class="wx-rate-dot"
+                    :class="{ on: formApply.Understandability >= n }"
+                    :title="t('rate_' + n)"
+                    @click="formApply.Understandability = n"
+                  ></button>
+                </div>
+              </label>
+            </div>
+            <div class="grid sm:grid-cols-2 gap-3">
+              <label class="block">
+                <span class="wx-filter-label">{{ t('proposal_budget') }}</span>
+                <div class="flex gap-2 mt-1">
+                  <input class="wx-input flex-1" type="text" inputmode="decimal" v-model="formApply.Budget" />
+                  <select class="wx-input wx-input-cur" v-model="formApply.Currency" translate="no">
+                    <option v-for="c in proposalCurrencies" :key="c" :value="c">{{ c }}</option>
+                  </select>
+                </div>
+              </label>
+              <label class="block">
+                <span class="wx-filter-label">{{ t('proposal_time') }}</span>
+                <input class="wx-input mt-1" type="number" min="1" placeholder="7" v-model.number="formApply.Time" />
+              </label>
+            </div>
+            <label class="block">
+              <span class="wx-filter-label">{{ t('proposal_description') }}</span>
+              <textarea class="wx-input mt-1 min-h-[120px]" rows="5" v-model="formApply.Description"></textarea>
+            </label>
+            <div class="flex flex-wrap items-center justify-center sm:justify-start gap-3 pt-1">
+              <button type="submit" class="wx-btn wx-btn-primary" :disabled="applySaving">{{ t('apply_send') }}</button>
+              <span v-if="formApply.score != null" class="wx-badge" translate="no">{{ t('proposal_score') }}: {{ formApply.score }}</span>
+            </div>
+            <a
+              v-if="isExternalApplyUrl(currentRole.apply_url)"
+              class="wx-btn wx-btn-ghost w-full sm:w-auto"
+              :href="currentRole.apply_url"
+              target="_blank"
+              rel="noopener"
+            >{{ t('apply_external') }}</a>
+          </form>
         </div>
       </section>
 
@@ -1085,8 +1387,13 @@
         <div class="grid md:grid-cols-2 gap-4" v-if="me && mineStartups.length">
           <article v-for="st in mineStartups" :key="st.id" class="wx-card p-5">
             <div class="flex justify-between gap-2">
-              <h2 class="text-xl font-semibold">{{ st.name }}</h2>
-              <span class="wx-badge" :class="statusClass(st.status)">{{ statusLabel(st.status) }}</span>
+              <div class="flex gap-3 min-w-0">
+                <div class="wx-avatar wx-avatar-sm" :style="projectLogoStyle(st)">
+                  <template v-if="!projectLogo(st)">{{ (st.name || '?').slice(0,1) }}</template>
+                </div>
+                <h2 class="text-xl font-semibold truncate">{{ st.name }}</h2>
+              </div>
+              <span class="wx-badge shrink-0" :class="statusClass(st.status)">{{ statusLabel(st.status) }}</span>
             </div>
             <p class="text-sm wx-muted mt-2 line-clamp-3">{{ st.description }}</p>
             <div class="mt-4 flex gap-2">
@@ -1099,7 +1406,7 @@
       </section>
 
       <!-- STARTUP FORM -->
-      <section v-else-if="route.name==='startup-form'" class="max-w-2xl">
+      <section v-else-if="route.name==='startup-form'" class="max-w-2xl mx-auto w-full">
         <h1 class="text-2xl font-semibold mb-4">{{ route.slug ? t('edit_startup') : t('create_startup') }}</h1>
         <div class="wx-card wx-agent-connect p-5 mb-4">
           <h2 class="wx-agent-form-title text-base font-semibold mb-1">
@@ -1124,15 +1431,29 @@
           <label class="text-sm"><span class="wx-field-label">{{ t('apply_email') }}<span class="wx-help" tabindex="0" :data-tip="t('hint_apply_email')">?</span></span><input class="wx-input mt-1" v-model="formStartup.applyDefaults.apply_email" /></label>
           <label class="text-sm"><span class="wx-field-label">{{ t('apply_telegram') }}<span class="wx-help" tabindex="0" :data-tip="t('hint_apply_telegram')">?</span></span><input class="wx-input mt-1" v-model="formStartup.applyDefaults.apply_telegram" /></label>
           <label class="text-sm"><span class="wx-field-label">{{ t('apply_url') }}<span class="wx-help" tabindex="0" :data-tip="t('hint_apply_url')">?</span></span><input class="wx-input mt-1" v-model="formStartup.applyDefaults.apply_url" /></label>
+          <label class="text-sm">
+            <span class="wx-field-label">{{ t('listing_stage') }}<span class="wx-help" tabindex="0" :data-tip="t('hint_listing_stage')">?</span></span>
+            <select class="wx-select mt-1" v-model="formStartup.stage">
+              <option v-for="s in projectStageOptions" :key="'ps-' + s" :value="s">{{ stageLabel(s) }}</option>
+            </select>
+          </label>
+          <label class="text-sm" v-if="route.slug">
+            <span class="wx-field-label">{{ t('listing_status') }}<span class="wx-help" tabindex="0" :data-tip="t('hint_listing_status')">?</span></span>
+            <select class="wx-select mt-1" v-model="formStartup.status">
+              <option v-for="s in listingStageOptions" :key="'st-' + s" :value="s">{{ statusLabel(s) }}</option>
+            </select>
+          </label>
           <div class="flex gap-2 pt-2">
-            <button class="wx-btn wx-btn-ghost" @click="formStartup.status='draft'; saveStartup()">{{ t('save') }}</button>
-            <button class="wx-btn wx-btn-primary" @click="formStartup.status='pending'; saveStartup()">{{ t('publish') }}</button>
+            <button class="wx-btn wx-btn-ghost" type="button" @click="saveStartupKeep()">{{ t('save') }}</button>
+            <button class="wx-btn wx-btn-primary" type="button" @click="formStartup.status='pending'; saveStartup()">{{ t('publish') }}</button>
+            <button v-if="route.slug" class="wx-btn wx-btn-ghost" type="button" @click="formStartup.status='closed'; saveStartup()">{{ statusLabel('closed') }}</button>
+            <button v-if="route.slug" class="wx-btn wx-btn-ghost" type="button" @click="formStartup.status='frozen'; saveStartup()">{{ statusLabel('frozen') }}</button>
           </div>
         </div>
       </section>
 
       <!-- ROLE / ORDER FORM -->
-      <section v-else-if="route.name==='role-form'" class="max-w-2xl">
+      <section v-else-if="route.name==='role-form'" class="max-w-2xl mx-auto w-full">
         <h1 class="text-2xl font-semibold mb-4">{{ formRole._id ? t('edit_role') : t('create_order') }}</h1>
         <div class="wx-card wx-agent-connect p-5 mb-4">
           <h2 class="wx-agent-form-title text-base font-semibold mb-1">
@@ -1189,15 +1510,23 @@
             <label class="text-sm"><span class="wx-field-label">{{ t('apply_email') }}<span class="wx-help" tabindex="0" :data-tip="t('hint_apply_email')">?</span></span><input class="wx-input mt-1" v-model="formRole.apply_email" /></label>
             <label class="text-sm"><span class="wx-field-label">{{ t('apply_telegram') }}<span class="wx-help" tabindex="0" :data-tip="t('hint_apply_telegram')">?</span></span><input class="wx-input mt-1" v-model="formRole.apply_telegram" /></label>
           </template>
+          <label class="text-sm" v-if="formRole._id">
+            <span class="wx-field-label">{{ t('listing_status') }}<span class="wx-help" tabindex="0" :data-tip="t('hint_listing_status')">?</span></span>
+            <select class="wx-select mt-1" v-model="formRole.status">
+              <option v-for="s in listingStageOptions" :key="'rs-' + s" :value="s">{{ statusLabel(s) }}</option>
+            </select>
+          </label>
           <div class="flex flex-wrap gap-2 pt-1">
-            <button class="wx-btn wx-btn-ghost" type="button" @click="formRole.status='draft'; saveRole()">{{ t('save') }}</button>
+            <button class="wx-btn wx-btn-ghost" type="button" @click="saveRoleKeep()">{{ t('save') }}</button>
             <button class="wx-btn wx-btn-primary" type="button" @click="formRole.status='pending'; saveRole()">{{ t('publish') }}</button>
+            <button v-if="formRole._id" class="wx-btn wx-btn-ghost" type="button" @click="formRole.status='closed'; saveRole()">{{ statusLabel('closed') }}</button>
+            <button v-if="formRole._id" class="wx-btn wx-btn-ghost" type="button" @click="formRole.status='frozen'; saveRole()">{{ statusLabel('frozen') }}</button>
           </div>
         </div>
       </section>
 
       <!-- PROFILE -->
-      <section v-else-if="route.name==='profile'" class="max-w-2xl">
+      <section v-else-if="route.name==='profile'" class="max-w-2xl mx-auto w-full">
         <h1 class="text-2xl font-semibold mb-4">{{ t('profile_title') }}</h1>
         <div class="wx-card wx-agent-connect p-5 mb-4">
           <h2 class="wx-agent-form-title text-base font-semibold mb-1">
@@ -1232,6 +1561,11 @@
         </div>
         <div v-if="me" class="wx-card p-5 grid gap-3">
           <label class="text-sm"><span class="wx-field-label">{{ t('full_name') }}<span class="wx-help" tabindex="0" :data-tip="t('hint_full_name')">?</span></span><input class="wx-input mt-1" v-model="profile.name" /></label>
+          <label class="text-sm">
+            <span class="wx-field-label">{{ t('profile_slug') }}<span class="wx-help" tabindex="0" :data-tip="t('hint_profile_slug')">?</span></span>
+            <input class="wx-input mt-1" v-model="profile.slug" placeholder="devstorm" autocomplete="off" spellcheck="false" />
+            <span v-if="profile.slug" class="wx-muted text-xs mt-1 block" translate="no">workix.co/{{ String(profile.slug || '').trim().toLowerCase() }}</span>
+          </label>
           <label class="text-sm"><span class="wx-field-label">{{ t('profile_telegram') }}<span class="wx-help" tabindex="0" :data-tip="t('hint_profile_telegram')">?</span></span><input class="wx-input mt-1" v-model="profile.telegram" placeholder="@username" /></label>
           <label class="text-sm"><span class="wx-field-label">{{ t('profile_headline') }}<span class="wx-help" tabindex="0" :data-tip="t('hint_profile_headline')">?</span></span><input class="wx-input mt-1" v-model="profile.headline" /></label>
           <div class="grid gap-3 sm:grid-cols-3">
@@ -1251,7 +1585,7 @@
             </label>
           </div>
           <label class="text-sm"><span class="wx-field-label">{{ t('profile_bio') }}<span class="wx-help" tabindex="0" :data-tip="t('hint_profile_bio')">?</span></span><textarea class="wx-textarea mt-1" rows="5" v-model="profile.bio" :placeholder="t('profile_bio')"></textarea></label>
-          <label class="text-sm"><span class="wx-field-label">{{ t('profile_skills') }}<span class="wx-help" tabindex="0" :data-tip="t('hint_profile_skills')">?</span></span><input class="wx-input mt-1" :value="(profile.skills||[]).join(', ')" @input="profile.skills=$event.target.value.split(',').map(x=>x.trim()).filter(Boolean)" placeholder="AI, Python, Design…" /></label>
+          <label class="text-sm"><span class="wx-field-label">{{ t('profile_skills') }}<span class="wx-help" tabindex="0" :data-tip="t('hint_profile_skills')">?</span></span><input class="wx-input mt-1" :value="(profile.skills||[]).join(', ')" @input="profile.skills=splitTagList($event.target.value)" placeholder="AI, Python, Design…" /></label>
           <label class="text-sm"><span class="wx-field-label">{{ t('profile_portfolio') }}<span class="wx-help" tabindex="0" :data-tip="t('hint_profile_portfolio')">?</span></span><input class="wx-input mt-1" v-model="profile.portfolio" placeholder="https://example.com/my_work" /></label>
           <label class="text-sm"><span class="wx-field-label">{{ t('profile_github') }}<span class="wx-help" tabindex="0" :data-tip="t('hint_profile_github')">?</span></span><input class="wx-input mt-1" v-model="profile.github" placeholder="https://github.com/username" /></label>
           <label class="text-sm"><span class="wx-field-label">{{ t('profile_cv') }}<span class="wx-help" tabindex="0" :data-tip="t('hint_profile_cv')">?</span></span><input class="wx-input mt-1" v-model="profile.cv" placeholder="https://yourdomain.best" /></label>
@@ -1259,6 +1593,12 @@
             <textarea class="wx-textarea mt-1" rows="3" v-model="profileLinksText" :placeholder="t('info_links_placeholder')"></textarea>
           </label>
           <label class="text-sm"><span class="wx-field-label">{{ t('profile_location') }}<span class="wx-help" tabindex="0" :data-tip="t('hint_profile_location')">?</span></span><input class="wx-input mt-1" v-model="profile.location" /></label>
+          <label class="text-sm">
+            <span class="wx-field-label">{{ t('availability') }}<span class="wx-help" tabindex="0" :data-tip="t('hint_availability')">?</span></span>
+            <select class="wx-select mt-1" v-model="profile.availability">
+              <option v-for="a in availabilityOptions" :key="'av-' + a" :value="a">{{ availabilityLabel(a) }}</option>
+            </select>
+          </label>
           <label class="text-sm">
             <span class="wx-field-label">
               {{ t('display_currency') }}
@@ -1271,7 +1611,7 @@
           </label>
           <button class="wx-btn wx-btn-primary" @click="saveProfile">{{ t('save') }}</button>
           <hr class="border-slate-800 my-2" />
-          <wx-notify-prefs :prefs="prefs" :t="t" @save="savePrefs" />
+          <wx-notify-prefs :prefs="prefs" :t="t" @save="savePrefs" @updated="onPrefsUpdated" @toast="showToast" />
           <hr class="border-slate-800 my-2" />
           <label class="text-sm"><span class="wx-field-label">{{ t('profile_import') }}<span class="wx-help" tabindex="0" :data-tip="t('hint_profile_import')">?</span></span><textarea class="wx-textarea mt-1" rows="4" v-model="importText"></textarea></label>
           <button class="wx-btn wx-btn-ghost" @click="doImportProfile">{{ t('profile_import') }}</button>
@@ -1300,7 +1640,7 @@
             </ul>
           </div>
           <div class="wx-card p-5">
-            <wx-notify-prefs :prefs="prefs" :t="t" @save="savePrefs" />
+            <wx-notify-prefs :prefs="prefs" :t="t" @save="savePrefs" @updated="onPrefsUpdated" @toast="showToast" />
           </div>
         </template>
       </section>
@@ -1331,7 +1671,7 @@
       </section>
 
       <!-- AUTH -->
-      <section v-else-if="route.name==='auth'" class="max-w-xl">
+      <section v-else-if="route.name==='auth'" class="max-w-xl mx-auto w-full">
         <h1 class="text-2xl font-semibold mb-2">{{ t('auth_title') }}</h1>
         <p class="wx-muted mb-6">{{ t('auth_mvse_hint') }}</p>
 
@@ -1392,7 +1732,6 @@
             <li><a href="/openapi-v1.yaml">{{ t('footer_openapi') }}</a></li>
             <li><a href="https://github.com/facetoplace/Workix" target="_blank" rel="noopener">{{ t('footer_source') }}</a></li>
             <li><a href="https://github.com/facetoplace/Workix/tree/main/mcp" target="_blank" rel="noopener">{{ t('footer_mcp') }}</a></li>
-            <li><a href="/legacy">Legacy</a></li>
             <li><a href="/support">{{ t('footer_support') }}</a></li>
             <li><a href="https://liber.ws/workix" target="_blank" rel="noopener">{{ t('footer_sponsor') }}</a></li>
           </ul>
@@ -1414,11 +1753,13 @@
     >↑</button>
   </div>
 
-  <script data-cfasync="false" src="/hub/i18n.js?v=0.1.39"></script>
-  <script data-cfasync="false" src="/hub/stories.js?v=0.1.3"></script>
+  <script data-cfasync="false" src="/hub/i18n.js?v=0.1.56"></script>
+  <script data-cfasync="false" src="/hub/stories.js?v=0.1.4"></script>
+  <script data-cfasync="false" src="/hub/markdown.js?v=0.1.1"></script>
+  <script data-cfasync="false" src="/hub/cv-pdf.js?v=0.1.6"></script>
   <script data-cfasync="false" src="/hub/mock-db.js?v=0.1.17"></script>
   <script data-cfasync="false" src="/hub/auth.js?v=0.1.16"></script>
-  <script data-cfasync="false" src="/hub/api.js?v=0.1.28"></script>
-  <script data-cfasync="false" src="/hub/app.js?v=1.2.21"></script>
+  <script data-cfasync="false" src="/hub/api.js?v=0.1.33"></script>
+  <script data-cfasync="false" src="/hub/app.js?v=1.2.48"></script>
 </body>
 </html>

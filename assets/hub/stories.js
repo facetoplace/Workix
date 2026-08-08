@@ -88,4 +88,4 @@
   ];
 
   global.WorkixStories = { CASES, PARTNERS };
-})(typeof window !== 'undefined' ? window : global);
+})(typeof window !== 'undefined' ? window : globalThis);

@@ -10,7 +10,7 @@
     'facetoplace.app': 'FaceToPlace',
   };
 
-  const PREF_EVENT_KEYS = ['applies', 'invites', 'messages', 'digests', 'moderation'];
+  const PREF_EVENT_KEYS = ['public_contact', 'applies', 'invites', 'messages', 'digests', 'moderation'];
 
   function metaContent(name) {
     try {
@@ -71,12 +71,14 @@
   function googleFaviconUrl(host) {
     const h = String(host || '').replace(/^www\./i, '').toLowerCase();
     if (!h) return '';
+    // sz=128: real icons come back ≥32×32; missing domains stay 16×16 (globe).
+    // sz=280 is broken on Google s2 — returns 16×16 even for known hosts.
     return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(h)}&sz=128`;
   }
 
   /**
-   * Load image; for Google s2 favicons reject the default globe (always 16×16
-   * even when sz=128). Real icons come back as 128×128.
+   * Load image; for Google s2 favicons reject the default globe (always 16×16).
+   * Real icons with sz=128 come back ≥32×32.
    */
   function probeImage(url, timeoutMs = 2800, opts = {}) {
     const minSide = Number(opts.minSide) || 0;
@@ -297,63 +299,67 @@
     }
   }
 
-  /** On-site PWA/apple-touch first; else Google s2 if not the 16×16 default globe. */
+  /**
+   * Site icon when no Logo URL: Google s2 sz=128 first (skip 16×16 globe),
+   * then on-site apple-touch / manifest / common PWA paths.
+   */
   async function resolveSiteIcon(siteUrl) {
     const origin = originFromSiteUrl(siteUrl);
     if (!origin) return '';
     let host = '';
     try { host = new URL(origin).hostname.replace(/^www\./i, ''); } catch (_) { host = ''; }
 
-    // Start Google immediately — must outlive preferred+manifest waits (was timing out at 3s)
-    const googlePromise = host
-      ? probeImage(googleFaviconUrl(host), 8000, { rejectGoogleDefault: true })
-      : Promise.resolve(null);
+    if (host) {
+      const fromGoogle = await probeImage(googleFaviconUrl(host), 8000, { rejectGoogleDefault: true });
+      if (fromGoogle) return fromGoogle;
+    }
 
     const preferred = [
       `${origin}/apple-touch-icon.png`,
       `${origin}/apple-touch-icon-precomposed.png`,
+      `${origin}/apple-touch-icon-180x180.png`,
       `${origin}/icon-192.png`,
+      `${origin}/android-chrome-192x192.png`,
       `${origin}/img/logo/app.png`,
       `${origin}/favicon.svg`,
       `${origin}/favicon.png`,
     ];
 
-    let logo = await firstProbedImage(preferred, 1000);
+    let logo = await firstProbedImage(preferred, 2200);
     if (logo && !isWeakLogoUrl(logo)) return logo;
 
-    // favicon.ico OK if larger than Google's 16×16 default globe
     const ico = await probeImage(`${origin}/favicon.ico`, 1500, { minSide: 17 });
     if (ico) return ico;
 
-    // Manifest icons (CORS often blocked) in parallel with Google finishing
-    const manifestPromise = (async () => {
-      try {
-        const manifest = await fetchJsonLoose(`${origin}/manifest.json`)
-          || await fetchJsonLoose(`${origin}/pwa/manifest.json`);
-        if (!manifest) return '';
+    try {
+      const manifest = await fetchJsonLoose(`${origin}/manifest.json`)
+        || await fetchJsonLoose(`${origin}/manifest.webmanifest`)
+        || await fetchJsonLoose(`${origin}/site.webmanifest`)
+        || await fetchJsonLoose(`${origin}/pwa/manifest.json`);
+      if (manifest) {
         const extras = [];
         iconsFromManifest(manifest, origin).forEach((u) => {
           if (u && !isWeakLogoUrl(u)) extras.push(u);
         });
-        if (!extras.length) return '';
-        const found = await firstProbedImage(extras.slice(0, 4), 1500);
-        return found && !isWeakLogoUrl(found) ? found : '';
-      } catch (_) {
-        return '';
+        if (extras.length) {
+          const found = await firstProbedImage(extras.slice(0, 4), 2200);
+          if (found && !isWeakLogoUrl(found)) return found;
+        }
       }
-    })();
+    } catch (_) { /* ignore */ }
 
-    const [fromManifest, fromGoogle] = await Promise.all([manifestPromise, googlePromise]);
-    if (fromManifest) return fromManifest;
-    return fromGoogle || '';
+    return '';
   }
 
   function defaultPrefs() {
     return {
       email: '',
       telegram: '',
+      telegramChatId: '',
+      telegramLinked: false,
       channels: { email: true, telegram: true },
       events: {
+        public_contact: { email: true, telegram: true },
         applies: { email: true, telegram: true },
         invites: { email: true, telegram: true },
         messages: { email: false, telegram: true },
@@ -373,9 +379,12 @@
     if (!p.events && p.channels) {
       events.applies = Object.assign({}, events.applies, p.channels);
     }
+    const chatId = p.telegramChatId != null ? String(p.telegramChatId) : '';
     return {
       email: p.email || '',
       telegram: p.telegram || '',
+      telegramChatId: chatId,
+      telegramLinked: p.telegramLinked != null ? !!p.telegramLinked : !!chatId,
       channels: {
         email: events.applies.email,
         telegram: events.applies.telegram,
@@ -390,9 +399,21 @@
       prefs: { type: Object, required: true },
       t: { type: Function, required: true },
     },
-    emits: ['save'],
+    emits: ['save', 'updated', 'toast'],
     data() {
-      return { eventKeys: PREF_EVENT_KEYS };
+      return {
+        eventKeys: PREF_EVENT_KEYS,
+        tgBusy: false,
+        tgWait: false,
+        tgPollTimer: null,
+      };
+    },
+    computed: {
+      tgConnectLabel() {
+        if (this.prefs.telegramLinked) return this.t('prefs_tg_reconnect');
+        if (String(this.prefs.telegram || '').trim()) return this.t('prefs_tg_allow');
+        return this.t('prefs_tg_connect');
+      },
     },
     methods: {
       ensureEvents() {
@@ -401,9 +422,79 @@
           if (!this.prefs.events[key]) this.prefs.events[key] = { email: true, telegram: true };
         }
       },
+      stopTgPoll() {
+        if (this.tgPollTimer) {
+          clearInterval(this.tgPollTimer);
+          this.tgPollTimer = null;
+        }
+        this.tgWait = false;
+      },
+      applyPrefs(next) {
+        const n = normalizePrefsClient(next);
+        Object.assign(this.prefs, n);
+        this.prefs.telegramChatId = n.telegramChatId || '';
+        this.prefs.telegramLinked = !!n.telegramLinked;
+        this.prefs.telegram = n.telegram || '';
+        this.prefs.events = n.events;
+        this.prefs.channels = n.channels;
+        this.$emit('updated', n);
+      },
+      async connectTelegram() {
+        if (this.tgBusy) return;
+        this.tgBusy = true;
+        this.stopTgPoll();
+        try {
+          const res = await WorkixAPI.connectTelegram({
+            telegram: String(this.prefs.telegram || '').trim() || undefined,
+          });
+          if (res && res.url) {
+            window.open(res.url, '_blank', 'noopener');
+          }
+          this.tgWait = true;
+          const started = Date.now();
+          const pollOnce = async () => {
+            const p = await WorkixAPI.getPrefs();
+            if (p && (p.telegramLinked || p.telegramChatId)) {
+              this.applyPrefs(p);
+              this.stopTgPoll();
+              return true;
+            }
+            return false;
+          };
+          // Immediate check (reconnect / already linked) + poll while user finishes /start
+          if (await pollOnce().catch(() => false)) return;
+          this.tgPollTimer = setInterval(async () => {
+            if (Date.now() - started > 120000) {
+              this.stopTgPoll();
+              this.$emit('toast', this.t('prefs_tg_timeout'));
+              return;
+            }
+            try { await pollOnce(); } catch (e) { /* keep polling */ }
+          }, 1500);
+        } catch (e) {
+          this.tgWait = false;
+          this.$emit('toast', (e && e.message) || this.t('error'));
+        } finally {
+          this.tgBusy = false;
+        }
+      },
+      async disconnectTelegram() {
+        if (this.tgBusy) return;
+        this.tgBusy = true;
+        try {
+          this.stopTgPoll();
+          const p = await WorkixAPI.disconnectTelegram();
+          this.applyPrefs(p);
+        } finally {
+          this.tgBusy = false;
+        }
+      },
     },
     created() {
       this.ensureEvents();
+    },
+    beforeUnmount() {
+      this.stopTgPoll();
     },
     template: `
       <div class="wx-notify-prefs grid gap-4">
@@ -415,14 +506,39 @@
               <span class="wx-field-label">{{ t('prefs_email') }}<span class="wx-help" tabindex="0" :data-tip="t('hint_prefs_email')">?</span></span>
               <input class="wx-input mt-1" v-model="prefs.email" />
             </label>
-            <label class="text-sm">
-              <span class="wx-field-label">{{ t('prefs_telegram') }}<span class="wx-help" tabindex="0" :data-tip="t('hint_prefs_telegram')">?</span></span>
-              <input class="wx-input mt-1" v-model="prefs.telegram" placeholder="@username" />
-            </label>
+            <div class="text-sm">
+              <label class="block">
+                <span class="wx-field-label">{{ t('prefs_telegram') }}<span class="wx-help" tabindex="0" :data-tip="t('hint_prefs_telegram')">?</span></span>
+                <input class="wx-input mt-1" v-model="prefs.telegram" placeholder="@username" />
+              </label>
+              <div class="wx-tg-bind mt-2">
+                <div v-if="prefs.telegramLinked" class="wx-tg-bind-status">
+                  <span class="wx-badge ok">{{ t('prefs_tg_linked') }}</span>
+                  <span class="text-xs wx-muted" translate="no">{{ prefs.telegram || ('id:' + prefs.telegramChatId) }}</span>
+                </div>
+                <p v-else class="text-xs wx-muted mb-2">{{ t('prefs_tg_bind_hint') }}</p>
+                <div class="flex flex-wrap gap-2">
+                  <button
+                    class="wx-btn wx-btn-ghost text-sm"
+                    type="button"
+                    :disabled="tgBusy"
+                    @click="connectTelegram"
+                  >{{ tgBusy || tgWait ? t('prefs_tg_waiting') : tgConnectLabel }}</button>
+                  <button
+                    v-if="prefs.telegramLinked"
+                    class="wx-btn wx-btn-ghost text-sm"
+                    type="button"
+                    :disabled="tgBusy"
+                    @click="disconnectTelegram"
+                  >{{ t('prefs_tg_disconnect') }}</button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <div>
           <h2 class="text-base font-semibold mb-3">{{ t('prefs_matrix_title') }}</h2>
+          <p v-if="!prefs.telegramLinked" class="text-xs wx-muted mb-2">{{ t('prefs_tg_matrix_hint') }}</p>
           <div class="wx-notify-matrix" role="table">
             <div class="wx-notify-matrix-row wx-notify-matrix-head" role="row">
               <div role="columnheader"></div>
@@ -435,7 +551,11 @@
                 <input type="checkbox" v-model="prefs.events[key].email" />
               </label>
               <label class="wx-notify-matrix-cell" role="cell">
-                <input type="checkbox" v-model="prefs.events[key].telegram" />
+                <input
+                  type="checkbox"
+                  v-model="prefs.events[key].telegram"
+                  :disabled="!prefs.telegramLinked && key !== 'public_contact'"
+                />
               </label>
             </div>
           </div>
@@ -471,6 +591,15 @@
     return `/${s}`;
   }
 
+  /** Canonical performer URL: /{slug} when set, else /performer/{id} */
+  function performerPublicPath(entity) {
+    const slug = String((entity && entity.slug) || '').trim().toLowerCase();
+    if (slug && !isReservedPathSegment(slug)) return `/${encodeURIComponent(slug)}`;
+    const id = String((entity && (entity.id || entity.performerId)) || entity || '').trim();
+    if (!id) return '/';
+    return `/performer/${encodeURIComponent(id)}`;
+  }
+
   function parseRoute() {
     const path = location.pathname || '/';
     const hash = (location.hash || '').replace(/^#/, '');
@@ -488,6 +617,12 @@
     const performerPath = path.match(/^\/performer\/([^/]+)\/?$/);
     if (performerPath) {
       return { name: 'performer', id: decodeURIComponent(performerPath[1]) };
+    }
+    // Global role-by-id path (server 301s here to the canonical /{slug}/{role} on
+    // first load; also used as a client-side rewrite target for bare #/role/:id hashes).
+    const rolePath = path.match(/^\/role\/([^/]+)\/?$/);
+    if (rolePath && !h) {
+      return { name: 'role', id: decodeURIComponent(rolePath[1]) };
     }
 
     // Path aliases: /p/:slug[/:role], /go/:slug[/:role] (fallback), /:slug[/:role]
@@ -602,12 +737,17 @@
         { code: 'uk', label: 'Українська', flag: 'ua' },
         { code: 'es', label: 'Español', flag: 'es' },
         { code: 'zh', label: '中文', flag: 'cn' },
+        { code: 'ja', label: '日本語', flag: 'jp' },
+        { code: 'ko', label: '한국어', flag: 'kr' },
       ];
       const savedLang = localStorage.getItem('workix_lang');
-      const navLang = (navigator.language || '').toLowerCase();
-      const defaultLang = savedLang
-        || (languages.some((l) => l.code === navLang.slice(0, 2)) ? navLang.slice(0, 2) : null)
-        || (navLang.startsWith('ru') ? 'ru' : 'en');
+      const navLang = (navigator.language || navigator.languages && navigator.languages[0] || '').toLowerCase();
+      const navCode = navLang.slice(0, 2);
+      const savedOk = savedLang && languages.some((l) => l.code === savedLang) ? savedLang : null;
+      // Browser language when supported; otherwise English — never force Russian.
+      const defaultLang = savedOk
+        || (languages.some((l) => l.code === navCode) ? navCode : null)
+        || 'en';
       const locale = ref(defaultLang);
       const langOpen = ref(false);
       const accountOpen = ref(false);
@@ -617,6 +757,46 @@
       const route = ref(parseRoute());
       const loading = ref(true);
       const toast = ref('');
+      const expandedBodies = reactive({});
+      const BODY_EXPAND_CHARS = 420;
+      function bodyKey(kind, id) {
+        return `${kind}:${id == null ? '' : String(id)}`;
+      }
+      function bodyNeedsExpand(text) {
+        const s = String(text || '').trim();
+        if (!s) return false;
+        if (s.length > BODY_EXPAND_CHARS) return true;
+        return s.split(/\n/).length > 8;
+      }
+      function isBodyExpanded(key) {
+        return !!expandedBodies[key];
+      }
+      function toggleBodyExpand(key) {
+        expandedBodies[key] = !expandedBodies[key];
+      }
+      /** Plain text or GitHub-like markdown → sanitized HTML for detail bodies. */
+      function renderMarkdown(text) {
+        const raw = String(text == null ? '' : text);
+        if (!raw.trim()) return '';
+        const md = (typeof window !== 'undefined' ? window : globalThis).WorkixMarkdown;
+        try {
+          if (md && typeof md.render === 'function') {
+            return md.render(raw);
+          }
+        } catch (e) { /* fall through */ }
+        // Fallback: escape + basic autolink so bare URLs still work without markdown.js
+        const esc = md && md.escapeHtml
+          ? md.escapeHtml(raw)
+          : raw
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+        const linked = esc.replace(/(^|[\s(>])((?:https?:\/\/|www\.)[^\s<&]+)/gi, (full, pre, u) => {
+          const href = /^www\./i.test(u) ? `https://${u}` : u;
+          return `${pre}<a href="${href}" target="_blank" rel="noopener noreferrer">${u}</a>`;
+        });
+        return `<p>${linked.replace(/\n/g, '<br />')}</p>`;
+      }
       const me = ref(null);
       const startups = ref([]);
       const roles = ref([]);
@@ -636,10 +816,20 @@
       const carousel = ref([]);
       const profile = ref({
         name: '', headline: '', bio: '', skills: [], links: [], location: '', openTo: [],
+        availability: 'open',
         telegram: '', portfolio: '', github: '', cv: '',
         payment: { budget: '', type: 'work', cur: 'USDT' },
         displayCurrency: 'USDT',
       });
+      const availabilityOptions = ['open', 'working', 'resting', 'ideas', 'busy'];
+      /** Listing lifecycle in the form: active = live (API: approved). */
+      const listingStageOptions = ['draft', 'pending', 'active', 'closed', 'frozen'];
+      /** Product / funding stage (projects). */
+      const projectStageOptions = [
+        'idea', 'stealth', 'preseed', 'seed', 'mvp', 'early',
+        'growth', 'scale', 'mature', 'project',
+      ];
+      const PENDING_FORM_KEY = 'workix_pending_form';
       const profileLinksText = ref('');
       const prefs = ref(defaultPrefs());
       const q = ref('');
@@ -709,7 +899,7 @@
             }
           }
         } catch (_) { /* fall through */ }
-        return '1.2.10';
+        return '1.2.11';
       })();
       const footerYear = new Date().getFullYear();
       const apiMeta = computed(() => WorkixAPI.getState());
@@ -735,6 +925,7 @@
         name: '', slug: '', url: '', github: '', logo: '', description: '', tags: '',
         linksText: '',
         applyDefaults: { apply_url: '', apply_email: '', apply_telegram: '' },
+        stage: 'early',
         status: 'pending',
       });
       const formRole = reactive({
@@ -778,7 +969,37 @@
             return { url: parts[0] };
           });
       }
-      const formApply = reactive({ name: '', contact: '', message: '' });
+
+      /** Tags/skills: accept comma, semicolon, or pipe as separators. */
+      function splitTagList(raw) {
+        const list = Array.isArray(raw) ? raw : [raw];
+        const out = [];
+        const seen = new Set();
+        for (const item of list) {
+          for (const part of String(item == null ? '' : item).split(/[,;|/]+/)) {
+            const name = part.trim().replace(/\s+/g, ' ');
+            if (!name) continue;
+            const key = name.toLowerCase();
+            if (seen.has(key)) continue;
+            seen.add(key);
+            out.push(name);
+          }
+        }
+        return out.slice(0, 40);
+      }
+      const formApply = reactive({
+        name: '',
+        contact: '',
+        Interesity: null,
+        Difficulty: null,
+        Understandability: null,
+        Budget: '',
+        Currency: 'USDT',
+        Time: null,
+        Description: '',
+        score: null,
+      });
+      const applySaving = ref(false);
       const formSupport = reactive({ contact: '', message: '' });
       const supportSending = ref(false);
       const formProposal = reactive({
@@ -878,8 +1099,14 @@
       ];
       const projectTypeOptions = [
         { id: 'idea', labelKey: 'type_idea' },
+        { id: 'stealth', labelKey: 'type_stealth' },
+        { id: 'preseed', labelKey: 'type_preseed' },
+        { id: 'seed', labelKey: 'type_seed' },
+        { id: 'mvp', labelKey: 'type_mvp' },
         { id: 'early', labelKey: 'type_early' },
         { id: 'growth', labelKey: 'type_growth' },
+        { id: 'scale', labelKey: 'type_scale' },
+        { id: 'mature', labelKey: 'type_mature' },
         { id: 'project', labelKey: 'type_project' },
       ];
       const feedTypeOptions = computed(() => (
@@ -1005,10 +1232,14 @@
       let projectLogoActive = 0;
       const PROJECT_LOGO_CONCURRENCY = 4;
 
-      function projectLogoSync(st) {
+      function projectLogoExplicit(st) {
         if (!st) return '';
         const explicit = String(st.logo || '').trim();
-        if (explicit && !isWeakLogoUrl(explicit)) return explicit;
+        return explicit && !isWeakLogoUrl(explicit) ? explicit : '';
+      }
+
+      function projectLogoInferred(st) {
+        if (!st) return '';
         const fromUrl = (raw) => {
           const s = String(raw || '').trim();
           if (!s) return '';
@@ -1028,6 +1259,11 @@
         return fromUrl(st.url) || fromUrl(st.github) || '';
       }
 
+      /** Sync optimistic logo: Logo URL first, then known host shortcuts. */
+      function projectLogoSync(st) {
+        return projectLogoExplicit(st) || projectLogoInferred(st);
+      }
+
       function projectLogo(st) {
         if (!st) return '';
         const id = String(st.id || st.slug || '');
@@ -1037,13 +1273,33 @@
         return projectLogoSync(st);
       }
 
+      function projectLogoStyle(st) {
+        const url = projectLogo(st);
+        if (!url) return {};
+        return { backgroundImage: `url(${JSON.stringify(url)})` };
+      }
+
+      /** Logo URL → inferred → Google → apple-touch / manifest. */
+      async function resolveProjectLogoFull(st) {
+        const explicit = projectLogoExplicit(st);
+        if (explicit) {
+          const ok = await probeImage(explicit, 5000, { rejectGoogleDefault: false });
+          if (ok) return ok;
+        }
+        const inferred = projectLogoInferred(st);
+        if (inferred) {
+          const ok = await probeImage(inferred, 4000, { rejectGoogleDefault: false });
+          if (ok) return ok;
+        }
+        return (await resolveSiteIcon(String(st.url || '').trim())) || '';
+      }
+
       function drainProjectLogoQueue() {
         while (projectLogoActive < PROJECT_LOGO_CONCURRENCY && projectLogoQueue.length) {
           const st = projectLogoQueue.shift();
           const id = String(st.id || st.slug || '');
-          const site = String(st.url || '').trim();
           projectLogoActive += 1;
-          resolveSiteIcon(site).then((url) => {
+          resolveProjectLogoFull(st).then((url) => {
             resolvedProjectLogos[id] = url || '';
           }).finally(() => {
             projectLogoPending.delete(id);
@@ -1057,12 +1313,15 @@
         if (!st) return;
         const id = String(st.id || st.slug || '');
         if (!id || projectLogoPending.has(id) || Object.prototype.hasOwnProperty.call(resolvedProjectLogos, id)) return;
-        if (projectLogoSync(st)) return;
+        const sync = projectLogoSync(st);
         const site = String(st.url || '').trim();
-        if (!site) {
+        if (!site && !sync) {
           resolvedProjectLogos[id] = '';
           return;
         }
+        // Optimistic Logo URL (priority over Google); async may fall back if it fails to load.
+        const explicit = projectLogoExplicit(st);
+        if (explicit) resolvedProjectLogos[id] = explicit;
         projectLogoPending.add(id);
         projectLogoQueue.push(st);
         drainProjectLogoQueue();
@@ -1072,14 +1331,243 @@
         (list || []).forEach((st) => enqueueProjectLogo(st));
       }
 
+      /** Extra links: inferred host icons → Google s2 (skip 16×16 globe) — same idea as projects. */
+      const resolvedLinkIcons = reactive({});
+      const linkIconPending = new Set();
+      const linkIconQueue = [];
+      let linkIconActive = 0;
+      const LINK_ICON_CONCURRENCY = 4;
+
+      function linkIconKey(l) {
+        return String((l && (l.url || l)) || '').trim();
+      }
+
+      function linkIconInferred(rawUrl) {
+        const s = String(rawUrl || '').trim();
+        if (!s) return '';
+        try {
+          const u = new URL(/^https?:\/\//i.test(s) ? s : `https://${s}`);
+          const host = u.hostname.replace(/^www\./i, '').toLowerCase();
+          if (/(^|\.)github\.com$/i.test(host)) {
+            const parts = u.pathname.split('/').filter(Boolean);
+            const owner = parts[0] === 'orgs' || parts[0] === 'users' ? parts[1] : parts[0];
+            if (owner) return `https://github.com/${encodeURIComponent(owner)}.png?size=64`;
+            return googleFaviconUrl('github.com');
+          }
+          if (/(^|\.)linkedin\.com$/i.test(host)) return googleFaviconUrl('linkedin.com');
+          if (/(^|\.)(x|twitter)\.com$/i.test(host)) return googleFaviconUrl('twitter.com');
+          if (host === 't.me' || host === 'telegram.me' || host === 'telegram.org') {
+            return googleFaviconUrl('telegram.org');
+          }
+          // Mastodon / fediverse instance homepage icon via Google
+          if (u.pathname.startsWith('/@') || host === 'toot.io' || host.endsWith('.social')) {
+            return googleFaviconUrl(host);
+          }
+        } catch (_) { /* ignore */ }
+        return '';
+      }
+
+      function linkIcon(l) {
+        const key = linkIconKey(l);
+        if (!key) return '';
+        if (Object.prototype.hasOwnProperty.call(resolvedLinkIcons, key)) {
+          return resolvedLinkIcons[key] || '';
+        }
+        return linkIconInferred(key);
+      }
+
+      async function resolveLinkIconFull(url) {
+        const inferred = linkIconInferred(url);
+        if (inferred) {
+          const ok = await probeImage(inferred, 5000, { rejectGoogleDefault: true });
+          if (ok) return ok;
+        }
+        return (await resolveSiteIcon(url)) || '';
+      }
+
+      function drainLinkIconQueue() {
+        while (linkIconActive < LINK_ICON_CONCURRENCY && linkIconQueue.length) {
+          const url = linkIconQueue.shift();
+          linkIconActive += 1;
+          resolveLinkIconFull(url).then((icon) => {
+            resolvedLinkIcons[url] = icon || '';
+          }).finally(() => {
+            linkIconPending.delete(url);
+            linkIconActive -= 1;
+            drainLinkIconQueue();
+          });
+        }
+      }
+
+      function enqueueLinkIcon(l) {
+        const url = linkIconKey(l);
+        if (!url || linkIconPending.has(url) || Object.prototype.hasOwnProperty.call(resolvedLinkIcons, url)) return;
+        if (!originFromSiteUrl(url)) {
+          resolvedLinkIcons[url] = '';
+          return;
+        }
+        // Optimistic inferred icon (GitHub avatar / Google) while probe runs
+        const inferred = linkIconInferred(url);
+        if (inferred) resolvedLinkIcons[url] = inferred;
+        linkIconPending.add(url);
+        linkIconQueue.push(url);
+        drainLinkIconQueue();
+      }
+
+      function enrichLinkIcons(list) {
+        (list || []).forEach((l) => enqueueLinkIcon(l));
+      }
+
+      function isHubAdmin() {
+        return !!(me.value && me.value.admin);
+      }
+
+      /** Publisher of the listing or hub admin — never by client IP. */
+      function canManageStartup(st) {
+        if (!st) return false;
+        if (isHubAdmin()) return true;
+        if (!me.value) return false;
+        const uid = String(me.value.id || '').trim();
+        if (!uid) return false;
+        const pub = String(
+          st.publisherId
+          || (st.publisher && (st.publisher.userId || st.publisher.id))
+          || '',
+        ).trim();
+        return Boolean(pub && uid === pub);
+      }
+
+      function canManageRole(r) {
+        if (!r) return false;
+        if (isHubAdmin()) return true;
+        if (!me.value) return false;
+        const uid = String(me.value.id || '').trim();
+        if (!uid) return false;
+        const pub = String(r.publisherId || '').trim();
+        if (pub && uid === pub) return true;
+        if (currentStartup.value && canManageStartup(currentStartup.value)) return true;
+        return false;
+      }
+
       function statusClass(st) {
-        if (st === 'approved') return 'ok';
-        if (st === 'pending' || st === 'draft') return 'warn';
+        if (st === 'approved' || st === 'active' || st === 'open') return 'ok';
+        if (st === 'pending' || st === 'draft' || st === 'frozen') return 'warn';
         return 'bad';
       }
 
+      /** Form/API: active ↔ approved (live). */
+      function toFormListingStatus(st) {
+        const s = String(st || '').toLowerCase();
+        if (s === 'approved' || s === 'open' || s === 'active') return 'active';
+        return s || 'pending';
+      }
+
+      function toApiListingStatus(st) {
+        const s = String(st || '').toLowerCase();
+        if (s === 'active') return 'approved';
+        return s || 'pending';
+      }
+
       function statusLabel(st) {
-        return t(`status_${st}`) || st;
+        const s = String(st || '').toLowerCase();
+        const key = (s === 'approved' || s === 'open') ? 'active' : s;
+        return t(`status_${key}`) || st;
+      }
+
+      function availabilityLabel(code) {
+        const key = `avail_${code || 'open'}`;
+        return t(key) || code || '';
+      }
+
+      function contactLabel(kind) {
+        if (kind === 'telegram') return t('contact_telegram');
+        if (kind === 'email') return t('contact_email');
+        return t('contact_link');
+      }
+
+      /** Public contact buttons from prefs matrix (public_contact). */
+      function performerContacts(p) {
+        if (!p) return [];
+        if (Array.isArray(p.contacts) && p.contacts.length) return p.contacts;
+        if (p.contactUrl) {
+          return [{ kind: p.contactKind || 'link', url: p.contactUrl }];
+        }
+        return [];
+      }
+
+      function stashPendingForm(kind) {
+        try {
+          const payload = kind === 'startup'
+            ? {
+              kind: 'startup',
+              hash: location.hash || '#/new-startup',
+              form: {
+                name: formStartup.name,
+                slug: formStartup.slug,
+                url: formStartup.url,
+                github: formStartup.github,
+                logo: formStartup.logo,
+                description: formStartup.description,
+                tags: formStartup.tags,
+                linksText: formStartup.linksText,
+                applyDefaults: { ...(formStartup.applyDefaults || {}) },
+                stage: formStartup.stage,
+                status: formStartup.status,
+              },
+            }
+            : {
+              kind: 'role',
+              hash: location.hash || '#/new-role',
+              form: JSON.parse(JSON.stringify(formRole)),
+            };
+          sessionStorage.setItem(PENDING_FORM_KEY, JSON.stringify(payload));
+        } catch (e) { /* ignore */ }
+      }
+
+      async function flushPendingFormAfterAuth() {
+        let raw = null;
+        try { raw = sessionStorage.getItem(PENDING_FORM_KEY); } catch (e) { return false; }
+        if (!raw) return false;
+        let data = null;
+        try { data = JSON.parse(raw); } catch (e) { return false; }
+        try { sessionStorage.removeItem(PENDING_FORM_KEY); } catch (e) { /* ignore */ }
+        if (!data || !data.form) return false;
+        if (data.hash) {
+          const h = String(data.hash).replace(/^#/, '');
+          if (h) location.hash = h;
+        }
+        if (data.kind === 'startup') {
+          Object.assign(formStartup, data.form);
+          if (data.form.applyDefaults) {
+            formStartup.applyDefaults = { ...data.form.applyDefaults };
+          }
+          await saveStartup({ skipAuthGate: true });
+          return true;
+        }
+        if (data.kind === 'role') {
+          Object.assign(formRole, data.form);
+          await saveRole({ skipAuthGate: true });
+          return true;
+        }
+        return false;
+      }
+
+      function promptAuthToSave(kind) {
+        stashPendingForm(kind);
+        showToast(t('auth_needed_save'));
+        loginMvse();
+        if (route.value.name !== 'auth') navigate('auth');
+      }
+
+      function openAccountMenu() {
+        langOpen.value = false;
+        notifyOpen.value = false;
+        if (!me.value) {
+          accountOpen.value = false;
+          navigate('auth');
+          return;
+        }
+        accountOpen.value = !accountOpen.value;
       }
 
       function flagClass(code) {
@@ -1135,7 +1623,7 @@
         const next = String(lang || 'en');
         locale.value = next;
         localStorage.setItem('workix_lang', next);
-        document.documentElement.lang = next === 'zh' ? 'zh-CN' : next;
+        document.documentElement.lang = next === 'zh' ? 'zh-CN' : (next === 'ja' ? 'ja' : (next === 'ko' ? 'ko' : next));
         if (WorkixAPI.setContentLang) WorkixAPI.setContentLang(next);
         await loadLocale(next);
         // Re-fetch feeds so descriptions match the new language
@@ -1145,6 +1633,7 @@
           else if (route.value && route.value.name === 'performer' && route.value.id) await openPerformer(route.value.id);
           else if (route.value && route.value.name === 'startup' && route.value.slug) await openStartup(route.value.slug);
           else if (route.value && route.value.name === 'go') await openGo(route.value.startupSlug, route.value.roleSlug);
+          else if (route.value && route.value.name === 'role' && route.value.id) await openRole(route.value.id);
           else await loadCatalog();
         } catch (e) {
           /* ignore content refresh errors */
@@ -1460,10 +1949,20 @@
           full_job: 'type_full_job',
           fixes: 'type_fixes',
           idea: 'type_idea',
+          stealth: 'type_stealth',
+          preseed: 'type_preseed',
+          seed: 'type_seed',
+          mvp: 'type_mvp',
           early: 'type_early',
           growth: 'type_growth',
+          scale: 'type_scale',
+          mature: 'type_mature',
         };
         return t(map[kind] || 'type_project');
+      }
+
+      function stageLabel(stage) {
+        return kindLabel(stage || 'early');
       }
 
       function sourceCurrency(r) {
@@ -1571,6 +2070,23 @@
             routeError.value = { code, kind: 'startup' };
             return;
           }
+          // Root /{slug} is shared: projects win, else try performer vanity slug
+          if (e && e.status === 404) {
+            try {
+              await openPerformer(slug);
+              if (currentPerformer.value) {
+                route.value = {
+                  name: 'performer',
+                  id: currentPerformer.value.slug || currentPerformer.value.id,
+                };
+                const canon = performerPublicPath(currentPerformer.value);
+                if ((location.pathname || '/') !== canon) {
+                  history.replaceState(null, '', canon);
+                }
+                return;
+              }
+            } catch (_) { /* not a performer either */ }
+          }
           throw e;
         }
         const r = await WorkixAPI.listRoles({ startup: slug });
@@ -1584,6 +2100,11 @@
         currentRole.value = roleSlug
           ? items.find((x) => x.slug === roleSlug || x.id === roleSlug) || items[0] || null
           : items[0] || null;
+        if (currentRole.value && currentRole.value.id) {
+          try {
+            currentRole.value = await WorkixAPI.getRole(currentRole.value.id);
+          } catch (e) { /* keep list localization */ }
+        }
         const all = await WorkixAPI.listRoles({});
         carousel.value = (all.items || []).filter((x) => !currentRole.value || x.id !== currentRole.value.id).slice(0, 12);
         await WorkixAPI.track('share_view', {
@@ -1596,6 +2117,16 @@
         currentRole.value = await WorkixAPI.getRole(id);
         if (currentRole.value && currentRole.value.startupSlug) {
           currentStartup.value = await WorkixAPI.getStartup(currentRole.value.startupSlug);
+        }
+        // Upgrade /role/:id (and any leftover #/role/:id) to the canonical
+        // /{slug}/{role} path once we know the project, so the address bar and
+        // any copy/share action land on the crawlable, JobPosting-carrying URL.
+        const r = currentRole.value;
+        if (r && r.startupSlug) {
+          const canon = projectPath(r.startupSlug, r.slug || r.id);
+          if (location.pathname + location.hash !== canon) {
+            history.replaceState(null, '', canon);
+          }
         }
       }
 
@@ -1615,6 +2146,7 @@
         } else {
           setDisplayCurrency(p.displayCurrency);
         }
+        if (!p.availability) p.availability = 'open';
         profile.value = p;
         profileLinksText.value = linksToText(p.links);
       }
@@ -1701,6 +2233,12 @@
             currentPerformer.value,
             ...(currentPerformer.value.orders || []),
           ]);
+          const canon = performerPublicPath(currentPerformer.value);
+          const path = location.pathname || '/';
+          // Prefer vanity /{slug}; keep /performer/{id|slug} as aliases
+          if (currentPerformer.value.slug && path !== canon && /^\/performer\//i.test(path)) {
+            history.replaceState(null, '', canon);
+          }
         }
         setTimeout(() => refreshEmojis(), 80);
       }
@@ -1812,6 +2350,7 @@
       async function routeLoad() {
         loading.value = true;
         routeError.value = null;
+        for (const k of Object.keys(expandedBodies)) delete expandedBodies[k];
         try {
           const r = route.value;
           if (r.name === 'catalog') await loadCatalog();
@@ -1823,25 +2362,31 @@
           if (r.name === 'order') await openOrder(r.id);
           if (r.name === 'apply') {
             await openRole(r.roleId);
-            formApply.name = (me.value && me.value.name) || '';
+            resetApplyForm(currentRole.value);
           }
           if (r.name === 'startup-form') {
             await refreshMe();
             if (r.slug) {
               const s = await WorkixAPI.getStartup(r.slug);
+              if (!canManageStartup(s)) {
+                navigateProject(s.slug || r.slug);
+                return;
+              }
               Object.assign(formStartup, {
                 name: s.name, slug: s.slug, url: s.url || '', github: s.github || '', logo: s.logo || '',
                 description: s.description || '',
                 tags: (s.tags || []).join(', '),
                 linksText: linksToText(s.links),
                 applyDefaults: Object.assign({ apply_url: '', apply_email: '', apply_telegram: '' }, s.applyDefaults || {}),
-                status: s.status === 'draft' ? 'draft' : 'pending',
+                stage: s.stage || s.kind || 'early',
+                status: toFormListingStatus(s.status),
               });
             } else {
               Object.assign(formStartup, {
                 name: '', slug: '', url: '', github: '', logo: '', description: '', tags: '',
                 linksText: '',
                 applyDefaults: { apply_url: '', apply_email: '', apply_telegram: '' },
+                stage: 'early',
                 status: 'pending',
               });
             }
@@ -1851,6 +2396,10 @@
             if (me.value) await loadMine().catch(() => {});
             if (r.id) {
               const role = await WorkixAPI.getRole(r.id);
+              if (!canManageRole(role)) {
+                navigate(`role/${role.id || r.id}`);
+                return;
+              }
               Object.assign(formRole, {
                 startupId: role.startupId || '',
                 title: role.title,
@@ -1864,7 +2413,7 @@
                 apply_email: role.apply_email || '',
                 apply_telegram: role.apply_telegram || '',
                 linksText: linksToText(role.links),
-                status: 'pending',
+                status: toFormListingStatus(role.status),
                 _id: role.id,
               });
             } else {
@@ -1935,7 +2484,22 @@
 
       async function chooseSegment(segment) {
         localStorage.setItem('workix_segment', segment);
-        if (segment === 'orders' || segment === 'projects' || segment === 'performers') {
+        if (segment === 'publish') {
+          feed.value = 'projects';
+          localStorage.setItem('workix_feed', 'projects');
+          await WorkixAPI.track('entry_segment', { segment });
+          if (WorkixAuth.bearer()) {
+            try { await WorkixAPI.patchMe({ segment: 'projects' }); } catch (e) { /* ignore */ }
+          }
+          showToast(t('segment_saved'));
+          navigate('new-startup');
+          return;
+        }
+        if (segment === 'orders' || segment === 'roles') {
+          // Заказ и Роль — лента заказов (роли проектов тоже здесь)
+          feed.value = 'orders';
+          localStorage.setItem('workix_feed', 'orders');
+        } else if (segment === 'projects' || segment === 'performers') {
           feed.value = segment;
           localStorage.setItem('workix_feed', segment);
         } else {
@@ -1945,7 +2509,10 @@
         }
         await WorkixAPI.track('entry_segment', { segment });
         if (WorkixAuth.bearer()) {
-          try { await WorkixAPI.patchMe({ segment }); } catch (e) { /* ignore */ }
+          try {
+            const meSeg = (segment === 'roles') ? 'orders' : segment;
+            await WorkixAPI.patchMe({ segment: meSeg });
+          } catch (e) { /* ignore */ }
         }
         showToast(t('segment_saved'));
         navigate('catalog');
@@ -1966,6 +2533,8 @@
         keyDraft.value = res.agentApiKey || '';
         await refreshMe();
         showToast(t('auth_registered'));
+        const flushed = await flushPendingFormAfterAuth();
+        if (!flushed && route.value.name !== 'profile') navigate('profile');
       }
 
       const displayedAgentKey = computed(() => {
@@ -2024,8 +2593,11 @@
         WorkixAuth.set({ agentApiKey: k, token: null });
         keyDraft.value = k;
         await refreshMe();
-        if (me.value) showToast(t('auth_mvse_ok'));
-        else showToast(t('error'));
+        if (me.value) {
+          showToast(t('auth_mvse_ok'));
+          const flushed = await flushPendingFormAfterAuth();
+          if (!flushed && route.value.name !== 'profile') navigate('profile');
+        } else showToast(t('error'));
       }
 
       function extractMvseProfile() {
@@ -2072,8 +2644,8 @@
           }
           await refreshMe();
           showToast(t('auth_mvse_ok'));
-          // Profile has the agent-key card (create / copy / rotate)
-          if (route.value.name !== 'profile') navigate('profile');
+          const flushed = await flushPendingFormAfterAuth();
+          if (!flushed && route.value.name !== 'profile') navigate('profile');
         } catch (e) {
           showToast(t('error'));
         }
@@ -2100,7 +2672,22 @@
         loginMvse();
       }
 
-      async function saveStartup() {
+      /** Save without forcing draft — keeps live status on edit; draft only for new listings. */
+      async function saveStartupKeep(opts = {}) {
+        if (!route.value.slug) formStartup.status = 'draft';
+        return saveStartup(opts);
+      }
+
+      async function saveRoleKeep(opts = {}) {
+        if (!formRole._id) formRole.status = 'draft';
+        return saveRole(opts);
+      }
+
+      async function saveStartup(opts = {}) {
+        if (!opts.skipAuthGate && !me.value) {
+          promptAuthToSave('startup');
+          return;
+        }
         const body = {
           name: formStartup.name,
           slug: formStartup.slug || undefined,
@@ -2108,30 +2695,43 @@
           github: formStartup.github,
           logo: formStartup.logo,
           description: formStartup.description,
-          tags: String(formStartup.tags || '').split(',').map((x) => x.trim()).filter(Boolean),
+          tags: splitTagList(formStartup.tags),
           links: parseLinksText(formStartup.linksText),
           applyDefaults: formStartup.applyDefaults,
-          status: formStartup.status,
+          stage: formStartup.stage || 'early',
+          status: toApiListingStatus(formStartup.status),
         };
-        if (route.value.slug) {
-          await WorkixAPI.updateStartup(route.value.slug, body);
-        } else {
-          const created = await WorkixAPI.createStartup(body);
+        try {
+          if (route.value.slug) {
+            await WorkixAPI.updateStartup(route.value.slug, body);
+          } else {
+            const created = await WorkixAPI.createStartup(body);
+            showToast(t('saved'));
+            navigateProject(created.slug);
+            return;
+          }
           showToast(t('saved'));
-          navigateProject(created.slug);
-          return;
+          navigateProject(formStartup.slug || route.value.slug);
+        } catch (e) {
+          if (e && e.status === 401) {
+            promptAuthToSave('startup');
+            return;
+          }
+          showToast((e && e.message) || t('error'));
         }
-        showToast(t('saved'));
-        navigateProject(formStartup.slug || route.value.slug);
       }
 
-      async function saveRole() {
+      async function saveRole(opts = {}) {
+        if (!opts.skipAuthGate && !me.value) {
+          promptAuthToSave('role');
+          return;
+        }
         const startupId = String(formRole.startupId || '').trim();
         const body = {
           title: formRole.title,
           slug: formRole.slug || undefined,
           description: formRole.description,
-          tags: String(formRole.tags || '').split(',').map((x) => x.trim()).filter(Boolean),
+          tags: splitTagList(formRole.tags),
           kind: formRole.kind || 'task',
           project: formRole.project || '',
           payment: {
@@ -2143,14 +2743,19 @@
           apply_email: formRole.apply_email,
           apply_telegram: formRole.apply_telegram,
           links: parseLinksText(formRole.linksText),
-          status: formRole.status || 'pending',
+          status: toApiListingStatus(formRole.status || 'pending'),
         };
         if (startupId) body.startupId = startupId;
         try {
           if (formRole._id) {
-            await WorkixAPI.updateRole(formRole._id, body);
+            if (!startupId && WorkixAPI.updateOrder) {
+              await WorkixAPI.updateOrder(formRole._id, body);
+            } else {
+              await WorkixAPI.updateRole(formRole._id, body);
+            }
             showToast(t('saved'));
-            navigate(`role/${formRole._id}`);
+            if (!startupId) navigate(`order/${formRole._id}`);
+            else navigate(`role/${formRole._id}`);
             return;
           }
           if (!startupId) {
@@ -2163,23 +2768,36 @@
           showToast(t('saved'));
           navigate(`role/${created.id}`);
         } catch (e) {
+          if (e && e.status === 401) {
+            promptAuthToSave('role');
+            return;
+          }
           showToast((e && e.message) || t('error'));
         }
       }
 
       async function saveProfile() {
-        const p = profile.value || {};
+        const p = Object.assign({}, profile.value || {});
         if (!p.payment || typeof p.payment !== 'object') {
           p.payment = { budget: '', type: 'work', cur: 'USDT' };
         }
         p.displayCurrency = displayCurrency.value || p.displayCurrency || 'USDT';
         p.links = parseLinksText(profileLinksText.value);
-        profile.value = await WorkixAPI.updateProfile(p) || p;
-        profileLinksText.value = linksToText((profile.value && profile.value.links) || p.links);
-        if (profile.value && profile.value.displayCurrency) {
-          setDisplayCurrency(profile.value.displayCurrency);
+        p.slug = String(p.slug || '').trim().toLowerCase();
+        try {
+          profile.value = await WorkixAPI.updateProfile(p) || p;
+          profileLinksText.value = linksToText((profile.value && profile.value.links) || p.links);
+          if (profile.value && profile.value.displayCurrency) {
+            setDisplayCurrency(profile.value.displayCurrency);
+          }
+          showToast(t('saved'));
+        } catch (e) {
+          if (e && e.status === 409) {
+            showToast(t('slug_taken') || 'Slug taken');
+            return;
+          }
+          showToast((e && e.message) || t('error'));
         }
-        showToast(t('saved'));
       }
 
       async function doImportProfile() {
@@ -2192,6 +2810,10 @@
         const body = normalizePrefsClient(prefs.value);
         prefs.value = normalizePrefsClient(await WorkixAPI.updatePrefs(body));
         showToast(t('saved'));
+      }
+
+      function onPrefsUpdated(next) {
+        prefs.value = normalizePrefsClient(next || prefs.value);
       }
 
       async function sendSupport() {
@@ -2228,20 +2850,77 @@
         }
       }
 
+      function resetApplyForm(role) {
+        formApply.name = (me.value && me.value.name) || formApply.name || '';
+        formApply.contact = formApply.contact || '';
+        formApply.Interesity = null;
+        formApply.Difficulty = null;
+        formApply.Understandability = null;
+        formApply.Budget = '';
+        formApply.Currency = (role && role.payment && role.payment.cur) || 'USDT';
+        formApply.Time = null;
+        formApply.Description = '';
+        formApply.score = null;
+      }
+
       async function sendApply() {
         if (!currentRole.value) return;
-        await WorkixAPI.track('apply_click', { roleId: currentRole.value.id });
-        await WorkixAPI.apply({
-          roleId: currentRole.value.id,
-          name: formApply.name,
-          contact: formApply.contact,
-          message: formApply.message,
-        });
-        showToast(t('saved'));
-        const ext = currentRole.value.apply_url
-          || (currentRole.value.apply_email ? `mailto:${currentRole.value.apply_email}` : '')
-          || (currentRole.value.apply_telegram ? `https://t.me/${String(currentRole.value.apply_telegram).replace('@', '')}` : '');
-        if (ext) setTimeout(() => { window.open(ext, '_blank'); }, 400);
+        if (!me.value) {
+          navigate('auth');
+          return;
+        }
+        applySaving.value = true;
+        try {
+          await WorkixAPI.track('apply_click', { roleId: currentRole.value.id });
+          const res = await WorkixAPI.apply({
+            roleId: currentRole.value.id,
+            name: formApply.name,
+            contact: formApply.contact,
+            message: formApply.Description,
+            Description: formApply.Description,
+            Interesity: formApply.Interesity,
+            Difficulty: formApply.Difficulty,
+            Understandability: formApply.Understandability,
+            Budget: formApply.Budget,
+            Currency: formApply.Currency,
+            Time: formApply.Time,
+          });
+          if (res && res.score != null) formApply.score = res.score;
+          showToast(t('proposal_saved') || t('saved'));
+          const ext = (isExternalApplyUrl(currentRole.value.apply_url) ? currentRole.value.apply_url : '')
+            || (currentRole.value.apply_email ? `mailto:${currentRole.value.apply_email}` : '')
+            || (currentRole.value.apply_telegram ? `https://t.me/${String(currentRole.value.apply_telegram).replace('@', '')}` : '');
+          if (ext) setTimeout(() => { window.open(ext, '_blank'); }, 400);
+        } catch (e) {
+          if (e && e.status === 401) {
+            navigate('auth');
+            return;
+          }
+          showToast((e && e.message) || t('error'));
+        } finally {
+          applySaving.value = false;
+        }
+      }
+
+      /** True only for a real off-site apply page (not Workix / relative /order/…). */
+      function isExternalApplyUrl(raw) {
+        const s = String(raw || '').trim();
+        if (!s) return false;
+        if (s.startsWith('#') || s.startsWith('/') || s.startsWith('?')) return false;
+        if (!/^https?:\/\//i.test(s)) return false;
+        try {
+          const u = new URL(s);
+          const host = String(u.hostname || '').toLowerCase().replace(/^www\./, '');
+          if (!host) return false;
+          if (host === 'workix.co' || host.endsWith('.workix.co')) return false;
+          if (typeof location !== 'undefined' && location.hostname) {
+            const here = String(location.hostname).toLowerCase().replace(/^www\./, '');
+            if (host === here) return false;
+          }
+          return true;
+        } catch (e) {
+          return false;
+        }
       }
 
       function absoluteShareUrl(pathOrHash) {
@@ -2259,17 +2938,18 @@
           return absoluteShareUrl(`/order/${encodeURIComponent(sid)}`);
         }
         if (kind === 'performer') {
-          return absoluteShareUrl(`/performer/${encodeURIComponent(entity.id)}`);
+          return absoluteShareUrl(performerPublicPath(entity));
         }
         if (kind === 'startup' || kind === 'project') {
           return absoluteShareUrl(projectPath(entity.slug || entity.id));
         }
         if (kind === 'role') {
           const st = entity.startupSlug || (currentStartup.value && currentStartup.value.slug);
-          if (st && entity.slug) {
-            return absoluteShareUrl(projectPath(st, entity.slug));
+          const roleKey = entity.slug || entity.id;
+          if (st && roleKey) {
+            return absoluteShareUrl(projectPath(st, roleKey));
           }
-          return absoluteShareUrl(`/#/role/${encodeURIComponent(entity.id)}`);
+          return absoluteShareUrl(`/role/${encodeURIComponent(entity.id)}`);
         }
         return location.href;
       }
@@ -2325,6 +3005,71 @@
         });
       }
 
+      const pdfSaving = ref(false);
+      async function savePerformerPdf(performer) {
+        const p = performer || currentPerformer.value;
+        if (!p || pdfSaving.value) return;
+        pdfSaving.value = true;
+        showToast(t('save_pdf_loading'));
+        try {
+          const lang = String(locale.value || 'en').slice(0, 8);
+          const path = p.slug
+            ? `/${encodeURIComponent(p.slug)}/pdf`
+            : `/performer/${encodeURIComponent(p.id)}/pdf`;
+          const url = `${path}?lang=${encodeURIComponent(lang)}`;
+          const res = await fetch(url, { credentials: 'omit' });
+          if (!res.ok) throw new Error((await res.text().catch(() => '')) || `PDF ${res.status}`);
+          const blob = await res.blob();
+          const cvPdf = (typeof window !== 'undefined' ? window : globalThis).WorkixCvPdf;
+          const filename = (cvPdf && typeof cvPdf.performerPdfFilename === 'function')
+            ? cvPdf.performerPdfFilename(p)
+            : `${(p.name || 'Performer').trim()} — workix.pdf`;
+          const a = document.createElement('a');
+          const objectUrl = URL.createObjectURL(blob);
+          a.href = objectUrl;
+          a.download = filename;
+          a.rel = 'noopener';
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(() => URL.revokeObjectURL(objectUrl), 2000);
+          showToast(t('save_pdf_done'));
+        } catch (e) {
+          console.error('[workix:pdf]', e);
+          // Fallback: client html2pdf with already-localized card fields
+          try {
+            const cvPdf = (typeof window !== 'undefined' ? window : globalThis).WorkixCvPdf;
+            if (!(cvPdf && typeof cvPdf.downloadPerformerPdf === 'function')) throw e;
+            const bv = budgetView(p);
+            const rateText = bv.empty
+              ? ''
+              : `${t('pdf_rate') || 'Rate'}: ${formatMoney(bv.amount)} ${bv.currency}`;
+            await cvPdf.downloadPerformerPdf(p, {
+              contacts: performerContacts(p),
+              availability: availabilityLabel(p.availability || 'open'),
+              rateText,
+              locale: locale.value,
+              labels: {
+                about: t('pdf_about'),
+                skills: t('pdf_skills'),
+                links: t('pdf_links'),
+                rate: t('pdf_rate'),
+                generated: t('pdf_generated'),
+                telegram: t('contact_telegram'),
+                email: t('contact_email'),
+                link: t('contact_link'),
+              },
+            });
+            showToast(t('save_pdf_done'));
+          } catch (e2) {
+            console.error('[workix:pdf:fallback]', e2);
+            showToast((e2 && e2.message) || (e && e.message) || t('error'));
+          }
+        } finally {
+          pdfSaving.value = false;
+        }
+      }
+
       function shareStartup(startup) {
         const s = startup || currentStartup.value;
         if (!s) return;
@@ -2340,8 +3085,34 @@
         navigate(`order/${encodeURIComponent(id)}`);
       }
 
-      function openPerformerCard(id) {
-        navigate(`performer/${encodeURIComponent(id)}`);
+      /** Orders feed mixes board tasks + project roles. */
+      function openFeedOrder(r) {
+        if (r && r.source === 'role' && r.startupSlug) {
+          navigateProject(r.startupSlug, r.roleSlug || r.slug || null);
+          return;
+        }
+        openOrderCard((r && (r.sid || r.id)) || r);
+      }
+
+      function openPerformerCard(idOrEntity) {
+        if (idOrEntity && typeof idOrEntity === 'object') {
+          const key = idOrEntity.slug
+            || idOrEntity.performerId
+            || idOrEntity.id
+            || idOrEntity.userId;
+          const url = performerPublicPath({
+            slug: idOrEntity.slug,
+            id: key,
+          });
+          if (url.startsWith('/performer/')) {
+            navigate(`performer/${encodeURIComponent(key)}`);
+          } else {
+            history.pushState(null, '', url);
+            window.dispatchEvent(new PopStateEvent('popstate'));
+          }
+          return;
+        }
+        navigate(`performer/${encodeURIComponent(idOrEntity)}`);
       }
 
       function openStartupCard(slug) {
@@ -2371,6 +3142,22 @@
         if (m) {
           const id = encodeURIComponent(decodeURIComponent(m[1]));
           const canon = `/order/${id}`;
+          if (path + hash !== canon) {
+            history.replaceState(null, '', canon);
+            return true;
+          }
+        }
+        // Bare "#/role/:id" (no startup context in the hash itself). If the current
+        // pathname already names a project (e.g. /vpnbox#/role/abc from a stale link),
+        // reuse it as the startup slug; otherwise fall back to the global /role/:id path
+        // so the URL is at least absolute and crawlable instead of hash-only.
+        m = hash.match(/^#\/role\/([^/]+)\/?$/i);
+        if (m) {
+          const id = encodeURIComponent(decodeURIComponent(m[1]));
+          const pathSlug = path.replace(/^\//, '').split('/')[0] || '';
+          const canon = pathSlug && !isReservedPathSegment(pathSlug)
+            ? `/${encodeURIComponent(pathSlug)}/${id}`
+            : `/role/${id}`;
           if (path + hash !== canon) {
             history.replaceState(null, '', canon);
             return true;
@@ -2500,9 +3287,13 @@
         applySiteBrand();
         await loadLocale(locale.value);
         await refreshMe();
-        onRoute();
+        // Listeners must be live BEFORE the first onRoute(): on a first visit
+        // ensureOnboarding() redirects via navigate(), which dispatches popstate
+        // synchronously. If nothing is listening yet that event is lost and the
+        // early return skips routeLoad() — leaving the app stuck on "Loading…".
         window.addEventListener('hashchange', onRoute);
         window.addEventListener('popstate', onRoute);
+        onRoute();
         window.addEventListener('WEB3', () => {
           finishMvseLogin();
         });
@@ -2531,6 +3322,11 @@
         if ('serviceWorker' in navigator) {
           navigator.serviceWorker.register('/hub/sw.js').catch(() => { /* optional */ });
         }
+
+        // Server-rendered SEO block: real HTML so crawlers see content and links
+        // without running JS, and it covers the v-cloak gap while Vue boots.
+        // Drop it once the app owns the screen.
+        document.querySelectorAll('.wx-seo-fallback').forEach((el) => el.remove());
       });
 
       watch(q, () => scheduleFeedReload());
@@ -2553,6 +3349,15 @@
       watch(filteredProjects, (list) => enrichProjectLogos(list), { deep: false });
       watch(performerProjects, (list) => enrichProjectLogos(list), { deep: false });
       watch(mineStartups, (list) => enrichProjectLogos(list), { deep: false });
+      watch(currentStartup, (st) => {
+        if (st) {
+          enqueueProjectLogo(st);
+          enrichLinkIcons(st.links);
+        }
+      });
+      watch(currentPerformer, (p) => { if (p) enrichLinkIcons(p.links); });
+      watch(currentOrder, (o) => { if (o) enrichLinkIcons(o.links); });
+      watch(currentRole, (r) => { if (r) enrichLinkIcons(r.links); });
       watch(() => route.value.name, (name) => {
         if (name === 'catalog') nextTick().then(bindFeedSentinels);
       });
@@ -2567,7 +3372,7 @@
         performerProjects, performerOrders, performerRoles,
         keyRotating, displayedAgentKey,
         importText, apiMeta, authStore, formStartup, formRole, formApply, formSupport, formProposal,
-        proposalSaving, supportSending, walletChains, proposalCurrencies,
+        proposalSaving, applySaving, supportSending, walletChains, proposalCurrencies,
         feed, filters, slogans, sloganIndex, sloganTick, prevSlogan, currentSlogan, siteBrand,
         feedTitle, feedSearchPlaceholder,
         feedTypeOptions, openToOptions, availableTags,
@@ -2578,13 +3383,17 @@
         languages, langOpen, accountOpen, notifyOpen, notifications, notifyUnread,
         localeLoading, flagClass, pickLang,
         payCurrencies, taskKinds, profileLinksText,
-        t, projectLogo, statusClass, statusLabel, setLang, navigate, goHome, chooseSegment, agentPrompt, copyAgentPrompt,
-        doRegister, doRotate, doLogout, setAgentKey, loginMvse, saveStartup, saveRole, saveProfile,
-        doImportProfile, savePrefs, sendApply, sendSupport, sendOrderProposal, shareLink, sharePage, shareOrder, sharePerformer, shareStartup,
-        openOrderCard, openPerformerCard, openStartupCard, openPerformerRole, copyText,
+        availabilityOptions, listingStageOptions, projectStageOptions, availabilityLabel, contactLabel, performerContacts, openAccountMenu,
+        stageLabel,
+        isHubAdmin, canManageStartup, canManageRole,
+        t, projectLogo, projectLogoStyle, linkIcon, statusClass, statusLabel, isExternalApplyUrl, setLang, navigate, goHome, chooseSegment, agentPrompt, copyAgentPrompt,
+        doRegister, doRotate, doLogout, setAgentKey, loginMvse, saveStartup, saveStartupKeep, saveRole, saveRoleKeep, saveProfile,
+        doImportProfile, savePrefs, onPrefsUpdated, sendApply, sendSupport, sendOrderProposal, shareLink, sharePage, shareOrder, sharePerformer, savePerformerPdf, pdfSaving, shareStartup,
+        openOrderCard, openFeedOrder, openPerformerCard, openStartupCard, openPerformerRole, copyText, splitTagList,
+        bodyKey, bodyNeedsExpand, isBodyExpanded, toggleBodyExpand, renderMarkdown,
         publisherWallet, publisherWalletList, fromNow,
         rolesForStartup, goLegacyMvse, refreshMe, loadMine,
-        setFeed, kindLabel, formatBudget, budgetView, formatMoney, installPwa, refreshEmojis,
+        setFeed, kindLabel, projectKind, formatBudget, budgetView, formatMoney, installPwa, refreshEmojis,
         displayCurrency, setDisplayCurrency,
         toggleNotifyPanel, formatNotifyTime, openNotification, markAllNotificationsRead,
       };

@@ -179,6 +179,27 @@ paths:
       responses:
         '200':
           description: Updated
+  /api/v1/orders/share:
+    post:
+      summary: Share external board jobs into the orders catalog
+      description: |
+        Creates ordinary live orders with hub auto publisher.
+        Provenance (platform, url, original date, contributedBy=agent) stored in meta.external.
+        Dedupes by url or platform+externalId. Max 20 items. No moderation notify flood.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderShareInput'
+      responses:
+        '201':
+          description: Share result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderShareResult'
   /api/v1/roles:
     get:
       summary: List roles
@@ -490,6 +511,9 @@ components:
       type: object
       properties:
         name: { type: string }
+        slug:
+          type: string
+          description: Vanity URL workix.co/{slug}; shared namespace with project slugs
         headline: { type: string }
         bio: { type: string }
         skills: { type: array, items: { type: string } }
@@ -504,6 +528,64 @@ components:
         name: { type: string }
         contact: { type: string }
         message: { type: string }
+    OrderShareItem:
+      type: object
+      required: [title, platform, url]
+      properties:
+        title: { type: string }
+        description: { type: string }
+        platform: { type: string, description: MCP board id, e.g. kwork }
+        url: { type: string, description: Canonical link on the original board }
+        externalId: { type: string }
+        kind: { type: string, enum: [gig, job, service, task, full_job, time_job, project, fixes] }
+        originalPublishedAt: { type: string, format: date-time }
+        budget: { type: string }
+        tags: { type: array, items: { type: string } }
+    OrderShareInput:
+      type: object
+      properties:
+        items:
+          type: array
+          maxItems: 20
+          items:
+            $ref: '#/components/schemas/OrderShareItem'
+      description: Pass items[] or a single OrderShareItem at the root
+    OrderShareResult:
+      type: object
+      properties:
+        created:
+          type: array
+          items:
+            type: object
+            properties:
+              status: { type: string }
+              sid: { type: string }
+              id: { type: string }
+              url: { type: string }
+              externalUrl: { type: string }
+              platform: { type: string }
+        skipped:
+          type: array
+          items:
+            type: object
+            properties:
+              status: { type: string }
+              sid: { type: string }
+              id: { type: string }
+              url: { type: string }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              index: { type: integer }
+              error: { type: string }
+        count:
+          type: object
+          properties:
+            created: { type: integer }
+            skipped: { type: integer }
+            errors: { type: integer }
     NotificationPrefs:
       type: object
       properties:

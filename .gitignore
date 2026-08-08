@@ -9,12 +9,8 @@ kwork-api-storage/
 .DS_Store
 Thumbs.db
 
+# Local scratch, not part of the public surface
+assets/gist/
+.cursor/
+
 # mcp/dist is published on purpose (clone → run without local tsc)
-
-# Never publish secrets / publisher tooling
-mcp/key.pem
-mcp/*.hex
-mcp/mcp-publisher.exe
-mcp/registry.local.json
-assets/indexnow-key.txt
-
