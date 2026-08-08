@@ -98,7 +98,7 @@ function textResult(data: unknown, opts?: { withFieldGuide?: boolean }) {
 }
 
 const server = new McpServer(
-  { name: "workix", version: "0.3.0" },
+  { name: "workix", version: "0.3.2" },
   {
     instructions: [
       "Workix MCP connects an AI agent to the Workix hub (https://workix.co) and to local freelance/job sources.",

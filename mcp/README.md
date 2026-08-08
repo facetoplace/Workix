@@ -14,7 +14,32 @@ Optional shortcut: `npx -y @workix/mcp` (npm may lag behind git).
 | npm | [@workix/mcp](https://www.npmjs.com/package/@workix/mcp) |
 | Official MCP Registry | [`co.workix/mcp`](https://registry.modelcontextprotocol.io/v0.1/servers?search=co.workix/mcp) |
 | Source | [facetoplace/Workix](https://github.com/facetoplace/Workix) → `mcp/` |
+| Dataset | [workix/workix-mcp](https://huggingface.co/datasets/workix/workix-mcp) on Hugging Face |
 | Community catalogs | [mcp.so](https://mcp.so/) · [mcpservers.org](https://mcpservers.org/) · [mcpmarket.com](https://mcpmarket.com/) |
+
+### Dataset
+
+[**workix/workix-mcp**](https://huggingface.co/datasets/workix/workix-mcp) — open dataset generated from this server's own tool definitions (Apache-2.0), in three configs:
+
+| Config | Rows | What |
+|--------|------|------|
+| `qa` | 83 | hand-written Q&A in en/ru/es: what Workix is, what data it exposes, how clients use it |
+| `calls` | 144 | `user prompt → assistant tool_call` in OpenAI messages format |
+| `tools` | 54 | the raw tool catalog: name, description, JSON Schema |
+
+```python
+from datasets import load_dataset
+qa = load_dataset("workix/workix-mcp", "qa", split="train")
+```
+
+Regenerate after changing the tool surface — it reads `tools/list` off the running server:
+
+```bash
+node scripts/dump-tools.mjs
+HF_REPO=workix/workix-mcp node scripts/dataset-build.mjs
+```
+
+Sources: [`scripts/dump-tools.mjs`](./scripts/dump-tools.mjs) · [`scripts/dataset-build.mjs`](./scripts/dataset-build.mjs) · seeds in [`scripts/dataset-qa.json`](./scripts/dataset-qa.json)
 
 ### What you can use it for
 
@@ -173,6 +198,90 @@ npm install telegram
 npm run tg:login          # phone/code в терминале
 # restart MCP → workix_tg_status → workix_tg_search
 ```
+
+### Optional JobSpy bridge — Indeed, Glassdoor, ZipRecruiter, Naukri, BDjobs
+
+These five are **opt-in and read-only**. They are not touched by a plain `workix_digest` — you
+have to name them: `platforms: ["indeed"]`. Applying from the agent is not possible on any of
+them; they link out to an external ATS.
+
+They are served by one adapter that calls **[JobSpy](https://github.com/speedyapply/JobSpy)**
+(MIT) installed on your own machine. We do not vendor its scrapers: the boards are reached
+through private endpoints with credentials that ship inside the JobSpy release, and those
+belong in your install, not in our package.
+
+#### Install
+
+**Python must be 3.10–3.12.** `python-jobspy` pins `numpy==1.26.3`, which has no wheels for
+3.13 — pip falls back to a source build and dies in meson. This is the single most common way
+to get stuck.
+
+```bash
+python -m venv .jobspy && .jobspy/bin/pip install -U python-jobspy
+```
+
+On Windows the interpreter is `.jobspy\Scripts\python.exe`. Already on 3.13? Get a 3.12
+without touching your system Python:
+
+```bash
+pip install uv && uv python install 3.12
+```
+
+Then create the venv with that interpreter and point the MCP at it:
+
+```bash
+# .env — full path to the venv's python
+PYTHON_BIN=/abs/path/.jobspy/bin/python
+```
+
+`PYTHON_BIN` is optional if a suitable `python3`/`python` is already first on `PATH`, but with
+a venv you almost always want it set explicitly.
+
+#### Verify
+
+```bash
+workix_digest {"platforms":["indeed"],"include_jobs":true,"keywords":["python"]}
+```
+
+Not installed → the tool says so and how to fix it, rather than returning an empty list.
+
+#### When a board returns nothing
+
+Boards block aggressively and JobSpy reports failures by logging and returning an empty
+result, not by raising — so the adapter reads its log and tells you which it was. A real
+example:
+
+```
+glassdoor: jobspy glassdoor (v1.1.82) returned nothing and logged:
+Glassdoor: bad response status code: 403
+```
+
+That is a block, not an empty search. Usual causes and fixes:
+
+- **Credentials rotated upstream** — the keys live inside the JobSpy release, so a board
+  rotating them breaks every JobSpy user at once. Fix: `pip install -U python-jobspy`.
+- **Rate limited** — wait, and pass proxies. Every board here throttles; LinkedIn is the
+  worst, Indeed the most forgiving.
+- **Geo-blocked or location required** — Glassdoor in particular wants a parseable location.
+
+#### Live status — 2026-08-09, `python-jobspy` 1.1.82
+
+All five tested against live traffic from one ordinary IP. **Only Indeed worked.**
+
+| Board | Result | What it is |
+|-------|--------|------------|
+| **Indeed** | ✅ 20 live jobs | — |
+| Glassdoor | ❌ 403 | IP-level block |
+| ZipRecruiter | ❌ 403 `forbidden aa` (`CFRAY`) | Cloudflare |
+| Naukri | ❌ `ReadTimeout` | unreachable from here, likely geo |
+| BDjobs | ❌ `TypeError` in `BDJobs.__init__` | **upstream bug — broken for everyone** |
+
+The three blocks depend on where you are calling from and may work over proxies or from
+another network. BDjobs cannot work for anybody until JobSpy fixes it, so treat it as
+unavailable rather than as something you configured wrong.
+
+**Terms:** these boards forbid automated collection. Installing this module is your decision
+and running it is your responsibility.
 
 **Rule:** never submit a proposal without explicit user approval.
 

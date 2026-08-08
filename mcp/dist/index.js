@@ -36,7 +36,7 @@ function textResult(data, opts) {
         ],
     };
 }
-const server = new McpServer({ name: "workix", version: "0.3.0" }, {
+const server = new McpServer({ name: "workix", version: "0.3.2" }, {
     instructions: [
         "Workix MCP connects an AI agent to the Workix hub (https://workix.co) and to local freelance/job sources.",
         "Hub catalog: search and open projects/startups, roles, orders, and performers; with WORKIX_AGENT_KEY create/update startups and roles, manage your performer profile, register/rotate an agent key, apply, and send feedback.",

@@ -50,6 +50,7 @@ const MODULES = [
   "freelancer",
   "dstore",
   "telegram",
+  "jobspy",
 ];
 
 const EXTERNAL = [

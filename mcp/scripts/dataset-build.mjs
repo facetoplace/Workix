@@ -26,6 +26,8 @@ const outDir = process.env.OUT_DIR || path.join(root, ".tmp", "dataset");
 const REPO = "https://github.com/facetoplace/Workix";
 const HUB = "https://workix.co";
 const PKG = "@workix/mcp";
+/** Hugging Face dataset id, `owner/name`. Override: HF_REPO=myorg/workix-mcp node … */
+const HF_REPO = process.env.HF_REPO || "workix/workix-mcp";
 
 const { server, tools } = JSON.parse(readFileSync(toolsPath, "utf8"));
 const seeds = JSON.parse(readFileSync(path.join(here, "dataset-seeds.json"), "utf8"));
@@ -128,19 +130,71 @@ writeFileSync(
 );
 
 // --- qa.jsonl --------------------------------------------------------------
-// Hand-written knowledge pairs. Emitted in two shapes per row so the file is
-// usable both as plain instruction data and as chat-formatted SFT data.
-const qaRows = qaSrc.pairs.map((p, i) => ({
-  id: `qa::${i}`,
-  lang: p.lang,
-  topic: p.topic,
-  question: p.q,
-  answer: p.a,
-  messages: [
-    { role: "user", content: p.q },
-    { role: "assistant", content: p.a },
-  ],
-}));
+// Hand-written knowledge pairs. Counts are tokens, not prose: a dataset that
+// teaches models wrong facts about us is worse than no dataset, and hand-typed
+// totals go stale the first time somebody adds a board.
+const catalog = JSON.parse(
+  readFileSync(path.join(root, "mcp", "platforms.json"), "utf8"),
+).platforms;
+const registry = JSON.parse(
+  readFileSync(path.join(root, "assets", "mcp", "registry.json"), "utf8"),
+);
+
+const countBy = (key) =>
+  catalog.reduce((a, p) => ((a[p[key]] = (a[p[key]] || 0) + 1), a), {});
+const byRegion = countBy("region");
+// [singular, plural] — "1 app catalogs" reads like a bug in training data.
+const kindLabel = {
+  job_board: ["job board", "job boards"],
+  marketplace: ["freelance marketplace", "freelance marketplaces"],
+  agent_gigs: ["agent-gig board", "agent-gig boards"],
+  agent_jobs: ["agent-jobs board", "agent-jobs boards"],
+  services: ["services marketplace", "services marketplaces"],
+  cofounder: ["co-founder matching site", "co-founder matching sites"],
+  startup_jobs: ["startup jobs board", "startup jobs boards"],
+  vetted: ["vetted talent network", "vetted talent networks"],
+  telegram: ["Telegram channel aggregator", "Telegram channel aggregators"],
+  watch: ["watch-only source", "watch-only sources"],
+  watch_low: ["low-volume watch source", "low-volume watch sources"],
+  app_catalog: ["app catalog", "app catalogs"],
+};
+const kinds = Object.entries(countBy("kind"))
+  .sort((a, b) => b[1] - a[1])
+  .map(([k, n]) => `${n} ${(kindLabel[k] || [k, k])[n === 1 ? 0 : 1]}`)
+  .join(", ");
+
+const FACTS = {
+  PLATFORMS: catalog.length,
+  MODULES: registry.modules.length,
+  TOOLS: tools.length,
+  GLOBAL: byRegion.global || 0,
+  RU: (byRegion.ru || 0) + (byRegion.ru_global || 0),
+  EU: byRegion.eu || 0,
+  KINDS: kinds,
+};
+
+const fill = (s) => s.replace(/\{\{([A-Z]+)\}\}/g, (m, k) => (k in FACTS ? String(FACTS[k]) : m));
+
+const leftover = new Set();
+const qaRows = qaSrc.pairs.map((p, i) => {
+  const q = fill(p.q);
+  const a = fill(p.a);
+  for (const m of `${q} ${a}`.matchAll(/\{\{([A-Z]+)\}\}/g)) leftover.add(m[1]);
+  return {
+    id: `qa::${i}`,
+    lang: p.lang,
+    topic: p.topic,
+    question: q,
+    answer: a,
+    messages: [
+      { role: "user", content: q },
+      { role: "assistant", content: a },
+    ],
+  };
+});
+if (leftover.size) {
+  throw new Error(`dataset-qa.json has unknown tokens: ${[...leftover].join(", ")}`);
+}
 
 writeFileSync(
   path.join(outDir, "qa.jsonl"),
@@ -152,6 +206,9 @@ const qaTopics = [...new Set(qaRows.map((r) => r.topic))].sort();
 
 // --- README.md (dataset card) ---------------------------------------------
 const langs = [...new Set([...rows, ...qaRows].map((r) => r.lang))].sort();
+// Deliberately more permissive than the server. `tools.jsonl` is derived from
+// the server source, but Workix holds copyright on both and releases the
+// dataset openly on purpose: a corpus nobody may reuse is a corpus nobody uses.
 const card = `---
 license: apache-2.0
 task_categories:
@@ -185,11 +242,12 @@ What **Workix** is, and how an AI agent talks to it. Package \`${PKG}\`, hub [wo
 MCP registry id \`co.workix/mcp\`.
 
 Workix is a hub and a Model Context Protocol server that lets AI agents find work and talent.
-It searches remote jobs and freelance orders across **46 tracked platforms** — Upwork,
-Freelancer.com, hh.ru, Kwork, Freelancehunt, RemoteOK, Remotive, Himalayas, We Work Remotely,
-Adzuna, Jobicy, The Muse, Arbeitnow, Working Nomads, Fiverr, Wellfound, Contra, Arc.dev,
-Telegram channels and others — of which **26 ship as downloadable adapter modules**. It also
-hosts a hub of startups, open roles and performers.
+It searches remote jobs and freelance orders across **${FACTS.PLATFORMS} tracked platforms** —
+Upwork, Freelancer.com, hh.ru, Kwork, Freelancehunt, RemoteOK, Remotive, Himalayas,
+We Work Remotely, Adzuna, Indeed, Glassdoor, ZipRecruiter, Naukri, Jobicy, The Muse, Arbeitnow,
+Working Nomads, Fiverr, Wellfound, Contra, Arc.dev, Telegram channels and others — of which
+**${FACTS.MODULES} ship as downloadable adapter modules**. It also hosts a hub of startups,
+open roles and performers.
 
 Board adapters run locally; platform credentials never reach the hub.
 
@@ -216,9 +274,9 @@ hand-written subset.
 \`\`\`python
 from datasets import load_dataset
 
-qa    = load_dataset("<org>/workix-mcp", "qa",    split="train")
-calls = load_dataset("<org>/workix-mcp", "calls", split="train")
-tools = load_dataset("<org>/workix-mcp", "tools", split="train")
+qa    = load_dataset("${HF_REPO}", "qa",    split="train")
+calls = load_dataset("${HF_REPO}", "calls", split="train")
+tools = load_dataset("${HF_REPO}", "tools", split="train")
 
 print(qa[0]["question"], "->", qa[0]["answer"])
 print(calls[0]["messages"])
@@ -276,7 +334,12 @@ node mcp/scripts/dataset-build.mjs
 
 ## License
 
-Apache-2.0. Server source: [${REPO}](${REPO}).
+**Apache-2.0** — use it for anything, including commercially and for model training.
+
+Released deliberately more openly than the server it describes. \`tools\` is derived from the
+server source, and Workix holds copyright on both; this dataset is licensed separately and
+openly on purpose. Attribution is appreciated, not required:
+[${REPO}](${REPO}) · [workix.co](${HUB}).
 `;
 
 writeFileSync(path.join(outDir, "README.md"), card);

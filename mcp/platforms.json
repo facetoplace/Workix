@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-30",
+  "updated": "2026-08-08",
   "platforms": [
     {
       "id": "fl_ru",
@@ -62,7 +62,9 @@
       "apply": "api",
       "status": "token",
       "module": "freelancehunt",
-      "refs": ["https://apidocs.freelancehunt.com"]
+      "refs": [
+        "https://apidocs.freelancehunt.com"
+      ]
     },
     {
       "id": "hh",
@@ -148,7 +150,10 @@
       "status": "include_jobs",
       "module": "himalayas",
       "url": "https://himalayas.app",
-      "refs": ["https://himalayas.app/api", "https://himalayas.app/docs/remote-jobs-rss"],
+      "refs": [
+        "https://himalayas.app/api",
+        "https://himalayas.app/docs/remote-jobs-rss"
+      ],
       "note": "Public JSON /jobs/api + RSS; apply → employer ATS. Credit Himalayas per their ToS."
     },
     {
@@ -307,7 +312,10 @@
       "status": "include_agent_gigs",
       "module": "seekclaw",
       "url": "https://www.seekclaw.com",
-      "refs": ["https://www.seekclaw.com/skill.md", "https://www.seekclaw.com/llms.txt"],
+      "refs": [
+        "https://www.seekclaw.com/skill.md",
+        "https://www.seekclaw.com/llms.txt"
+      ],
       "note": "GET /api/jobs; Ed25519 agent auth for apply; open listings often empty"
     },
     {
@@ -322,7 +330,9 @@
       "status": "include_agent_gigs",
       "module": "superteam_earn",
       "url": "https://earn.superteam.fun",
-      "refs": ["https://superteam.fun/skill.md"],
+      "refs": [
+        "https://superteam.fun/skill.md"
+      ],
       "note": "SUPERTEAM_EARN_API_KEY from POST https://superteam.fun/api/agents; listings at /api/agents/listings/live; human claim for payout"
     },
     {
@@ -351,7 +361,10 @@
       "status": "include_agent_gigs",
       "module": "openwork",
       "url": "https://openwork.bot",
-      "refs": ["https://openwork.bot/skill.md", "https://openwork.bot/api/docs"],
+      "refs": [
+        "https://openwork.bot/skill.md",
+        "https://openwork.bot/api/docs"
+      ],
       "note": "Crew Economy on Base; GET /api/missions; OPENWORK_OPEN_ONLY=0 to include claimed/verified. ≠ dealwork.ai"
     },
     {
@@ -417,7 +430,12 @@
       "apply": "browser",
       "status": "works",
       "url": "https://productradar.ru",
-      "value": { "gigs": 2, "cofounder": 3, "roles": 4, "products": 5 },
+      "value": {
+        "gigs": 2,
+        "cofounder": 3,
+        "roles": 4,
+        "products": 5
+      },
       "note": "HTML feed: /category/hiring/?page=N (article.products__item + card__status-text). Core fetch into store → workix_search/digest. Prefer direct (PROXY_1 SOCKS may hang). Apply: product page / TG — browser."
     },
     {
@@ -431,7 +449,12 @@
       "apply": "browser",
       "status": "watch_browser",
       "url": "https://startupfellows.ru",
-      "value": { "gigs": 2, "cofounder": 3, "roles": 4, "products": 3 },
+      "value": {
+        "gigs": 2,
+        "cofounder": 3,
+        "roles": 4,
+        "products": 3
+      },
       "note": "Watch only: vacancies at /vacancies. Not in workix_search store. Capture lead: workix_get_job(url+platform+title) → draft → browser/TG apply."
     },
     {
@@ -444,7 +467,12 @@
       "access": "browser",
       "apply": "browser",
       "status": "watch_browser",
-      "value": { "gigs": 1, "cofounder": 5, "roles": 2, "products": 2 },
+      "value": {
+        "gigs": 1,
+        "cofounder": 5,
+        "roles": 2,
+        "products": 2
+      },
       "url": "https://www.ycombinator.com/cofounder-matching",
       "note": "Watch only: approved YC matching profile required. No public job feed for digest. Semi-manual invites only."
     },
@@ -458,7 +486,12 @@
       "access": "browser",
       "apply": "browser",
       "status": "watch_browser",
-      "value": { "gigs": 1, "cofounder": 4, "roles": 2, "products": 2 },
+      "value": {
+        "gigs": 1,
+        "cofounder": 4,
+        "roles": 2,
+        "products": 2
+      },
       "url": "https://cofounderslab.com"
     },
     {
@@ -471,7 +504,12 @@
       "access": "browser",
       "apply": "browser",
       "status": "watch_browser",
-      "value": { "gigs": 4, "cofounder": 1, "roles": 2, "products": 2 },
+      "value": {
+        "gigs": 4,
+        "cofounder": 1,
+        "roles": 2,
+        "products": 2
+      },
       "url": "https://contra.com"
     },
     {
@@ -484,7 +522,12 @@
       "access": "browser",
       "apply": "browser",
       "status": "watch_browser",
-      "value": { "gigs": 5, "cofounder": 1, "roles": 1, "products": 1 },
+      "value": {
+        "gigs": 5,
+        "cofounder": 1,
+        "roles": 1,
+        "products": 1
+      },
       "url": "https://www.fiverr.com/start_selling",
       "note": "No public API / no job board. Buyer Requests retired → Briefs (inbound match). Gates: seller onboarding + ≥1 gig + Get Briefs; phone verify (required for freelancers/Gig create); ID + personal/business verify via Persona (dashboard: not visible until done — may be required for Catalog). US: Form W-9. Apply = Create Offer / Custom Offer in browser. Cookies not in env."
     },
@@ -498,7 +541,12 @@
       "access": "browser",
       "apply": "browser",
       "status": "watch_browser",
-      "value": { "gigs": 2, "cofounder": 3, "roles": 5, "products": 3 },
+      "value": {
+        "gigs": 2,
+        "cofounder": 3,
+        "roles": 5,
+        "products": 3
+      },
       "url": "https://wellfound.com",
       "note": "Watch only: login + browser on /jobs. No public API for Workix digest. Capture via get_job then prepare_browser_apply."
     },
@@ -512,7 +560,12 @@
       "access": "browser",
       "apply": "browser",
       "status": "watch_browser",
-      "value": { "gigs": 4, "cofounder": 1, "roles": 2, "products": 2 },
+      "value": {
+        "gigs": 4,
+        "cofounder": 1,
+        "roles": 2,
+        "products": 2
+      },
       "url": "https://www.botpool.ai",
       "note": "AI/bots freelance; ~10% fee"
     },
@@ -526,7 +579,12 @@
       "access": "browser",
       "apply": "browser",
       "status": "watch_browser",
-      "value": { "gigs": 3, "cofounder": 1, "roles": 4, "products": 1 },
+      "value": {
+        "gigs": 3,
+        "cofounder": 1,
+        "roles": 4,
+        "products": 1
+      },
       "url": "https://arc.dev"
     },
     {
@@ -540,7 +598,12 @@
       "apply": "browser",
       "status": "include_jobs",
       "rss": "https://career.habr.com/vacancies/rss?remote=true",
-      "value": { "gigs": 2, "cofounder": 1, "roles": 4, "products": 2 },
+      "value": {
+        "gigs": 2,
+        "cofounder": 1,
+        "roles": 4,
+        "products": 2
+      },
       "url": "https://career.habr.com",
       "note": "Remote vacancies RSS in include_jobs; watch URL for manual UI"
     },
@@ -554,7 +617,12 @@
       "access": "browser",
       "apply": "browser",
       "status": "watch_browser",
-      "value": { "gigs": 2, "cofounder": 3, "roles": 4, "products": 3 },
+      "value": {
+        "gigs": 2,
+        "cofounder": 3,
+        "roles": 4,
+        "products": 3
+      },
       "note": "ToS: полуручной только; #hiring #cofounder"
     },
     {
@@ -580,7 +648,12 @@
       "access": "browser",
       "apply": "browser",
       "status": "watch_low",
-      "value": { "gigs": 1, "cofounder": 1, "roles": 3, "products": 3 },
+      "value": {
+        "gigs": 1,
+        "cofounder": 1,
+        "roles": 3,
+        "products": 3
+      },
       "url": "https://feltsense.com",
       "note": "не маркетплейс — agentic founders / careers"
     },
@@ -594,7 +667,12 @@
       "access": "browser",
       "apply": "browser",
       "status": "watch_low",
-      "value": { "gigs": 2, "cofounder": 1, "roles": 3, "products": 1 },
+      "value": {
+        "gigs": 2,
+        "cofounder": 1,
+        "roles": 3,
+        "products": 1
+      },
       "url": "https://www.magier.com",
       "note": "design network; не открытая биржа"
     },
@@ -610,7 +688,12 @@
       "status": "oauth",
       "module": "upwork",
       "priority": "P0",
-      "value": { "gigs": 5, "cofounder": 1, "roles": 2, "products": 1 },
+      "value": {
+        "gigs": 5,
+        "cofounder": 1,
+        "roles": 2,
+        "products": 1
+      },
       "url": "https://www.upwork.com",
       "note": "P0: VPN/mobile EN. GraphQL search; proposal API or browser. Adapter module downloaded on first use."
     },
@@ -626,7 +709,12 @@
       "status": "oauth",
       "module": "freelancer",
       "priority": "P0",
-      "value": { "gigs": 5, "cofounder": 1, "roles": 1, "products": 1 },
+      "value": {
+        "gigs": 5,
+        "cofounder": 1,
+        "roles": 1,
+        "products": 1
+      },
       "url": "https://www.freelancer.com",
       "note": "P0: VPN/WireGuard. FREELANCER_OAUTH_TOKEN; adapter module downloaded on first use."
     },
@@ -642,7 +730,12 @@
       "status": "works",
       "module": "dstore",
       "priority": "P1",
-      "value": { "gigs": 0, "cofounder": 1, "roles": 0, "products": 5 },
+      "value": {
+        "gigs": 0,
+        "cofounder": 1,
+        "roles": 0,
+        "products": 5
+      },
       "url": "https://dstore.one",
       "refs": [
         "https://dstore.one/api.txt",
@@ -650,6 +743,86 @@
         "https://dstore.one/llm.txt"
       ],
       "note": "Built into Workix MCP: publish ready PWA/website with workix_dstore_publish. Also search/similar/get/list/quota. Complements Workix hub (people/roles)."
+    },
+    {
+      "id": "indeed",
+      "name": "Indeed",
+      "tier": "v2",
+      "kind": "job_board",
+      "region": "global",
+      "audience": "any",
+      "access": "mcp",
+      "apply": "browser",
+      "status": "needs_python",
+      "module": "jobspy",
+      "refs": [
+        "https://github.com/speedyapply/JobSpy"
+      ],
+      "note": "Reached through the optional JobSpy bridge: pip install -U python-jobspy, Python 3.10-3.12 (it pins numpy 1.26.3, which does not build on 3.13 — use a venv and set PYTHON_BIN). The board forbids automated collection in its terms; you install this module and run it on your own responsibility. Board credentials ship inside the jobspy release — keep it upgraded."
+    },
+    {
+      "id": "glassdoor",
+      "name": "Glassdoor",
+      "tier": "v2",
+      "kind": "job_board",
+      "region": "global",
+      "audience": "any",
+      "access": "mcp",
+      "apply": "browser",
+      "status": "needs_python",
+      "module": "jobspy",
+      "refs": [
+        "https://github.com/speedyapply/JobSpy"
+      ],
+      "note": "Reached through the optional JobSpy bridge: pip install -U python-jobspy, Python 3.10-3.12 (it pins numpy 1.26.3, which does not build on 3.13 — use a venv and set PYTHON_BIN). The board forbids automated collection in its terms; you install this module and run it on your own responsibility. Board credentials ship inside the jobspy release — keep it upgraded."
+    },
+    {
+      "id": "ziprecruiter",
+      "name": "ZipRecruiter",
+      "tier": "v2",
+      "kind": "job_board",
+      "region": "global",
+      "audience": "any",
+      "access": "mcp",
+      "apply": "browser",
+      "status": "needs_python",
+      "module": "jobspy",
+      "refs": [
+        "https://github.com/speedyapply/JobSpy"
+      ],
+      "note": "Reached through the optional JobSpy bridge: pip install -U python-jobspy, Python 3.10-3.12 (it pins numpy 1.26.3, which does not build on 3.13 — use a venv and set PYTHON_BIN). The board forbids automated collection in its terms; you install this module and run it on your own responsibility. Board credentials ship inside the jobspy release — keep it upgraded."
+    },
+    {
+      "id": "naukri",
+      "name": "Naukri",
+      "tier": "v2",
+      "kind": "job_board",
+      "region": "in",
+      "audience": "any",
+      "access": "mcp",
+      "apply": "browser",
+      "status": "needs_python",
+      "module": "jobspy",
+      "refs": [
+        "https://github.com/speedyapply/JobSpy"
+      ],
+      "note": "Reached through the optional JobSpy bridge: pip install -U python-jobspy, Python 3.10-3.12 (it pins numpy 1.26.3, which does not build on 3.13 — use a venv and set PYTHON_BIN). The board forbids automated collection in its terms; you install this module and run it on your own responsibility. Board credentials ship inside the jobspy release — keep it upgraded."
+    },
+    {
+      "id": "bdjobs",
+      "name": "BDjobs",
+      "tier": "v2",
+      "kind": "job_board",
+      "region": "bd",
+      "audience": "any",
+      "access": "mcp",
+      "apply": "browser",
+      "status": "upstream_broken",
+      "module": "jobspy",
+      "refs": [
+        "https://github.com/speedyapply/JobSpy"
+      ],
+      "note": "BROKEN in python-jobspy 1.1.82: TypeError in BDJobs.__init__ — an upstream bug, not a block. Reached through the optional JobSpy bridge: pip install -U python-jobspy, Python 3.10-3.12 (it pins numpy 1.26.3, which does not build on 3.13 — use a venv and set PYTHON_BIN). The board forbids automated collection in its terms; you install this module and run it on your own responsibility. Board credentials ship inside the jobspy release — keep it upgraded."
     }
   ]
 }

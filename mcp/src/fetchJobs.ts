@@ -3,6 +3,7 @@ import {
   CORE_RSS_PLATFORMS,
 } from "./adapterModule.js";
 import { callFetchJobs, ensurePlatforms } from "./adapterLoader.js";
+import { JOBSPY_PLATFORMS } from "./adapters/jobspy.js";
 import { fetchProductRadarJobs } from "./adapters/product_radar.js";
 import { fetchRssJobs } from "./adapters/rss.js";
 import { fetchTelegramJobs } from "./adapters/telegram.js";
@@ -191,6 +192,24 @@ export async function refreshJobs(opts?: {
       const jic = await callFetchJobs("jobicy");
       collected.push(...jic.jobs);
       if (jic.error) errors.push(`jobicy: ${jic.error}`);
+    }
+    // JobSpy-backed boards are opt-in only — never on a bare include_jobs.
+    // They need Python plus the optional `jobspy` package and a single board
+    // can take minutes, so pulling them by default would make every digest
+    // slow and noisy for the majority who have not installed it.
+    for (const p of JOBSPY_PLATFORMS) {
+      if (!platforms?.includes(p)) continue;
+      const js = await callFetchJobs("jobspy", {
+        platform: p,
+        what: opts.hh_text || (opts.keywords || []).join(" ") || undefined,
+        limit: 50,
+      });
+      collected.push(...js.jobs);
+      // Always surface, never softError(): these run only when the caller named
+      // the platform outright, so "not installed" is the answer they asked for.
+      // Swallowing it returns an empty digest with no reason given — and the
+      // install hint contains the word "optional", which softError() matches.
+      if (js.error) errors.push(`${p}: ${js.error}`);
     }
     if (!platforms?.length || platforms.includes("dreamoffer")) {
       const dream = await callFetchJobs("dreamoffer", {

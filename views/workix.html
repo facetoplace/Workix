@@ -51,11 +51,43 @@
       .wx-nav-desktop { display: flex; }
       .wx-nav-mobile { display: none; }
     }
+
+    /* Boot cover. The crawler fallback below is real HTML and must stay in the
+       DOM (never display:none) so non-JS crawlers read it — this only covers it
+       visually until Vue mounts, then app.js removes both. Inlined here because
+       styles.css may not have loaded yet at first paint. */
+    .wx-boot {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--wx-bg, #0b0f14);
+      /* Failsafe: if the app never mounts, uncover the fallback instead of
+         leaving a spinner forever. */
+      animation: wx-boot-failsafe 0s linear 10s forwards;
+    }
+    .wx-boot-spinner {
+      width: 28px;
+      height: 28px;
+      border: 2px solid #243041;
+      border-top-color: var(--wx-accent, #6ee7b7);
+      border-radius: 50%;
+      animation: wx-boot-spin 0.7s linear infinite;
+    }
+    @keyframes wx-boot-spin { to { transform: rotate(360deg); } }
+    @keyframes wx-boot-failsafe { to { opacity: 0; visibility: hidden; } }
+    @media (prefers-reduced-motion: reduce) {
+      .wx-boot-spinner { animation: none; }
+    }
   </style>
+  <noscript><style>.wx-boot { display: none; }</style></noscript>
   <script data-cfasync="false" src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
   <script data-cfasync="false" src="https://mvse.ws/web3.js" defer></script>
 </head>
 <body>
+  <div class="wx-boot" aria-hidden="true"><div class="wx-boot-spinner"></div></div>
   <!--wx-seo-fallback-->
   <div id="app" class="wx-shell" v-cloak :data-feed="route.name==='catalog' ? feed : ''">
     <header class="wx-header">
@@ -1760,6 +1792,6 @@
   <script data-cfasync="false" src="/hub/mock-db.js?v=0.1.17"></script>
   <script data-cfasync="false" src="/hub/auth.js?v=0.1.16"></script>
   <script data-cfasync="false" src="/hub/api.js?v=0.1.33"></script>
-  <script data-cfasync="false" src="/hub/app.js?v=1.2.48"></script>
+  <script data-cfasync="false" src="/hub/app.js?v=1.2.49"></script>
 </body>
 </html>

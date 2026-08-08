@@ -3326,7 +3326,7 @@
         // Server-rendered SEO block: real HTML so crawlers see content and links
         // without running JS, and it covers the v-cloak gap while Vue boots.
         // Drop it once the app owns the screen.
-        document.querySelectorAll('.wx-seo-fallback').forEach((el) => el.remove());
+        document.querySelectorAll('.wx-seo-fallback, .wx-boot').forEach((el) => el.remove());
       });
 
       watch(q, () => scheduleFeedReload());

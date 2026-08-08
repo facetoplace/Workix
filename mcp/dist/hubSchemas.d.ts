@@ -18,11 +18,11 @@ export declare const zPayment: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     budget: string | number;
     type?: "hour" | "work" | undefined;
-    cur?: "USDT" | "USD" | "RUB" | "CNY" | "GBP" | "UAH" | "EUR" | "TON" | undefined;
+    cur?: "USD" | "USDT" | "RUB" | "CNY" | "GBP" | "UAH" | "EUR" | "TON" | undefined;
 }, {
     budget: string | number;
     type?: "hour" | "work" | undefined;
-    cur?: "USDT" | "USD" | "RUB" | "CNY" | "GBP" | "UAH" | "EUR" | "TON" | undefined;
+    cur?: "USD" | "USDT" | "RUB" | "CNY" | "GBP" | "UAH" | "EUR" | "TON" | undefined;
 }>;
 export declare const zApplyDefaults: z.ZodObject<{
     apply_url: z.ZodOptional<z.ZodString>;
