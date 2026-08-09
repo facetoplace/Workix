@@ -142,10 +142,22 @@ The **Automation policy** column is deliberately conservative. Platform terms an
 | **FL.ru** | RSS | Browser | **4/5** | Public RSS; apply remains human-controlled | Improve categories and budget parsing |
 | **HH.ru** | Official API | Browser | **4/5** | Official API rules and required user agent | Improve project/remote filters; API apply is optional |
 | **Remote OK** | Public API | Employer's site | **4/5** | Public feed; employer rules apply after redirect | Improve tag and technology filters |
+| **Remotive · Arbeitnow · Himalayas · Jobicy · Working Nomads · The Muse · 4 Day Week · AI Dev Jobs** | Public API | Employer's site | **4/5** | Public feeds; employer rules apply after redirect | Keep as `include_jobs` digest sources |
+| **We Work Remotely · Aquent** | Public RSS | Employer's site | **4/5** | Public feeds; employer rules apply after redirect | Keep as `include_jobs` digest sources |
+| **Adzuna** | Official API with your own keys | Employer's site | **4/5** | Registered API keys; free tier is rate-limited | Keep as `include_jobs`; surface quota errors clearly |
+| **Dream Offer** | Public HTTP feed | Employer's site | **3/5** | Public feed; no account access | Watch for feed changes |
+| **Claw Earn · SeekClaw · Openwork** | Agent API | Agent API | **4/5** | Agent-native boards; submission through their own API | Keep in `include_agent_gigs`; open listings are often empty |
+| **Superteam Earn** | Agent API with your own key | Agent API | **4/5** | Requires `SUPERTEAM_EARN_API_KEY` | Keep in `include_agent_gigs` |
+| **Growth.Talent · RentAHuman** | Public API | Agent API or browser | **4/5** | Public listings; apply needs a key | Keep in `include_agent_gigs` |
 | **Kwork** | Unofficial API with local credentials | Browser | **3/5** | High-risk unofficial access; no automatic apply | Improve login and proxy reliability |
 | **Freelance.ru** | RSS; proxy may be needed | Browser | **3/5** | Public RSS; no bypass of account restrictions | Make feeds more resilient to blocking |
 | **Weblancer** | RSS; proxy may be needed | Browser | **3/5** | Public RSS; no bypass of account restrictions | Make feeds more resilient to blocking |
+| **Indeed** | JobSpy bridge (optional, needs Python) | Employer's site | **3/5** | Runs through your own `python-jobspy` install, under its terms and yours | Keep as an opt-in bridge; no scraper of our own |
+| **Glassdoor · ZipRecruiter · Naukri** | JobSpy bridge (optional, needs Python) | Employer's site | **1/5** | Same bridge; these answer 403 or time out from most addresses | Wired but unreliable — depends on your network |
+| **BDjobs** | JobSpy bridge — **broken upstream** | Employer's site | **1/5** | Blocked by a bug in `python-jobspy`, not by the board | Waiting on an upstream fix; listed so it is not mistaken for misconfiguration |
 | **Habr Career** | Browser watch | Browser | **2/5** | Public pages/RSS only; no mass apply | Add RSS to the shared digest |
+| **Fiverr · SproutGigs** | Browser watch | Browser | **2/5** | Inbound briefs and manual offers; no scraper | Keep browser-assisted |
+| **Avito Services · YouDo** | Browser watch | Browser | **2/5** | Manual capture; no bypass of account rules | Keep browser-assisted |
 | **Product Radar / StartupFellows** | Browser or Telegram watch | External form or contact | **2/5** | Curated watch; manual contact | Keep as curated watch sources |
 | **Contra / BotPool / Wellfound** | Browser watch | Browser | **2/5** | Restricted or unclear automation; no scraper | Keep browser-assisted; no scraper planned |
 | **Telegram channels** | Browser/user-session watch | Manual contact | **2/5** | Follow channel rules; no unsolicited bulk messaging | Keep semi-manual and configurable |
@@ -160,6 +172,18 @@ The current development order is:
 2. Improve FL.ru, Freelance.ru, Weblancer, and Kwork reliability.
 3. Add better filters for Remote OK and HH.ru, then add Habr Career RSS.
 4. Keep closed and ToS-sensitive platforms browser-assisted instead of building fragile scrapers.
+
+### About the JobSpy bridge
+
+Indeed, Glassdoor, ZipRecruiter, Naukri and BDjobs are reached through [JobSpy](https://github.com/speedyapply/JobSpy) (MIT), which **you** install: `pip install -U python-jobspy`, Python 3.10–3.12. Nothing happens unless you name one of those platforms outright — a plain digest never touches them.
+
+We call it rather than copying its code on purpose. Those boards are read through private endpoints using credentials taken from their own mobile apps; keeping that upstream means the credentials live in your installation instead of being redistributed inside this package, and the people who maintain those scrapers keep maintaining them.
+
+Be aware that only Indeed returned results in our own testing. The rest are blocked or rate-limited from most addresses, and BDjobs currently raises an error inside JobSpy itself. Whether the others work for you depends on your network, and using them is your call under each board's terms.
+
+---
+
+**Coverage today:** 51 platforms in the catalog, 31 shipped as downloadable adapter modules. Beyond the job and freelance sources above, the same module system serves the **dStore** app catalog (publish a live site or PWA, find similar apps) and an optional **Telegram** channel reader.
 
 The source catalog is [`mcp/platforms.json`](mcp/platforms.json). Run `workix_list_platforms` for the machine-readable list and `workix_sources_status` to see which integrations are available with your current local configuration.
 
