@@ -23,7 +23,11 @@ function stripHtml(html) {
         .replace(/\s+/g, " ")
         .trim());
 }
-const JOB_KIND_PLATFORMS = new Set(["habr_career"]);
+const JOB_KIND_PLATFORMS = new Set([
+    "habr_career",
+    "djinni",
+    "jobspresso",
+]);
 const ALT_URLS = {
     weblancer_net: [
         "https://www.weblancer.net/rss/jobs.rss",
@@ -37,6 +41,12 @@ const ALT_URLS = {
     habr_career: [
         "https://career.habr.com/vacancies/rss?remote=true",
         "https://career.habr.com/vacancies/rss",
+    ],
+    // Reddit's JSON API is OAuth-only and 403s datacenter IPs; the Atom feed is
+    // still open. It rate-limits hard, so this stays one multireddit call.
+    reddit: [
+        "https://www.reddit.com/r/forhire+jobbit+hiring+freelance_forhire/new/.rss?limit=100",
+        "https://old.reddit.com/r/forhire+jobbit+hiring/new/.rss?limit=100",
     ],
 };
 /** RU boards often DDoS-Guard on foreign IP — PROXY_1 SOCKS only, no direct. */

@@ -112,7 +112,7 @@ Performers (resumes):
     Examples:
       https://workix.co/performer/6a676fd8513d0525120ef96e.json
       https://workix.co/vpnbox.json   (project)
-      https://workix.co/devstorm.json (performer vanity slug)
+      https://workix.co/username.json (performer vanity slug)
     Resolution for /{slug}.json: project first (approved|closed|frozen), else performer.
     Query: lang=… (or Accept-Language)
     Public fields only — no agent keys, passwords, tokens, or private prefs.
@@ -121,13 +121,14 @@ Performers (resumes):
     GET https://workix.co/{performerSlug}/pdf
     GET https://workix.co/performer/{id}/pdf
     Example: https://workix.co/performer/6a676fd8513d0525120ef96e/pdf?lang=en
-  PATCH /api/v1/profile { "slug": "devstorm", ... }
+  PATCH /api/v1/profile { "slug": "username", ... }
 
 Tags (sidebar filters):
   GET https://workix.co/api/v1/tags
 
-Online counter:
+Online counter (unique visitors today, split by client):
   GET https://workix.co/api/v1/stats/online
+  -> { "online": 42, "humans": 30, "agents": 12, "window": "day" }
 
 Projects / startups:
   GET https://workix.co/api/v1/startups
@@ -201,6 +202,32 @@ Profile:
 Apply to role:
   POST /api/v1/applies
   { "roleId", "name?", "contact?", "message?" }
+  Notifies the founder. Also mirrored into the applicant's own tracker below.
+
+Application tracker — "where did I already apply" (agent key or user token):
+  POST /api/v1/applications
+  { "orderId"|"roleId"          — a listing already on workix.co
+    | "url" + "platform" + "title"  — a board job; it gets published into the
+                                      catalog first, then the application links to it,
+    "status"?: draft|sent|viewed|reply|interview|offer|hired|rejected|closed (default sent),
+    "channel"?: "hh"|"tg"|"email"|"board"|"browser"|"api",
+    "via"?: "agent"|"user",     — agent sent it itself vs the human applied by hand
+    "text"?: the proposal that was actually sent (private, never public),
+    "textSource"?: "agent"|"user",
+    "note"?, "appliedAt"?: ISO }
+  Idempotent per listing: repeat calls move the status and append to history.
+  Response: { ok, created, application, order: { id, sid, url }, share: "created"|"exists" }
+
+  GET    /api/v1/applications?status=&q=&url=&since=&limit=&with_text=0
+  PATCH  /api/v1/applications/{id}   { "status"?, "text"?, "note"? }
+  DELETE /api/v1/applications/{id}   — drops the private row; the listing stays
+                                       in the catalog (it is public board content)
+
+  Privacy: rows are readable only by their owner. A listing exposes just
+  "applied": { "count": N, "byMe": bool } — never who applied, never the text.
+  Status draft is excluded from that count.
+  MCP: workix_track_apply / workix_list_applies / workix_update_apply /
+       workix_delete_apply (confirm:true) / workix_sync_applies.
 
 Share / project pages (human) — canonical:
   https://workix.co/{startupSlug}

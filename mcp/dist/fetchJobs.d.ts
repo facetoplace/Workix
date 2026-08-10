@@ -12,7 +12,10 @@ export declare function refreshJobs(opts?: {
     freelancer_query?: string;
     /** Passed to adapters that support text filter (e.g. Dream Offer). */
     keywords?: string[];
+    /** Skip the shared cache and re-read every source from the network. */
+    force_refresh?: boolean;
 }): Promise<{
     jobs: Job[];
     errors: string[];
+    cached: string[];
 }>;

@@ -159,6 +159,59 @@ export declare function hubApply(args: {
     Currency?: string;
     Time?: number;
 }): Promise<Record<string, unknown>>;
+/** Funnel used by the hub application tracker (lib/hub-applications.js). */
+export type ApplicationStatus = "draft" | "sent" | "viewed" | "reply" | "interview" | "offer" | "hired" | "rejected" | "closed";
+/**
+ * Record "the user applied to this job" on the hub. A raw board job
+ * (url + platform + title) is mirrored into the catalog first, so tracking an
+ * apply also publishes the listing. Idempotent per listing.
+ */
+export declare function hubRecordApplication(args: {
+    orderId?: string;
+    roleId?: string;
+    url?: string;
+    platform?: string;
+    externalId?: string;
+    title?: string;
+    description?: string;
+    kind?: string;
+    budget?: string;
+    tags?: string[];
+    originalPublishedAt?: string;
+    status?: ApplicationStatus | string;
+    channel?: string;
+    via?: "agent" | "user" | "web";
+    text?: string;
+    textSource?: "agent" | "user";
+    note?: string;
+    appliedAt?: string;
+}): Promise<Record<string, unknown>>;
+/** The caller's own applications — cross-device history, with the sent texts. */
+export declare function hubListApplications(args?: {
+    status?: string;
+    q?: string;
+    url?: string;
+    orderId?: string;
+    roleId?: string;
+    since?: string;
+    limit?: number;
+    offset?: number;
+    with_text?: boolean;
+}): Promise<Record<string, unknown>>;
+/** Move an application along the funnel, or attach the text after the fact. */
+export declare function hubUpdateApplication(args: {
+    id: string;
+    status?: ApplicationStatus | string;
+    text?: string;
+    textSource?: "agent" | "user";
+    note?: string;
+    channel?: string;
+    appliedAt?: string;
+}): Promise<Record<string, unknown>>;
+/** Delete one of the caller's application rows. The catalog listing stays. */
+export declare function hubDeleteApplication(args: {
+    id: string;
+}): Promise<Record<string, unknown>>;
 /** Bug / suggestion / support → hub admin Telegram (rate-limited). */
 export declare function hubFeedback(args: {
     type: "bug" | "suggestion" | "support" | "other";

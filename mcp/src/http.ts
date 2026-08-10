@@ -15,6 +15,9 @@ export interface FetchResult {
   ms: number;
   viaProxy: boolean;
   error?: string;
+  /** Where the request actually landed after redirects — a removed posting
+   *  often 200s on the site root, which the status code alone hides. */
+  finalUrl?: string;
 }
 
 function makeAgent(proxy?: string): http.Agent | undefined {
@@ -156,6 +159,7 @@ function once(
               text,
               ms: Date.now() - started,
               viaProxy: Boolean(opts.proxy),
+              finalUrl: url,
               error:
                 status >= 200 && status < 300
                   ? undefined

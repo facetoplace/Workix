@@ -10,16 +10,42 @@
       "android",
       "ios",
       "flutter",
+      "dart",
       "react native",
+      "kotlin",
+      "swift",
       "приложение",
-      "app",
-      "MVP",
-      "бот",
-      "telegram",
-      "сервис",
-      "saas"
+      "MVP"
     ],
-    "minus": ["отзыв на сайт", "накрутка", "реферат", "курьер"]
+    "strong": [
+      "flutter",
+      "dart",
+      "react native",
+      "android",
+      "ios",
+      "kotlin",
+      "swift"
+    ],
+    "minus": [
+      "отзыв на сайт",
+      "накрутка",
+      "реферат",
+      "курьер",
+      "мобильный дом",
+      "мобильному дому",
+      "каркасн",
+      "275-ФЗ",
+      "юрист",
+      "бухгалтер",
+      "тестировщик",
+      "копирайт",
+      "customer success",
+      "sales",
+      "маркетолог",
+      "рекрут",
+      "praktikum",
+      "business development"
+    ]
   },
   "vpn_mobile": {
     "label": "VPN / WireGuard / mobile clients (P0 EN)",
@@ -33,6 +59,9 @@
       "OpenVPN",
       "Shadowsocks",
       "v2ray",
+      "xray",
+      "vless",
+      "sing-box",
       "flutter",
       "react native",
       "android",
@@ -40,8 +69,28 @@
       "mobile",
       "tunnel"
     ],
-    "minus": ["накрутка", "реферат", "router config only"],
-    "platforms": ["upwork", "freelancer_com", "freelancehunt", "fl_ru", "remoteok"]
+    "strong": [
+      "VPN",
+      "WireGuard",
+      "OpenVPN",
+      "Shadowsocks",
+      "v2ray",
+      "xray",
+      "vless",
+      "sing-box"
+    ],
+    "minus": [
+      "накрутка",
+      "реферат",
+      "router config only"
+    ],
+    "platforms": [
+      "upwork",
+      "freelancer_com",
+      "freelancehunt",
+      "fl_ru",
+      "remoteok"
+    ]
   },
   "startups_products": {
     "label": "Стартапы и новые продукты",
@@ -54,6 +103,7 @@
       "startup",
       "MVP",
       "co-founder",
+      "кофаундер",
       "фаундер",
       "продукт",
       "запуск",
@@ -65,8 +115,37 @@
       "разработчик",
       "набираю"
     ],
-    "minus": ["накрутка", "реферат"],
-    "platforms": ["fl_ru", "freelance_ru", "product_radar", "habr_career", "remoteok"],
+    "strong": [
+      "MVP",
+      "co-founder",
+      "кофаундер",
+      "фаундер",
+      "pre-seed",
+      "flutter"
+    ],
+    "minus": [
+      "накрутка",
+      "реферат",
+      "275-ФЗ",
+      "юрист",
+      "бухгалтер",
+      "менеджер по продажам",
+      "seo-шник",
+      "копирайт",
+      "customer success",
+      "praktikum",
+      "online-marketing",
+      "social media",
+      "менеджер по работе с блогерами",
+      "sales"
+    ],
+    "platforms": [
+      "fl_ru",
+      "freelance_ru",
+      "product_radar",
+      "habr_career",
+      "remoteok"
+    ],
     "watch_sources": [
       "startupfellows",
       "wellfound",

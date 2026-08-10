@@ -2,8 +2,29 @@ import { getAdapter, getAdapterContext, moduleIdForPlatform } from "../adapterLo
 import { getJob, getLatestDraft } from "../store.js";
 import type { Job } from "../types.js";
 import { runPrepareBrowserApply } from "./browser_apply.js";
+import { runTrackApply } from "./apply_track.js";
 
 type BidResult = { ok: boolean; error?: string; raw?: unknown };
+
+/**
+ * The agent sent this one itself, so nobody has to be asked whether it went out:
+ * record it on the hub (mirroring the job into the catalog) with the exact text.
+ * Best-effort — a tracking failure must not mask a successful submit.
+ */
+async function trackSubmitted(jobId: string, text: string, platform: string) {
+  try {
+    return await runTrackApply({
+      job_id: jobId,
+      status: "sent",
+      channel: platform,
+      via: "agent",
+      text,
+      note: "auto-tracked from workix_submit_proposal",
+    });
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : String(e) };
+  }
+}
 
 export async function runSubmitProposal(args: {
   job_id: string;
@@ -80,7 +101,12 @@ export async function runSubmitProposal(args: {
       comment: text,
     });
     if (bid.ok) {
-      return { status: "submitted", platform: "freelancehunt", raw: bid.raw };
+      return {
+        status: "submitted",
+        platform: "freelancehunt",
+        raw: bid.raw,
+        tracked: await trackSubmitted(job.id, text, "freelancehunt"),
+      };
     }
     return {
       status: "api_failed",
@@ -132,7 +158,12 @@ export async function runSubmitProposal(args: {
       description: text,
     });
     if (bid.ok) {
-      return { status: "submitted", platform: "freelancer_com", raw: bid.raw };
+      return {
+        status: "submitted",
+        platform: "freelancer_com",
+        raw: bid.raw,
+        tracked: await trackSubmitted(job.id, text, "freelancer_com"),
+      };
     }
     return {
       status: "api_failed",
@@ -193,7 +224,12 @@ export async function runSubmitProposal(args: {
       estimatedDuration: args.days ?? 7,
     });
     if (created.ok) {
-      return { status: "submitted", platform: "upwork", raw: created.raw };
+      return {
+        status: "submitted",
+        platform: "upwork",
+        raw: created.raw,
+        tracked: await trackSubmitted(job.id, text, "upwork"),
+      };
     }
     return {
       status: "api_failed_or_incomplete",

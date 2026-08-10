@@ -6,7 +6,7 @@ import {
 } from "../adapters/jobspy.js";
 
 /**
- * One module, five boards — all reached through the user's own jobspy install.
+ * One module, eight boards — all reached through the user's own jobspy install.
  *
  * The list is spelled out rather than referencing JOBSPY_PLATFORMS because
  * scripts/pack-adapters.mjs reads `platforms:` out of this file with a regex
@@ -16,9 +16,18 @@ import {
  */
 export const meta: AdapterMeta = {
   id: "jobspy",
-  version: "1.0.3",
-  platforms: ["indeed", "glassdoor", "ziprecruiter", "naukri", "bdjobs"],
-  envKeys: ["PYTHON_BIN"],
+  version: "1.1.0",
+  platforms: [
+    "indeed",
+    "glassdoor",
+    "ziprecruiter",
+    "naukri",
+    "bdjobs",
+    "google_jobs",
+    "bayt",
+    "linkedin",
+  ],
+  envKeys: ["PYTHON_BIN", "JOBSPY_LINKEDIN_DESCRIPTIONS"],
 };
 
 if (

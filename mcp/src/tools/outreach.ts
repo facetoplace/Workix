@@ -64,6 +64,7 @@ export async function runOutreachList(args: {
   status?: string;
   contact?: string;
   channel?: string;
+  job_id?: string;
   limit?: number;
 }): Promise<unknown> {
   const status = asStatus(args.status);
@@ -74,6 +75,7 @@ export async function runOutreachList(args: {
     status,
     contact: args.contact,
     channel: args.channel,
+    jobId: args.job_id,
     limit: args.limit,
   });
   return {

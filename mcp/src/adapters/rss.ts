@@ -35,7 +35,11 @@ function stripHtml(html: string): string {
   );
 }
 
-const JOB_KIND_PLATFORMS = new Set(["habr_career"]);
+const JOB_KIND_PLATFORMS = new Set([
+  "habr_career",
+  "djinni",
+  "jobspresso",
+]);
 
 const ALT_URLS: Record<string, string[]> = {
   weblancer_net: [
@@ -50,6 +54,12 @@ const ALT_URLS: Record<string, string[]> = {
   habr_career: [
     "https://career.habr.com/vacancies/rss?remote=true",
     "https://career.habr.com/vacancies/rss",
+  ],
+  // Reddit's JSON API is OAuth-only and 403s datacenter IPs; the Atom feed is
+  // still open. It rate-limits hard, so this stays one multireddit call.
+  reddit: [
+    "https://www.reddit.com/r/forhire+jobbit+hiring+freelance_forhire/new/.rss?limit=100",
+    "https://old.reddit.com/r/forhire+jobbit+hiring/new/.rss?limit=100",
   ],
 };
 

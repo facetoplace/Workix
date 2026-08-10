@@ -476,7 +476,7 @@ function withProfileUrls(data: Record<string, unknown> | null | undefined) {
     tip: "Tell the user: shareable profile pageUrl; free ready-made CV/resume PDF at pdfUrl (no paywall).",
     note: slug
       ? `Share profile: ${pageUrl}. Free CV PDF: ${pdfUrl}. Rename slug with workix_update_profile when free.`
-      : 'No vanity slug yet — set via workix_update_profile (e.g. slug:"devstorm") for https://workix.co/{slug} + free CV https://workix.co/{slug}/pdf. Must be free (not a project or another performer).',
+      : 'No vanity slug yet — set via workix_update_profile (e.g. slug:"username") for https://workix.co/{slug} + free CV https://workix.co/{slug}/pdf. Must be free (not a project or another performer).',
   };
 }
 
@@ -523,6 +523,96 @@ export async function hubApply(args: {
   Time?: number;
 }) {
   return hubFetch("/api/v1/applies", { method: "POST", body: args });
+}
+
+/** Funnel used by the hub application tracker (lib/hub-applications.js). */
+export type ApplicationStatus =
+  | "draft"
+  | "sent"
+  | "viewed"
+  | "reply"
+  | "interview"
+  | "offer"
+  | "hired"
+  | "rejected"
+  | "closed";
+
+/**
+ * Record "the user applied to this job" on the hub. A raw board job
+ * (url + platform + title) is mirrored into the catalog first, so tracking an
+ * apply also publishes the listing. Idempotent per listing.
+ */
+export async function hubRecordApplication(args: {
+  orderId?: string;
+  roleId?: string;
+  url?: string;
+  platform?: string;
+  externalId?: string;
+  title?: string;
+  description?: string;
+  kind?: string;
+  budget?: string;
+  tags?: string[];
+  originalPublishedAt?: string;
+  status?: ApplicationStatus | string;
+  channel?: string;
+  via?: "agent" | "user" | "web";
+  text?: string;
+  textSource?: "agent" | "user";
+  note?: string;
+  appliedAt?: string;
+}) {
+  return hubFetch("/api/v1/applications", { method: "POST", body: args });
+}
+
+/** The caller's own applications — cross-device history, with the sent texts. */
+export async function hubListApplications(args: {
+  status?: string;
+  q?: string;
+  url?: string;
+  orderId?: string;
+  roleId?: string;
+  since?: string;
+  limit?: number;
+  offset?: number;
+  with_text?: boolean;
+} = {}) {
+  const qs = new URLSearchParams();
+  if (args.status) qs.set("status", args.status);
+  if (args.q) qs.set("q", args.q);
+  if (args.url) qs.set("url", args.url);
+  if (args.orderId) qs.set("orderId", args.orderId);
+  if (args.roleId) qs.set("roleId", args.roleId);
+  if (args.since) qs.set("since", args.since);
+  if (args.limit != null) qs.set("limit", String(args.limit));
+  if (args.offset != null) qs.set("offset", String(args.offset));
+  if (args.with_text === false) qs.set("with_text", "0");
+  const q = qs.toString();
+  return hubFetch(`/api/v1/applications${q ? `?${q}` : ""}`);
+}
+
+/** Move an application along the funnel, or attach the text after the fact. */
+export async function hubUpdateApplication(args: {
+  id: string;
+  status?: ApplicationStatus | string;
+  text?: string;
+  textSource?: "agent" | "user";
+  note?: string;
+  channel?: string;
+  appliedAt?: string;
+}) {
+  const { id, ...body } = args;
+  return hubFetch(`/api/v1/applications/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body,
+  });
+}
+
+/** Delete one of the caller's application rows. The catalog listing stays. */
+export async function hubDeleteApplication(args: { id: string }) {
+  return hubFetch(`/api/v1/applications/${encodeURIComponent(args.id)}`, {
+    method: "DELETE",
+  });
 }
 
 /** Bug / suggestion / support → hub admin Telegram (rate-limited). */

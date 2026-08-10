@@ -3,6 +3,8 @@ export interface Preset {
     hours?: number;
     limit?: number;
     keywords?: string[];
+    /** Subset of `keywords` strong enough to carry a card alone. */
+    strong?: string[];
     minus?: string[];
     include_jobs?: boolean;
     include_services?: boolean;

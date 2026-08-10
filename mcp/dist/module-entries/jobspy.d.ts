@@ -1,6 +1,6 @@
 import type { AdapterContext, AdapterMeta } from "../adapterModule.js";
 /**
- * One module, five boards — all reached through the user's own jobspy install.
+ * One module, eight boards — all reached through the user's own jobspy install.
  *
  * The list is spelled out rather than referencing JOBSPY_PLATFORMS because
  * scripts/pack-adapters.mjs reads `platforms:` out of this file with a regex

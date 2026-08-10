@@ -102,6 +102,34 @@
     return user;
   }
 
+  /** Same funnel as lib/hub-applications.js. */
+  const APPLICATION_STATUSES = [
+    'draft', 'sent', 'viewed', 'reply', 'interview', 'offer', 'hired', 'rejected', 'closed',
+  ];
+
+  /** Signed-in user without throwing — used where auth is optional. */
+  function currentUser(db) {
+    try {
+      return requireUser(db);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /** Anonymous apply counter for one card: how many, and is the viewer one of them. */
+  function appliedStats(db, item) {
+    const rows = db.applications || [];
+    const key = String((item && (item.id || item.sid)) || '');
+    if (!key) return { count: 0, byMe: false };
+    const mine = currentUser(db);
+    const matching = rows.filter((a) => a.status !== 'draft'
+      && (String(a.targetId) === key || String(a.orderId) === key || String(a.roleId) === key));
+    return {
+      count: matching.length,
+      byMe: !!(mine && matching.some((a) => a.userId === mine.id)),
+    };
+  }
+
   function publicStartup(s) {
     return { ...s };
   }
@@ -473,7 +501,7 @@
         const n = q.q.toLowerCase();
         items = items.filter((x) => `${x.title} ${x.description}`.toLowerCase().includes(n));
       }
-      return { items };
+      return { items: items.map((x) => Object.assign({}, x, { applied: appliedStats(db, x) })) };
     }
     {
       const m = p.match(/^\/api\/v1\/orders\/([^/]+)$/);
@@ -483,6 +511,89 @@
         const item = (list.items || []).find((x) => String(x.id) === id || String(x.sid) === id);
         if (!item) { const e = new Error('Not found'); e.status = 404; throw e; }
         return item;
+      }
+    }
+
+    // APPLICATION TRACKER (mock) — private rows, anonymous counters on cards
+    if (p === '/api/v1/applications') {
+      const user = requireUser(db);
+      db.applications = db.applications || [];
+      if (method === 'POST') {
+        const b = opts.body || {};
+        const targetId = String(b.orderId || b.roleId || '');
+        const url = String(b.url || '').trim();
+        if (!targetId && !url) { const e = new Error('orderId, roleId or url required'); e.status = 400; throw e; }
+        const existing = db.applications.find((a) => a.userId === user.id
+          && (targetId ? String(a.targetId) === targetId : a.url === url));
+        const now = global.WorkixMockDb.now();
+        if (existing) {
+          existing.status = b.status || existing.status;
+          if (b.text) { existing.text = b.text; existing.textSource = b.textSource || 'user'; }
+          if (b.note != null) existing.note = b.note;
+          existing.history = (existing.history || []).concat([{ at: now, status: existing.status, note: '' }]);
+          global.WorkixMockDb.save(db);
+          return { ok: true, created: false, application: existing, order: null, share: 'exists' };
+        }
+        const row = {
+          id: global.WorkixMockDb.uid('app'),
+          userId: user.id,
+          targetId: targetId || '',
+          orderId: b.orderId || null,
+          roleId: b.roleId || null,
+          url: url || '',
+          title: b.title || '',
+          external: url ? { platform: b.platform || '', url, externalId: b.externalId || '' } : null,
+          status: b.status || 'sent',
+          channel: b.channel || '',
+          via: b.via || 'web',
+          appliedAt: b.appliedAt || now,
+          text: b.text || '',
+          textSource: b.text ? (b.textSource || 'user') : '',
+          note: b.note || '',
+          history: [{ at: now, status: b.status || 'sent', note: '' }],
+        };
+        db.applications.push(row);
+        global.WorkixMockDb.save(db);
+        return { ok: true, created: true, application: row, order: null, share: url ? 'created' : null };
+      }
+      if (method === 'GET') {
+        let items = db.applications.filter((a) => a.userId === user.id);
+        if (q.status) {
+          const wanted = String(q.status).split(',');
+          items = items.filter((a) => wanted.includes(a.status));
+        }
+        if (q.q) {
+          const n = String(q.q).toLowerCase();
+          items = items.filter((a) => `${a.title} ${a.note}`.toLowerCase().includes(n));
+        }
+        return { items, hasMore: false, limit: 50, offset: 0, statuses: APPLICATION_STATUSES };
+      }
+    }
+    {
+      const m = p.match(/^\/api\/v1\/applications\/([^/]+)$/);
+      if (method === 'PATCH' && m) {
+        const user = requireUser(db);
+        db.applications = db.applications || [];
+        const id = decodeURIComponent(m[1]);
+        const row = db.applications.find((a) => a.id === id && a.userId === user.id);
+        if (!row) { const e = new Error('Not found'); e.status = 404; throw e; }
+        const b = opts.body || {};
+        if (b.status) row.status = b.status;
+        if (b.text != null) { row.text = b.text; row.textSource = b.textSource || 'user'; }
+        if (b.note != null) row.note = b.note;
+        row.history = (row.history || []).concat([{ at: global.WorkixMockDb.now(), status: row.status, note: '' }]);
+        global.WorkixMockDb.save(db);
+        return { ok: true, application: row };
+      }
+      if (method === 'DELETE' && m) {
+        const user = requireUser(db);
+        db.applications = db.applications || [];
+        const id = decodeURIComponent(m[1]);
+        const idx = db.applications.findIndex((a) => a.id === id && a.userId === user.id);
+        if (idx < 0) { const e = new Error('Not found'); e.status = 404; throw e; }
+        const [row] = db.applications.splice(idx, 1);
+        global.WorkixMockDb.save(db);
+        return { ok: true, deleted: row };
       }
     }
     if (method === 'GET' && p === '/api/v1/performers') {
@@ -539,7 +650,7 @@
       }
     }
     if (method === 'GET' && p === '/api/v1/stats/online') {
-      return { online: 12 };
+      return { online: 12, humans: 9, agents: 3, window: 'day' };
     }
     if (method === 'GET' && p === '/api/v1/search') {
       const scope = q.scope || 'all';
@@ -1006,6 +1117,20 @@
     updateProfile: (body) => request('/api/v1/profile', { method: 'PATCH', body }),
     importProfile: (body) => request('/api/v1/profile/import', { method: 'POST', body }),
     apply: (body) => request('/api/v1/applies', { method: 'POST', body }),
+    /** "I applied to this job" — private tracker; listings only show anonymous counts. */
+    trackApplication: (body) => request('/api/v1/applications', { method: 'POST', body }),
+    listApplications: (query = {}) => {
+      const q = buildQs(query);
+      return request(`/api/v1/applications${q ? `?${q}` : ''}`);
+    },
+    updateApplication: (id, body) => request(
+      `/api/v1/applications/${encodeURIComponent(id)}`,
+      { method: 'PATCH', body }
+    ),
+    deleteApplication: (id) => request(
+      `/api/v1/applications/${encodeURIComponent(id)}`,
+      { method: 'DELETE' }
+    ),
     feedback: (body) => request('/api/v1/feedback', { method: 'POST', body }),
     getPrefs: () => request('/api/v1/notification-prefs'),
     updatePrefs: (body) => request('/api/v1/notification-prefs', { method: 'PATCH', body }),

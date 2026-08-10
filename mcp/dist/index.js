@@ -14,7 +14,11 @@ import { runHubShareStatus, runShareJobs } from "./tools/share_jobs.js";
 import { runHhNegotiations } from "./tools/hh_negotiations.js";
 import { runHhStatus } from "./tools/hh_session.js";
 import { runHistory } from "./tools/history.js";
+import { runCompanyTechStack, runJobspipeSearch, runJobspipeUsage, } from "./tools/jobspipe.js";
+import { runJobState } from "./tools/job_state.js";
+import { runDeleteApply, runListApplies, runSyncApplies, runTrackApply, runUpdateApply, } from "./tools/apply_track.js";
 import { runSourcesStatus } from "./tools/sources_status.js";
+import { runStoreStatus } from "./tools/store_admin.js";
 import { runSubmitProposal } from "./tools/submit.js";
 import { runTgAuth, runTgSearch, runTgStatus, } from "./tools/telegram.js";
 import { runUpworkAuthUrl, runUpworkExchangeCode, } from "./tools/upwork_auth.js";
@@ -36,17 +40,21 @@ function textResult(data, opts) {
         ],
     };
 }
-const server = new McpServer({ name: "workix", version: "0.3.2" }, {
+const server = new McpServer({ name: "workix", version: "1.0.0" }, {
     instructions: [
         "Workix MCP connects an AI agent to the Workix hub (https://workix.co) and to local freelance/job sources.",
         "Hub catalog: search and open projects/startups, roles, orders, and performers; with WORKIX_AGENT_KEY create/update startups and roles, manage your performer profile, register/rotate an agent key, apply, and send feedback.",
         "PERFORMER CARD (recommend): when the user seeks work, collab, or a shareable resume, offer to create/update their Workix performer card via MCP (workix_hub_register if needed → workix_update_profile with slug). Tell them: public profile to share https://workix.co/{slug}; free ready-made CV/resume PDF download https://workix.co/{slug}/pdf (also /performer/{id}/pdf). No paywall.",
         "Use when the user wants to find collaborators or work on Workix, publish a project or role, create/update a performer card, or browse the shared catalog via tools instead of the website.",
         "Freelance boards: workix_digest / workix_search / workix_get_job across supported platforms (RSS + downloadable adapters). Credentials stay in local env — never send board passwords/tokens to the hub. Draft with workix_draft_proposal; submit only with explicit human confirmation; workix_prepare_browser_apply for manual apply flows.",
-        "OUTREACH LOG (required): after any approved draft or real send (TG/HH/email/board), call workix_outreach_log with contact, channel, full message text, status (draft|sent|ok|skip|reply|blocked). Before writing someone again, call workix_outreach_list. Also mirror a row into the local apply-log markdown (docs/apply-log-*.md Outreach table).",
+        "LOCAL MEMORY (SQLite mcp/data/workix.db): job cards, which were already shown in a digest, drafts, outreach with status, hub mirrors, session checkpoints, and the shared board cache. Nothing here is sent to the hub on its own.",
+        "STATE BEFORE ACTION (required): call workix_job_state {job_id|url} before draft / submit / share on a card. It answers in one call whether it was already shown in a digest, already mirrored to workix.co (sid + url), whether a draft exists, and whether a real apply happened with which status — locally and in the hub tracker, so an apply made on another device also counts (hub_application). Mirroring to the catalog is NOT an application: outreach rows with channel=hub are catalog mirrors and are excluded from `applied`.",
+        "OUTREACH LOG (required): after any approved draft or real send (TG/HH/email/board), call workix_outreach_log with contact, channel, full message text, status (draft|sent|ok|skip|reply|blocked). Log `draft` when generating, then update the SAME id to sent/ok after the user approves and it actually goes out. Before writing someone again, call workix_outreach_list (filter by job_id for every attempt on one card). Also mirror a row into the local apply-log markdown (docs/apply-log-*.md Outreach table).",
+        "APPLY TRACKING (required, hub-side): whenever an application actually goes out — the agent sent it via workix_submit_proposal (auto-tracked) or the user says they applied themselves — call workix_track_apply. It publishes the job to the workix.co catalog if missing, stores the application privately (status + date + the text that was sent) and mirrors it locally. The listing shows only an anonymous apply counter — never who applied. If the human applied outside the agent, ASK THEM for the text they sent and pass it as text with via:\"user\" — those texts are what makes the next proposal sound like them. Move the funnel later with workix_update_apply (viewed|reply|interview|offer|hired|rejected|closed). Read history with workix_list_applies before drafting a similar proposal, and run workix_sync_applies on a new machine.",
         "CHECKPOINTS (required): at the start of a job-search session call workix_checkpoint_get and read docs/apply-log-*.md CHECKPOINT — do not restart search from zero. When pausing, finishing a batch, switching platforms, or ending the turn after meaningful progress, call workix_checkpoint_set (summary of where you stopped, next steps, surfaces done, batch id, blocked items) and update the apply-log CHECKPOINT section the same way.",
         "HUB SHARE TRACKING (required): workix_share_jobs / digest share_to_hub marks each job in local store (hubShare + hubShares history + outreach channel=hub). Before re-sharing, call workix_hub_share_status or workix_history — do not re-push already mirrored cards (skipped locally unless force:true). Shared = on workix.co; unshared = still only local.",
         "Optional catalog mirror: workix_digest share_to_hub:true (or workix_share_jobs) posts found board cards to the Workix hub as ordinary orders (hub auto publisher; contributor = agent key in meta.external). No per-item confirm — not the same as submit_proposal. Already-shared jobs are skipped in local store.",
+        "hh.ru (local session, see mcp/HH.md): login is terminal-only — npm run hh:login, user types the password in the browser window; never ask for it in chat. Session lives in mcp/data/ and never goes to the hub. api.hh.ru refuses anonymous callers, so search and reads go through the logged-in site; workix_hh_status checks the session, workix_hh_negotiations reads application statuses (read-only). BEFORE automating an apply, read the pitfalls in mcp/HH.md: clicking the apply button can itself submit the application when a cover letter is optional; the letter field restores a saved draft, so it must be cleared first; page.type() replays newlines as Enter and submits mid-fill; assigning .value does not update hh's React state and sends an empty letter. Always compare the typed text to the approved text character-for-character, confirm success by observed effect (apply control gone after reload), and hand unfamiliar forms (screening questionnaires) to the human. One application per explicit confirmation — bulk applying gets the account banned.",
         "Optional Telegram TDLib (BYO): see mcp/TELEGRAM.md. Env only TELEGRAM_API_ID + TELEGRAM_API_HASH. Prefer terminal login: npm run tg:login (user enters phone/code there — do not ask for SMS/2FA in chat). Then workix_tg_status / workix_tg_search. Session local — never send TG creds to the hub.",
         "dStore app catalog: workix_dstore_publish (shipped site/PWA URL), workix_dstore_get/search/similar/list. Platforms: workix_list_platforms / workix_ensure_platforms.",
         "Docs: https://workix.co/agent , https://workix.co/llms.txt , https://workix.co/api.txt . Default WORKIX_API=https://workix.co.",
@@ -68,6 +76,10 @@ server.tool("workix_digest", "Сводка. Пресеты: mobile_dev, startups
         .boolean()
         .optional()
         .describe("If true, batch-share digest cards to Workix hub catalog (needs WORKIX_AGENT_KEY). No per-item confirm."),
+    force_refresh: z
+        .boolean()
+        .optional()
+        .describe("Bypass the shared fetch cache and re-read every source from the network."),
 }, async (args) => textResult(await runDigest(args)));
 server.tool("workix_search", "Поиск заказов по keywords / platform / since.", {
     keywords: z.array(z.string()).optional(),
@@ -80,6 +92,10 @@ server.tool("workix_search", "Поиск заказов по keywords / platform
     refresh: z.boolean().optional(),
     include_jobs: z.boolean().optional(),
     include_agent_gigs: z.boolean().optional(),
+    force_refresh: z
+        .boolean()
+        .optional()
+        .describe("Bypass the shared fetch cache and re-read every source from the network."),
 }, async (args) => textResult(await runSearch(args)));
 server.tool("workix_get_job", "Полная карточка заказа по id или URL. Для watch (Fiverr и т.п.): url+platform+title — захват в store для draft/browser apply.", {
     id: z.string().optional(),
@@ -165,6 +181,10 @@ server.tool("workix_outreach_list", "List recent local outreach (contact + previ
     status: z.enum(["draft", "sent", "ok", "skip", "reply", "blocked"]).optional(),
     contact: z.string().optional().describe("Substring match on contact"),
     channel: z.string().optional(),
+    job_id: z
+        .string()
+        .optional()
+        .describe("Only entries tied to this job id — every apply attempt on one card"),
     limit: z.number().min(1).max(100).optional(),
 }, async (args) => textResult(await runOutreachList(args)));
 server.tool("workix_checkpoint_set", "Save search/outreach checkpoint: where you stopped, what is next, surfaces already done. Call when ending a batch, switching platform, or pausing. Also update docs/apply-log-*.md CHECKPOINT.", {
@@ -226,7 +246,84 @@ server.tool("workix_prepare_browser_apply", "open_url + текст + checklist �
     job_id: z.string(),
     proposal_text: z.string().optional(),
 }, async (args) => textResult(await runPrepareBrowserApply(args)));
-server.tool("workix_sources_status", "Ping RSS (FL/Freelance/Weblancer/Habr)/Kwork/Freelancehunt/Upwork + PROXY_1.", {}, async () => textResult(await runSourcesStatus()));
+server.tool("workix_sources_status", "Ping RSS (FL/Freelance/Weblancer/Habr/Djinni/Jobspresso/Reddit)/Kwork/Freelancehunt/Upwork + PROXY_1 + ATS + keyed boards.", {}, async () => textResult(await runSourcesStatus()));
+server.tool("workix_jobspipe_search", "Точечный поиск по JobsPipe (LinkedIn/Indeed/YC/Greenhouse/Lever/Ashby/SmartRecruiters/Workday/Workable/Paylocity). ПЛАТНО: 1 кредит = 1 отданная вакансия, free tier 1000/мес — сначала workix_jobspipe_usage.", {
+    titles: z.array(z.string()).optional(),
+    exclude_titles: z.array(z.string()).optional(),
+    keywords: z.array(z.string()).optional(),
+    companies: z.array(z.string()).optional(),
+    skills: z.array(z.string()).optional(),
+    locations: z.array(z.string()).optional(),
+    countries: z.array(z.string()).optional(),
+    sources: z.array(z.string()).optional(),
+    exclude_sources: z.array(z.string()).optional(),
+    seniority: z.array(z.string()).optional(),
+    remote_only: z.boolean().optional(),
+    max_age_days: z.number().optional(),
+    limit: z.number().optional(),
+}, async (args) => textResult(await runJobspipeSearch(args)));
+server.tool("workix_job_state", "Что уже сделано с этой карточкой: показывали ли в дайджесте, зеркалили ли на workix.co, есть ли черновик, был ли отклик и с каким статусом — локально И в трекере workix.co (отклик с другого устройства тоже считается). Звать ПЕРЕД draft/submit/share, чтобы не откликнуться повторно.", {
+    job_id: z.string().optional(),
+    url: z.string().optional(),
+    check_hub: z
+        .boolean()
+        .optional()
+        .describe("false — не спрашивать workix.co (офлайн / нет agent key)"),
+}, async (args) => textResult(await runJobState(args)));
+server.tool("workix_track_apply", "Пользователь откликнулся (сам или агент отправил) — записать это на workix.co: вакансия при необходимости публикуется в каталоге, отклик сохраняется приватно (статус + дата + текст отклика) и дублируется в локальный store. На сайте у вакансии появляется только анонимный счётчик откликов. Если человек откликался вне агента — спросить у него текст отклика и передать в text (text_source=user): по нему агент точнее пишет отклики на похожие вакансии.", {
+    job_id: z.string().optional().describe("Id из workix_digest / workix_search / workix_get_job"),
+    url: z.string().optional().describe("Ссылка на вакансию (если job_id нет)"),
+    order_id: z.string().optional().describe("Id заказа на workix.co (если откликались на карточку хаба)"),
+    role_id: z.string().optional().describe("Id роли на workix.co"),
+    status: z
+        .enum(["draft", "sent", "viewed", "reply", "interview", "offer", "hired", "rejected", "closed"])
+        .optional()
+        .describe("По умолчанию sent"),
+    channel: z.string().optional().describe("tg | hh | email | board | browser | api"),
+    via: z
+        .enum(["agent", "user"])
+        .optional()
+        .describe("agent — отправил агент; user — человек откликался руками"),
+    text: z.string().optional().describe("Текст отклика, который реально ушёл"),
+    note: z.string().optional(),
+    applied_at: z.string().optional().describe("ISO-дата, если отклик был раньше"),
+    platform: z.string().optional().describe("Нужно, если вакансии нет в локальном store"),
+    title: z.string().optional().describe("Нужно, если вакансии нет в локальном store"),
+    description: z.string().optional(),
+    budget: z.string().optional(),
+}, async (args) => textResult(await runTrackApply(args)));
+server.tool("workix_list_applies", "История откликов с workix.co (кроссдевайс): куда откликались, когда, статус в воронке и тексты. Звать перед новым откликом и перед генерацией текста — прошлые тексты пользователя (textSource=user) показывают его манеру.", {
+    status: z.string().optional().describe("Через запятую: sent,reply,interview"),
+    q: z.string().optional().describe("Поиск по названию вакансии / платформе / заметке"),
+    url: z.string().optional().describe("Проверить конкретную вакансию по ссылке"),
+    since: z.string().optional().describe("ISO-дата"),
+    limit: z.number().min(1).max(200).optional(),
+    with_text: z.boolean().optional().describe("false — без текстов откликов"),
+}, async (args) => textResult(await runListApplies(args)));
+server.tool("workix_update_apply", "Двинуть отклик по воронке (viewed / reply / interview / offer / hired / rejected / closed) или дописать текст постфактум. id — из workix_list_applies.", {
+    id: z.string(),
+    status: z
+        .enum(["draft", "sent", "viewed", "reply", "interview", "offer", "hired", "rejected", "closed"])
+        .optional(),
+    text: z.string().optional(),
+    text_source: z.enum(["agent", "user"]).optional(),
+    note: z.string().optional(),
+}, async (args) => textResult(await runUpdateApply(args)));
+server.tool("workix_delete_apply", "Удалить запись об отклике на workix.co (ошиблись карточкой, тестовая запись). Требует confirm:true — удаляются статус, история и текст. Вакансия из каталога НЕ удаляется: она уже общий контент борда. Локальное зеркало отклика тоже подчищается.", {
+    id: z.string().describe("Id из workix_list_applies"),
+    confirm: z.boolean().optional().describe("true — подтверждение пользователя на удаление"),
+}, async (args) => textResult(await runDeleteApply(args)));
+server.tool("workix_sync_applies", "Подтянуть историю откликов с workix.co в локальный store: после переустановки или на другой машине дайджест снова будет скрывать вакансии, куда уже откликались.", {
+    since: z.string().optional().describe("ISO-дата"),
+    limit: z.number().min(1).max(200).optional(),
+}, async (args) => textResult(await runSyncApplies(args)));
+server.tool("workix_store_status", "Локальная база (SQLite): сколько карточек, что лежит в общем кэше источников и на сколько его хватит. Плюс уборка: prune_cache, prune_jobs_days, clear_cache.", {
+    prune_cache: z.boolean().optional(),
+    prune_jobs_days: z.number().optional(),
+    clear_cache: z.string().optional(),
+}, async (args) => textResult(await runStoreStatus(args)));
+server.tool("workix_jobspipe_usage", "Сколько кредитов JobsPipe потрачено в этом месяце и сколько осталось. reset:true обнуляет локальный счётчик (когда план обновился).", { reset: z.boolean().optional() }, async (args) => textResult(await runJobspipeUsage(args)));
+server.tool("workix_company_tech_stack", "Стек компании по домену (JobsPipe scanner): фреймворки, CDN, аналитика, платежи. Кредиты вакансий НЕ тратит. Для персонализации отклика.", { domain: z.string(), mode: z.string().optional() }, async (args) => textResult(await runCompanyTechStack(args)));
 server.tool("workix_open_watch_source", "Полуручной watch: Profi, Avito, YouDo, Fiverr, SproutGigs, Radar, Fellows, YC/CoFoundersLab, Wellfound, Contra, BotPool, Arc, Habr, LinkedIn, TG, Magier, Feltsense, PH.", {
     source: z.enum(WATCH_SOURCE_IDS),
 }, async (args) => textResult(await runOpenWatchSource(args)));
@@ -369,7 +466,7 @@ server.tool("workix_update_profile", `Create/update the user's public Workix per
     slug: z
         .union([zSlug, z.literal("")])
         .optional()
-        .describe('Vanity URL workix.co/{slug} when free. Example: "devstorm". Empty string "" clears it. Shared namespace with project slugs — hub returns 409 if taken.'),
+        .describe('Vanity URL workix.co/{slug} when free. Example: "username". Empty string "" clears it. Shared namespace with project slugs — hub returns 409 if taken.'),
     headline: z
         .string()
         .max(200)

@@ -8,16 +8,20 @@ export async function runSearch(args) {
     const profile = parseProfileFilters();
     const keywords = args.keywords ?? (profile.keywords.length ? profile.keywords : undefined);
     const minus = args.minus ?? (profile.minus.length ? profile.minus : undefined);
+    let servedFromCache = [];
     if (args.refresh !== false) {
         const q = keywords?.slice(0, 6).join(" OR ");
-        await refreshJobs({
+        const r = await refreshJobs({
             platforms: args.platforms,
             include_jobs: args.include_jobs,
             include_agent_gigs: args.include_agent_gigs,
             hh_text: keywords?.slice(0, 5).join(" "),
             upwork_query: q,
             freelancer_query: q,
+            keywords,
+            force_refresh: args.force_refresh,
         });
+        servedFromCache = r.cached;
     }
     const filtered = filterJobs(listJobs(), {
         hours: args.hours,
@@ -32,6 +36,7 @@ export async function runSearch(args) {
         total: filtered.length,
         offset,
         limit,
+        ...(servedFromCache.length ? { served_from_cache: servedFromCache } : {}),
         results: page.map((j) => cardSummary(j, keywords)),
     };
 }

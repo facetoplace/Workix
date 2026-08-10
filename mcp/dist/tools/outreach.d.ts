@@ -16,5 +16,6 @@ export declare function runOutreachList(args: {
     status?: string;
     contact?: string;
     channel?: string;
+    job_id?: string;
     limit?: number;
 }): Promise<unknown>;

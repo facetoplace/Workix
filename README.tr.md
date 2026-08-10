@@ -68,6 +68,8 @@ Bir ajan, `WORKIX_API=https://workix.co` ayarıyla projelerde, rollerde, iş ila
 
 MCP sunucusunu yerel olarak çalıştırmak için:
 
+**Node 22.5 veya üzeri** gerekir: yerel depolama, Node’un yerleşik `node:sqlite` modülü üzerinden SQLite kullanır; bu sayede kurulumda hiçbir şey derlenmez.
+
 ```bash
 git clone https://github.com/facetoplace/Workix.git
 cd Workix/mcp
@@ -140,10 +142,30 @@ Puan, platformun ne kadarının kapsandığını değil, **hedeflenen Workix iş
 | **FL.ru** | RSS | Tarayıcı | **4/5** | Herkese açık RSS; başvuru insan denetiminde kalır | Kategorileri ve bütçe ayrıştırmayı iyileştirmek |
 | **HH.ru** | Resmî API | Tarayıcı | **4/5** | Resmî API kuralları ve zorunlu kullanıcı aracısı | Proje/uzaktan çalışma filtrelerini iyileştirmek; API üzerinden başvuru isteğe bağlıdır |
 | **Remote OK** | Herkese açık API | İşverenin sitesi | **4/5** | Herkese açık akış; yönlendirmeden sonra işveren kuralları geçerlidir | Etiket ve teknoloji filtrelerini iyileştirmek |
+| **Remotive · Arbeitnow · Himalayas · Jobicy · Working Nomads · The Muse · 4 Day Week · AI Dev Jobs** | Herkese açık API | İşverenin sitesi | **4/5** | Herkese açık akışlar; yönlendirmeden sonra işveren kuralları geçerlidir | `include_jobs` özet kaynakları olarak tutmak |
+| **We Work Remotely · Aquent · Jobspresso** | Herkese açık RSS | İşverenin sitesi | **4/5** | Herkese açık akışlar; yönlendirmeden sonra işveren kuralları geçerlidir | `include_jobs` özet kaynakları olarak tutmak |
+| **İşveren kariyer sayfaları** (Greenhouse · Ashby · Lever · SmartRecruiters · Workable) | Şirket bazında herkese açık API | İşverenin kendi ilan panosu | **4/5** | Kariyer sayfalarının herkese açık uç noktaları; başvuru bağlantısı işverene aittir | `ats-companies.json` içindeki şirket listesini genişletmek |
+| **Trudvsem (Rusya’da İş)** | Herkese açık açık veri API’si | Harici | **4/5** | Devlete ait açık veri; hesap erişimi yok | Bölge hazır ayarları eklemek; ilan yayımlamak ulusal e-imza gerektirir ve kapsam dışıdır |
+| **NoFluffJobs · Landing.jobs · Get on Board** | Herkese açık API | İşverenin sitesi | **4/5** | Herkese açık akışlar; yönlendirmeden sonra işveren kuralları geçerlidir | `include_jobs` özet kaynakları olarak tutmak |
+| **Djinni** | Herkese açık RSS | Platformdaki hesap | **3/5** | Herkese açık akış; başvuru insanın denetiminde kalır | `include_jobs` kaynağı olarak tutmak |
+| **Adzuna** | Kendi anahtarlarınızla resmî API | İşverenin sitesi | **4/5** | Kayıtlı API anahtarları; ücretsiz katmanda hız sınırı var | `include_jobs` içinde tutmak; kota hatalarını açıkça göstermek |
+| **JobsPipe** (LinkedIn · Indeed · Y Combinator · Greenhouse · Lever · Ashby · SmartRecruiters · Workday · Workable · Paylocity) | Kendi anahtarınızla resmî API | İşverenin sitesi | **4/5** | Sayaçlı: dönen her ilan için bir kredi; anahtar sizin, kota sizin | Bilinçli olarak otomatik özetin dışında — aşağıya bakın |
+| **USAJOBS · Careerjet · Jooble** | Kendi anahtarınızla resmî API | Harici | **4/5** | Ücretsiz anahtarlar; her birinin kendi kuralları var | Anahtar tanımlandığında `include_jobs` içinde tutmak |
+| **SuperJob** | Kendi anahtarınızla resmî API | Tarayıcı | **3/5** | Resmî API kuralları | Veri merkezi adreslerinden 403 döner; anahtar ve çoğu zaman proxy gerekir |
+| **Reddit** (r/forhire ve benzerleri) | Herkese açık Atom akışı | Elle yorum veya özel mesaj | **2/5** | **Otomatik gönderi veya özel mesaj yok** | Yalnızca akış; JSON API kayıtlı bir OAuth uygulaması ister |
+| **Dream Offer** | Herkese açık HTTP akışı | İşverenin sitesi | **3/5** | Herkese açık akış; hesap erişimi yok | Akış değişikliklerini izlemek |
+| **Claw Earn · SeekClaw · Openwork** | Ajan API’si | Ajan API’si | **4/5** | Ajanlara yönelik platformlar; gönderim kendi API’leri üzerinden | `include_agent_gigs` içinde tutmak; açık ilanlar çoğu zaman boş |
+| **Superteam Earn** | Kendi anahtarınızla ajan API’si | Ajan API’si | **4/5** | `SUPERTEAM_EARN_API_KEY` gerekir | `include_agent_gigs` içinde tutmak |
+| **Growth.Talent · RentAHuman** | Herkese açık API | Ajan API’si veya tarayıcı | **4/5** | Herkese açık ilanlar; başvuru için anahtar gerekir | `include_agent_gigs` içinde tutmak |
 | **Kwork** | Yerel kimlik bilgileriyle resmî olmayan API | Tarayıcı | **3/5** | Yüksek riskli resmî olmayan erişim; otomatik başvuru yok | Oturum açma ve proxy güvenilirliğini iyileştirmek |
 | **Freelance.ru** | RSS; proxy gerekebilir | Tarayıcı | **3/5** | Herkese açık RSS; hesap kısıtlamaları aşılmaz | Akışları engellemelere karşı daha dayanıklı hâle getirmek |
 | **Weblancer** | RSS; proxy gerekebilir | Tarayıcı | **3/5** | Herkese açık RSS; hesap kısıtlamaları aşılmaz | Akışları engellemelere karşı daha dayanıklı hâle getirmek |
-| **Habr Career** | Tarayıcıyla izleme | Tarayıcı | **2/5** | Yalnızca herkese açık sayfalar/RSS; toplu başvuru yok | Ortak özete RSS eklemek |
+| **Indeed** | JobSpy köprüsü (isteğe bağlı, Python gerekir) | İşverenin sitesi | **3/5** | Kendi `python-jobspy` kurulumunuz üzerinden, onun ve sizin koşullarınızla çalışır | İsteğe bağlı köprü olarak tutmak; kendi kazıyıcımızı yazmıyoruz |
+| **Glassdoor · ZipRecruiter · Naukri** | JobSpy köprüsü (isteğe bağlı, Python gerekir) | İşverenin sitesi | **1/5** | Aynı köprü; çoğu adresten 403 döner ya da zaman aşımına uğrar | Bağlı ama güvenilmez — ağınıza bağlı |
+| **BDjobs** | JobSpy köprüsü — **kaynak projede bozuk** | İşverenin sitesi | **1/5** | Platform değil, `python-jobspy` içindeki bir hata engelliyor | Yukarı akıştaki düzeltme bekleniyor; yapılandırma hatası sanılmasın diye listelendi |
+| **Habr Career** | Herkese açık ön yüz JSON’u, yedek olarak RSS | Tarayıcı | **4/5** | Yalnızca herkese açık uç noktalar; toplu başvuru yok | Maaş, seviye ve becerileri taşır; RSS yedek olarak kalır |
+| **Fiverr · SproutGigs** | Tarayıcıyla izleme | Tarayıcı | **2/5** | Gelen brifingler ve elle teklifler; kazıyıcı yok | Tarayıcı destekli tutmak |
+| **Avito Hizmetler · YouDo** | Tarayıcıyla izleme | Tarayıcı | **2/5** | Elle yakalama; hesap kurallarını aşma yok | Tarayıcı destekli tutmak |
 | **Product Radar / StartupFellows** | Tarayıcı veya Telegram üzerinden izleme | Harici form veya iletişim | **2/5** | Seçilmiş kaynakları izleme; elle iletişim | Seçilmiş izleme kaynakları olarak tutmak |
 | **Contra / BotPool / Wellfound** | Tarayıcıyla izleme | Tarayıcı | **2/5** | Otomasyon kısıtlı veya belirsiz; veri kazıyıcı yok | Tarayıcı destekli tutmak; veri kazıyıcı planlanmıyor |
 | **Telegram kanalları** | Tarayıcı/kullanıcı oturumuyla izleme | Elle iletişim | **2/5** | Kanal kurallarına uyulur; istenmeyen toplu mesajlaşma yok | Yarı manuel ve yapılandırılabilir tutmak |
@@ -156,8 +178,27 @@ Mevcut geliştirme sırası şöyledir:
 
 1. Freelancer.com'u kararlı hâle getirmek ve Upwork OAuth/başvuru iş akışını tamamlamak.
 2. FL.ru, Freelance.ru, Weblancer ve Kwork'ün güvenilirliğini artırmak.
-3. Remote OK ve HH.ru için daha iyi filtreler eklemek, ardından Habr Career RSS desteğini eklemek.
+3. Remote OK ve HH.ru için daha iyi filtreler eklemek ve işveren kariyer sayfalarındaki şirket listesini genişletmek.
 4. Kapalı ve kullanım koşulları açısından hassas platformlar için kırılgan veri kazıyıcılar oluşturmak yerine tarayıcı desteğini korumak.
+
+### Sayaçlı kaynaklar hakkında
+
+Yukarıdaki kaynakların tümü ücretsiz okunur; tek istisna, dönen her ilan için bir kredi düşen **JobsPipe**. Bu yüzden sıradan bir `include_jobs` özetinin hiç dokunmadığı tek platform odur — aksi hâlde zamanlanmış bir çalıştırma aylık kotayı kimse fark etmeden tüketebilirdi. Ona bilinçli erişin: `workix_jobspipe_search` aracıyla, `platforms: ["jobspipe"]` diyerek ya da `JOBSPIPE_IN_DIGEST=1` ile. Yerel bir sayaç bu MCP’nin harcadığını izler ve tanımlı aylık bütçe bittiğinde çağrıyı başlatmaz; kalanı `workix_jobspipe_usage` gösterir.
+
+JobsPipe yalnızca okumaya yöneliktir. Başkalarının ilan panolarını dizinler ve ilan göndermek için bir uç noktası yoktur; bir ilan bu dizine ancak zaten taradığı bir kaynakta yayımlandığında girer.
+
+### JobSpy köprüsü hakkında
+
+Indeed, Glassdoor, ZipRecruiter, Naukri ve BDjobs, **sizin** kurduğunuz [JobSpy](https://github.com/speedyapply/JobSpy) (MIT) üzerinden okunur: `pip install -U python-jobspy`, Python 3.10–3.12. Bu platformlardan birini açıkça adlandırmadıkça hiçbir şey olmaz — sıradan bir özet onlara dokunmaz.
+
+Kodunu kopyalamak yerine onu çağırmamız bilinçli bir tercih. Bu panolar, kendi mobil uygulamalarından alınan kimlik bilgileriyle özel uç noktalar üzerinden okunuyor; işi yukarı akışta bırakmak bu bilgilerin paketimiz içinde yeniden dağıtılmak yerine sizin kurulumunuzda kalmasını sağlar ve o kazıyıcıları sürdürenler sürdürmeye devam eder.
+
+Şunu bilin: kendi testlerimizde yalnızca Indeed sonuç döndürdü. Diğerleri çoğu adresten engelleniyor ya da hız sınırına takılıyor; BDjobs ise şu anda JobSpy’ın kendi içinde hata veriyor. Sizde çalışıp çalışmayacağı ağınıza bağlı ve kullanma kararı, her panonun koşulları altında size ait.
+
+---
+
+**Bugünkü kapsam:** katalogda 64 platform, 36’sı indirilebilir bağdaştırıcı modülü olarak geliyor. Yukarıdaki iş ve serbest çalışma kaynaklarının ötesinde, aynı modül sistemi **dStore** uygulama kataloğuna (canlı bir site veya PWA yayımlamak, benzer uygulamaları bulmak) ve isteğe bağlı bir **Telegram** kanal okuyucusuna hizmet eder.
+
 
 Kaynak kataloğu [`mcp/platforms.json`](mcp/platforms.json) dosyasındadır. Makine tarafından okunabilir liste için `workix_list_platforms`, mevcut yerel yapılandırmanızla hangi entegrasyonların kullanılabildiğini görmek için `workix_sources_status` komutunu çalıştırın.
 

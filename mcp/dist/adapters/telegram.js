@@ -3,6 +3,32 @@
  */
 import { loadTgChannels } from "../telegram/channels.js";
 import { getAuthState, searchChat } from "../telegram/backend.js";
+/**
+ * One digest run reads at most this many channels — each is a network round-trip,
+ * and Telegram answers a long sweep with flood-waits. Raise it with
+ * WORKIX_TG_MAX_CHANNELS when the watch list outgrows the default.
+ */
+function maxChannels() {
+    const raw = Number(process.env.WORKIX_TG_MAX_CHANNELS);
+    if (!Number.isFinite(raw) || raw < 1)
+        return 12;
+    return Math.min(Math.floor(raw), 40);
+}
+const PRIORITY_RANK = { high: 0, medium: 1, low: 2 };
+/**
+ * Which channels this run actually reads. Taking them in file order meant a
+ * channel appended to the end of a long list was never fetched, however high its
+ * priority — so order by priority (stable, so equal priorities keep file order)
+ * and leave `community` out: those are discussion chats, not vacancy feeds, and
+ * they only add noise to a digest. Search them explicitly with workix_tg_search.
+ */
+function watchOrder(channels) {
+    return channels
+        .filter((c) => c.kind !== "community")
+        .slice()
+        .sort((a, b) => (PRIORITY_RANK[String(a.priority || "")] ?? 1) -
+        (PRIORITY_RANK[String(b.priority || "")] ?? 1));
+}
 export async function fetchTelegramJobs(opts) {
     const auth = await getAuthState();
     if (auth.state === "missing_deps") {
@@ -32,7 +58,7 @@ export async function fetchTelegramJobs(opts) {
     const per = Math.min(Math.max(Number(opts?.limit) || 8, 1), 15);
     const jobs = [];
     const errors = [];
-    for (const ch of channels.slice(0, 12)) {
+    for (const ch of watchOrder(channels).slice(0, maxChannels())) {
         try {
             const hits = await searchChat(ch.url, query, per);
             for (const h of hits) {

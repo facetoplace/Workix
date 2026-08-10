@@ -1549,6 +1549,23 @@ html, body {
   gap: .4rem;
 }
 
+.wx-online-part {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+}
+
+/* Emoji as an image (emojicdn) — identical glyphs on every OS, unlike system fonts. */
+.wx-online-emoji {
+  width: 1em;
+  height: 1em;
+  display: inline-block;
+  vertical-align: -.125em;
+  flex: none;
+}
+
+.wx-online-sep { opacity: .5; }
+
 .wx-online-dot {
   width: .55rem;
   height: .55rem;
@@ -1591,6 +1608,22 @@ html, body {
 
 .wx-tag-badge {
   gap: .35rem;
+}
+
+/* Anonymous apply counter — never names who applied, only how many. */
+.wx-applied-badge {
+  gap: .3rem;
+  border-color: rgba(56, 189, 248, .35);
+  color: rgb(125, 211, 252);
+}
+
+.wx-applied-badge.is-mine {
+  border-color: rgba(34, 197, 94, .45);
+  color: rgb(134, 239, 172);
+}
+
+.wx-applied-you {
+  opacity: .85;
 }
 
 .wx-contact-btn {

@@ -14,6 +14,8 @@ export async function runSearch(args: {
   refresh?: boolean;
   include_jobs?: boolean;
   include_agent_gigs?: boolean;
+  /** Ignore the shared fetch cache and re-read every source from the network. */
+  force_refresh?: boolean;
 }): Promise<unknown> {
   const limit = args.limit ?? 20;
   const offset = args.offset ?? 0;
@@ -21,16 +23,20 @@ export async function runSearch(args: {
   const keywords = args.keywords ?? (profile.keywords.length ? profile.keywords : undefined);
   const minus = args.minus ?? (profile.minus.length ? profile.minus : undefined);
 
+  let servedFromCache: string[] = [];
   if (args.refresh !== false) {
     const q = keywords?.slice(0, 6).join(" OR ");
-    await refreshJobs({
+    const r = await refreshJobs({
       platforms: args.platforms,
       include_jobs: args.include_jobs,
       include_agent_gigs: args.include_agent_gigs,
       hh_text: keywords?.slice(0, 5).join(" "),
       upwork_query: q,
       freelancer_query: q,
+      keywords,
+      force_refresh: args.force_refresh,
     });
+    servedFromCache = r.cached;
   }
 
   const filtered = filterJobs(listJobs(), {
@@ -47,6 +53,7 @@ export async function runSearch(args: {
     total: filtered.length,
     offset,
     limit,
+    ...(servedFromCache.length ? { served_from_cache: servedFromCache } : {}),
     results: page.map((j) => cardSummary(j, keywords)),
   };
 }

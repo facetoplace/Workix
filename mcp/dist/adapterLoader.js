@@ -316,9 +316,29 @@ async function importModuleFromDir(id, dir) {
     loaded.set(id, mod);
     return mod;
 }
+/**
+ * True when the installed copy was built from the same tarball the registry
+ * currently advertises. Version alone is not enough: a rebuilt adapter keeps
+ * its version, and without this check the cached (stale) copy wins forever —
+ * both here in a repo checkout and for users after a same-version hotfix.
+ */
+function installedMatchesRegistry(entry) {
+    const marker = installMarker(entry.id, entry.version);
+    if (!existsSync(marker))
+        return false;
+    if (!entry.sha256)
+        return true;
+    try {
+        const meta = JSON.parse(readFileSync(marker, "utf8"));
+        return meta.sha256?.toLowerCase() === entry.sha256.toLowerCase();
+    }
+    catch {
+        return false;
+    }
+}
 export async function installModule(entry, opts) {
     const dir = moduleDir(entry.id, entry.version);
-    if (!opts?.force && existsSync(installMarker(entry.id, entry.version))) {
+    if (!opts?.force && installedMatchesRegistry(entry)) {
         try {
             await importModuleFromDir(entry.id, dir);
             return { ok: true, id: entry.id, version: entry.version };
@@ -382,7 +402,7 @@ export async function ensureAdapter(moduleId) {
             return { ok: false, error: `module not in registry: ${moduleId}` };
         }
         const dir = moduleDir(entry.id, entry.version);
-        if (existsSync(installMarker(entry.id, entry.version))) {
+        if (installedMatchesRegistry(entry)) {
             try {
                 const mod = await importModuleFromDir(entry.id, dir);
                 return { ok: true, module: mod };

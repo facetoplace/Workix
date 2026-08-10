@@ -19,12 +19,29 @@ export declare function logOutreach(input: {
     at?: string;
     id?: string;
 }): OutreachRecord;
+/**
+ * Drop outreach rows by id. Used when an application is deleted on the hub, so
+ * the local mirror does not keep claiming the job was answered.
+ * Returns how many rows were actually removed.
+ */
+export declare function deleteOutreach(ids: string[]): number;
 export declare function listOutreach(opts?: {
     status?: OutreachStatus;
     contact?: string;
     channel?: string;
+    jobId?: string;
     limit?: number;
 }): OutreachRecord[];
+/** Normalize a link so the same posting matches across trackers/mirrors. */
+export declare function normalizeLink(url?: string): string | undefined;
+/**
+ * Every job already touched in any way — url or job_id, any status.
+ *
+ * The digest subtracts this so cards the user already wrote to never resurface.
+ * Unbounded on purpose: listOutreach caps at 100 rows, which is a UI limit, not
+ * a dedupe one.
+ */
+export declare function contactedKeys(): Set<string>;
 export declare function setCheckpoint(input: {
     summary: string;
     next?: string;
@@ -57,4 +74,36 @@ export declare function listHistory(limit?: number): {
         outreach: number;
     };
 };
+/**
+ * Everything the local store knows about one card, in a single lookup.
+ *
+ * The agent otherwise has to stitch this together from four separate list
+ * tools and still cannot see whether a card was already shown in a digest —
+ * which is exactly the question that decides "do I act on this or skip it".
+ */
+export declare function jobState(idOrUrl: string): {
+    found: false;
+    id: string;
+} | {
+    found: true;
+    job: StoredJob;
+    shownInDigest: boolean;
+    shownAt?: string;
+    hubShare?: HubShareInfo;
+    hubShareRecord?: HubShareRecord;
+    draft?: DraftRecord;
+    outreach: OutreachRecord[];
+    lastOutreachStatus?: OutreachStatus;
+};
+/**
+ * Drop stale cards, but never one that carries work: anything shared to the hub,
+ * drafted, or referenced by an outreach entry stays regardless of age.
+ */
+export declare function pruneJobs(opts?: {
+    days?: number;
+}): {
+    removed: number;
+    kept: number;
+};
+export declare function storeStats(): Record<string, number | string>;
 export declare function dataDir(): string;

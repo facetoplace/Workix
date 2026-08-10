@@ -68,6 +68,8 @@ Mit `WORKIX_API=https://workix.co` kann ein Agent Projekte, Rollen, Aufträge un
 
 So führst du den MCP-Server lokal aus:
 
+Erfordert **Node 22.5 oder neuer**: Der lokale Speicher ist SQLite über Nodes eingebautes `node:sqlite`, sodass bei der Installation nichts kompiliert werden muss.
+
 ```bash
 git clone https://github.com/facetoplace/Workix.git
 cd Workix/mcp
@@ -140,10 +142,30 @@ Die Spalte **Automatisierungsrichtlinie** ist bewusst konservativ gehalten. Plat
 | **FL.ru** | RSS | Browser | **4/5** | Öffentliches RSS; Bewerbung bleibt unter menschlicher Kontrolle | Kategorien und Budgetanalyse verbessern |
 | **HH.ru** | Offizielle API | Browser | **4/5** | Regeln der offiziellen API und vorgeschriebener User-Agent | Projekt-/Remote-Filter verbessern; Bewerbung per API ist optional |
 | **Remote OK** | Öffentliche API | Website des Arbeitgebers | **4/5** | Öffentlicher Feed; nach der Weiterleitung gelten die Regeln des Arbeitgebers | Tag- und Technologiefilter verbessern |
+| **Remotive · Arbeitnow · Himalayas · Jobicy · Working Nomads · The Muse · 4 Day Week · AI Dev Jobs** | Öffentliche API | Website des Arbeitgebers | **4/5** | Öffentliche Feeds; nach der Weiterleitung gelten die Regeln des Arbeitgebers | Als `include_jobs`-Quellen beibehalten |
+| **We Work Remotely · Aquent · Jobspresso** | Öffentliches RSS | Website des Arbeitgebers | **4/5** | Öffentliche Feeds; nach der Weiterleitung gelten die Regeln des Arbeitgebers | Als `include_jobs`-Quellen beibehalten |
+| **Karriereseiten der Arbeitgeber** (Greenhouse · Ashby · Lever · SmartRecruiters · Workable) | Öffentliche API je Unternehmen | Eigenes Karriereportal des Arbeitgebers | **4/5** | Öffentliche Endpunkte der Karriereseiten; der Bewerbungslink führt zum Arbeitgeber | Unternehmensliste in `ats-companies.json` erweitern |
+| **Trudwsem (Arbeit in Russland)** | Öffentliche Open-Data-API | Extern | **4/5** | Staatliche offene Daten; kein Kontozugriff | Regionsvorlagen ergänzen; Veröffentlichung erfordert nationale E-Signatur und ist nicht vorgesehen |
+| **NoFluffJobs · Landing.jobs · Get on Board** | Öffentliche API | Website des Arbeitgebers | **4/5** | Öffentliche Feeds; nach der Weiterleitung gelten die Regeln des Arbeitgebers | Als `include_jobs`-Quellen beibehalten |
+| **Djinni** | Öffentliches RSS | Konto auf der Plattform | **3/5** | Öffentlicher Feed; die Bewerbung bleibt beim Menschen | Als `include_jobs`-Quelle beibehalten |
+| **Adzuna** | Offizielle API mit eigenen Schlüsseln | Website des Arbeitgebers | **4/5** | Registrierte API-Schlüssel; der kostenlose Tarif ist ratenbegrenzt | In `include_jobs` behalten; Kontingentfehler klar anzeigen |
+| **JobsPipe** (LinkedIn · Indeed · Y Combinator · Greenhouse · Lever · Ashby · SmartRecruiters · Workday · Workable · Paylocity) | Offizielle API mit eigenem Schlüssel | Website des Arbeitgebers | **4/5** | Nach Verbrauch: ein Guthaben je gelieferter Stelle; dein Schlüssel, dein Kontingent | Bewusst außerhalb der automatischen Übersicht — siehe unten |
+| **USAJOBS · Careerjet · Jooble** | Offizielle API mit eigenem Schlüssel | Extern | **4/5** | Kostenlose Schlüssel; jeweils eigene Regeln | In `include_jobs` behalten, sobald der Schlüssel gesetzt ist |
+| **SuperJob** | Offizielle API mit eigenem Schlüssel | Browser | **3/5** | Regeln der offiziellen API | Antwortet von Rechenzentrumsadressen mit 403; braucht Schlüssel und oft Proxy |
+| **Reddit** (r/forhire und ähnliche) | Öffentlicher Atom-Feed | Kommentar oder DM von Hand | **2/5** | **Keine automatischen Beiträge oder Direktnachrichten** | Nur Feed; die JSON-API verlangt eine registrierte OAuth-App |
+| **Dream Offer** | Öffentlicher HTTP-Feed | Website des Arbeitgebers | **3/5** | Öffentlicher Feed; kein Kontozugriff | Auf Feed-Änderungen achten |
+| **Claw Earn · SeekClaw · Openwork** | Agenten-API | Agenten-API | **4/5** | Agentenplattformen; Einreichung über deren eigene API | In `include_agent_gigs` behalten; offene Aufträge sind oft leer |
+| **Superteam Earn** | Agenten-API mit eigenem Schlüssel | Agenten-API | **4/5** | Erfordert `SUPERTEAM_EARN_API_KEY` | In `include_agent_gigs` behalten |
+| **Growth.Talent · RentAHuman** | Öffentliche API | Agenten-API oder Browser | **4/5** | Öffentliche Anzeigen; für die Bewerbung ist ein Schlüssel nötig | In `include_agent_gigs` behalten |
 | **Kwork** | Inoffizielle API mit lokalen Zugangsdaten | Browser | **3/5** | Riskanter inoffizieller Zugriff; keine automatische Bewerbung | Zuverlässigkeit von Anmeldung und Proxy verbessern |
 | **Freelance.ru** | RSS; möglicherweise ist ein Proxy erforderlich | Browser | **3/5** | Öffentliches RSS; keine Umgehung von Kontobeschränkungen | Feeds widerstandsfähiger gegen Blockierungen machen |
 | **Weblancer** | RSS; möglicherweise ist ein Proxy erforderlich | Browser | **3/5** | Öffentliches RSS; keine Umgehung von Kontobeschränkungen | Feeds widerstandsfähiger gegen Blockierungen machen |
-| **Habr Career** | Browser-Beobachtung | Browser | **2/5** | Nur öffentliche Seiten/RSS; keine Massenbewerbungen | RSS zur gemeinsamen Übersicht hinzufügen |
+| **Indeed** | JobSpy-Brücke (optional, benötigt Python) | Website des Arbeitgebers | **3/5** | Läuft über deine eigene `python-jobspy`-Installation, unter deren und deinen Bedingungen | Als optionale Brücke behalten; kein eigener Scraper |
+| **Glassdoor · ZipRecruiter · Naukri** | JobSpy-Brücke (optional, benötigt Python) | Website des Arbeitgebers | **1/5** | Dieselbe Brücke; von den meisten Adressen kommt 403 oder ein Timeout | Angebunden, aber unzuverlässig — hängt von deinem Netz ab |
+| **BDjobs** | JobSpy-Brücke — **upstream defekt** | Website des Arbeitgebers | **1/5** | Blockiert durch einen Fehler in `python-jobspy` selbst, nicht durch die Plattform | Wartet auf einen Upstream-Fix; aufgeführt, damit es nicht für einen Konfigurationsfehler gehalten wird |
+| **Habr Career** | Öffentliches Frontend-JSON, RSS als Rückfallebene | Browser | **4/5** | Nur öffentliche Endpunkte; keine Massenbewerbungen | Liefert Gehalt, Level und Skills; RSS bleibt die Rückfallebene |
+| **Fiverr · SproutGigs** | Browser-Beobachtung | Browser | **2/5** | Eingehende Briefings und manuelle Angebote; kein Scraper | Browsergestützt belassen |
+| **Avito Dienstleistungen · YouDo** | Browser-Beobachtung | Browser | **2/5** | Manuelle Erfassung; keine Umgehung von Kontoregeln | Browsergestützt belassen |
 | **Product Radar / StartupFellows** | Browser- oder Telegram-Beobachtung | Externes Formular oder Kontakt | **2/5** | Kuratierte Beobachtung; manueller Kontakt | Als kuratierte Beobachtungsquellen beibehalten |
 | **Contra / BotPool / Wellfound** | Browser-Beobachtung | Browser | **2/5** | Eingeschränkte oder unklare Automatisierung; kein Scraper | Browsergestützt belassen; kein Scraper geplant |
 | **Telegram channels** | Beobachtung per Browser/Nutzersitzung | Manueller Kontakt | **2/5** | Kanalregeln einhalten; keine unaufgeforderten Massennachrichten | Halbmanuell und konfigurierbar belassen |
@@ -156,8 +178,27 @@ Die aktuelle Entwicklungsreihenfolge lautet:
 
 1. Freelancer.com stabilisieren und den OAuth-/Bewerbungsablauf für Upwork abschließen.
 2. Die Zuverlässigkeit von FL.ru, Freelance.ru, Weblancer und Kwork verbessern.
-3. Bessere Filter für Remote OK und HH.ru hinzufügen, anschließend RSS für Habr Career ergänzen.
+3. Bessere Filter für Remote OK und HH.ru hinzufügen und die Unternehmensliste der Arbeitgeber-Karriereseiten erweitern.
 4. Geschlossene und AGB-sensible Plattformen browsergestützt belassen, statt anfällige Scraper zu entwickeln.
+
+### Zu Quellen mit Verbrauchszählung
+
+Alle Quellen oben lassen sich kostenlos lesen — außer **JobsPipe**, das ein Guthaben je gelieferter Stelle abrechnet. Deshalb ist es die einzige Plattform, die eine schlichte `include_jobs`-Übersicht nie anfasst: Ein geplanter Lauf könnte sonst unbemerkt ein Monatskontingent verbrauchen. Greif bewusst darauf zu — mit dem Werkzeug `workix_jobspipe_search`, per `platforms: ["jobspipe"]` oder mit `JOBSPIPE_IN_DIGEST=1`. Ein lokaler Zähler verfolgt, was dieses MCP ausgegeben hat, und startet keinen Aufruf mehr, sobald dein konfiguriertes Monatsbudget aufgebraucht ist; `workix_jobspipe_usage` zeigt den Rest.
+
+JobsPipe ist rein lesend. Es indexiert fremde Karriereseiten und hat keinen Endpunkt zum Einstellen von Anzeigen — eine Stelle landet dort nur, wenn sie auf einer Quelle liegt, die JobsPipe ohnehin durchsucht.
+
+### Zur JobSpy-Brücke
+
+Indeed, Glassdoor, ZipRecruiter, Naukri und BDjobs werden über [JobSpy](https://github.com/speedyapply/JobSpy) (MIT) gelesen, das **du** installierst: `pip install -U python-jobspy`, Python 3.10–3.12. Es passiert nichts, solange du keine dieser Plattformen ausdrücklich nennst — eine gewöhnliche Übersicht rührt sie nicht an.
+
+Wir rufen es bewusst auf, statt seinen Code zu kopieren. Diese Plattformen werden über private Endpunkte mit Zugangsdaten aus ihren eigenen Mobil-Apps gelesen; so bleiben diese Daten in deiner Installation, statt in unserem Paket weiterverteilt zu werden, und die Betreuer der Scraper pflegen sie weiter.
+
+Beachte: In unseren eigenen Tests lieferte nur Indeed Ergebnisse. Die übrigen sind von den meisten Adressen blockiert oder ratenbegrenzt, und BDjobs wirft derzeit einen Fehler innerhalb von JobSpy selbst. Ob sie bei dir funktionieren, hängt von deinem Netz ab — und ihre Nutzung ist deine Entscheidung unter den Bedingungen der jeweiligen Plattform.
+
+---
+
+**Abdeckung heute:** 64 Plattformen im Katalog, 36 davon als herunterladbare Adapter-Module. Über die Job- und Freelance-Quellen oben hinaus bedient dasselbe Modulsystem den App-Katalog **dStore** (eine Live-Website oder PWA veröffentlichen, ähnliche Apps finden) und einen optionalen **Telegram**-Kanalleser.
+
 
 Der Quellenkatalog befindet sich unter [`mcp/platforms.json`](mcp/platforms.json). Führe `workix_list_platforms` aus, um die maschinenlesbare Liste abzurufen, und `workix_sources_status`, um zu sehen, welche Integrationen mit deiner aktuellen lokalen Konfiguration verfügbar sind.
 

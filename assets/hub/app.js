@@ -804,6 +804,18 @@
       const performers = ref([]);
       const boardTags = ref([]);
       const online = ref(0);
+      // Today's presence, split by client kind (API: /stats/online)
+      const onlineHumans = ref(0);
+      const onlineAgents = ref(0);
+      /** Older API builds return only `online` — fall back to showing it as people. */
+      function applyOnline(payload) {
+        const x = payload || {};
+        const humans = Number(x.humans != null ? x.humans : x.online || 0) || 0;
+        const agents = Number(x.agents || 0) || 0;
+        onlineHumans.value = humans;
+        onlineAgents.value = agents;
+        online.value = Number(x.online != null ? x.online : humans + agents) || 0;
+      }
       const mineStartups = ref([]);
       const currentStartup = ref(null);
       const currentRole = ref(null);
@@ -812,6 +824,13 @@
       const performerOrders = computed(() => (currentPerformer.value && currentPerformer.value.orders) || []);
       const performerRoles = computed(() => (currentPerformer.value && currentPerformer.value.roles) || []);
       const currentOrder = ref(null);
+      /** Viewer's own application row for currentOrder (private; null when none). */
+      const myApplication = ref(null);
+      const applicationSaving = ref(false);
+      const applicationForm = reactive({ status: 'sent', text: '' });
+      const applicationStatuses = [
+        'draft', 'sent', 'viewed', 'reply', 'interview', 'offer', 'hired', 'rejected', 'closed',
+      ];
       const routeError = ref(null);
       const carousel = ref([]);
       const profile = ref({
@@ -1897,7 +1916,7 @@
         ]);
         roles.value = mapRoleItems(r.items);
         boardTags.value = tg.items || [];
-        online.value = Number(on.online || 0);
+        applyOnline(on);
         if (!filters.tagsOn.length) filters.tagsOn = ['all'];
         await resetFeed(feed.value);
         // Warm the other feeds lightly (first page only)
@@ -2273,8 +2292,76 @@
           currentOrder.value = null;
         }
         resetProposalForm(currentOrder.value);
+        await loadMyApplication(currentOrder.value);
         if (currentOrder.value) prefetchFxRates([currentOrder.value]);
         setTimeout(() => refreshEmojis(), 80);
+      }
+
+      function appliedLabel(n) {
+        return String(t('applied_count')).replace('{n}', String(n || 0));
+      }
+
+      function applicationStatusLabel(status) {
+        return t(`appl_status_${status || 'sent'}`);
+      }
+
+      /** Own tracker row for this listing — only fetched when the API says we applied. */
+      async function loadMyApplication(order) {
+        myApplication.value = null;
+        applicationForm.status = 'sent';
+        applicationForm.text = '';
+        if (!order || !me.value || !(order.applied && order.applied.byMe)) return;
+        try {
+          const res = await WorkixAPI.listApplications({ orderId: order.id, limit: 1 });
+          const row = (res && res.items && res.items[0]) || null;
+          myApplication.value = row;
+          if (row) {
+            applicationForm.status = row.status || 'sent';
+            applicationForm.text = row.text || '';
+          }
+        } catch (e) {
+          myApplication.value = null;
+        }
+      }
+
+      /** Mark "I applied" / update status + the text that was actually sent. */
+      async function saveMyApplication() {
+        if (!currentOrder.value) return;
+        if (!me.value) {
+          navigate('auth');
+          return;
+        }
+        applicationSaving.value = true;
+        try {
+          if (myApplication.value && myApplication.value.id) {
+            const res = await WorkixAPI.updateApplication(myApplication.value.id, {
+              status: applicationForm.status,
+              text: applicationForm.text,
+              textSource: 'user',
+            });
+            myApplication.value = (res && res.application) || myApplication.value;
+          } else {
+            const res = await WorkixAPI.trackApplication({
+              orderId: currentOrder.value.id,
+              status: applicationForm.status,
+              channel: 'web',
+              via: 'user',
+              text: applicationForm.text,
+              textSource: 'user',
+              title: currentOrder.value.title,
+            });
+            myApplication.value = (res && res.application) || null;
+            const applied = currentOrder.value.applied || { count: 0, byMe: false };
+            currentOrder.value = Object.assign({}, currentOrder.value, {
+              applied: { count: (applied.count || 0) + (applied.byMe ? 0 : 1), byMe: true },
+            });
+          }
+          showToast(t('applied_saved'));
+        } catch (e) {
+          showToast((e && e.message) || t('error') || 'Error');
+        } finally {
+          applicationSaving.value = false;
+        }
       }
 
       function publisherWallet(order, chain) {
@@ -2344,6 +2431,33 @@
           showToast((e && e.message) || t('error') || 'Error');
         } finally {
           proposalSaving.value = false;
+        }
+      }
+
+      /** Remove the tracker row; the listing itself stays in the catalog. */
+      async function deleteMyApplication() {
+        if (!myApplication.value || !myApplication.value.id) return;
+        if (!window.confirm(t('applied_delete_confirm'))) return;
+        applicationSaving.value = true;
+        try {
+          await WorkixAPI.deleteApplication(myApplication.value.id);
+          myApplication.value = null;
+          applicationForm.status = 'sent';
+          applicationForm.text = '';
+          if (currentOrder.value) {
+            const applied = currentOrder.value.applied || { count: 0, byMe: false };
+            currentOrder.value = Object.assign({}, currentOrder.value, {
+              applied: {
+                count: Math.max(0, (applied.count || 0) - (applied.byMe ? 1 : 0)),
+                byMe: false,
+              },
+            });
+          }
+          showToast(t('applied_deleted'));
+        } catch (e) {
+          showToast((e && e.message) || t('error') || 'Error');
+        } finally {
+          applicationSaving.value = false;
         }
       }
 
@@ -3301,7 +3415,7 @@
         setInterval(advanceSlogan, 7000);
 
         setInterval(() => {
-          WorkixAPI.online().then((x) => { online.value = Number(x.online || 0); }).catch(() => {});
+          WorkixAPI.online().then(applyOnline).catch(() => {});
         }, 60000);
 
         const refreshUnread = () => {
@@ -3367,12 +3481,14 @@
 
       return {
         locale, route, loading, toast, me, startups, roles, orders, performers, boardTags,
-        online, mineStartups,
+        online, onlineHumans, onlineAgents, mineStartups,
         currentStartup, currentRole, currentPerformer, currentOrder, routeError, carousel, profile, prefs, q, onceKey, keyDraft,
         performerProjects, performerOrders, performerRoles,
         keyRotating, displayedAgentKey,
         importText, apiMeta, authStore, formStartup, formRole, formApply, formSupport, formProposal,
         proposalSaving, applySaving, supportSending, walletChains, proposalCurrencies,
+        myApplication, applicationForm, applicationSaving, applicationStatuses,
+        appliedLabel, applicationStatusLabel, saveMyApplication, deleteMyApplication,
         feed, filters, slogans, sloganIndex, sloganTick, prevSlogan, currentSlogan, siteBrand,
         feedTitle, feedSearchPlaceholder,
         feedTypeOptions, openToOptions, availableTags,

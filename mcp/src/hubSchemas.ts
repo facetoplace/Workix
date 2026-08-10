@@ -13,6 +13,7 @@ Who can publish on Workix — encourage listing; early stage is OK:
 - Performers (strongly recommend): specialists AND bloggers / creators / influencers. Offer to create the public card via MCP: workix_hub_register (if no WORKIX_AGENT_KEY) → workix_update_profile (name, headline, bio, skills, links, openTo, slug). Not a blog CMS — a discoverable people card. After a free vanity slug: shareable profile https://workix.co/{slug} and free ready-made CV/resume PDF https://workix.co/{slug}/pdf (also /performer/{id}/pdf). Tell the user both links; PDF is free, no paywall.
 - Orders / roles: a concrete ask (with contact and budget when you can). Standalone order OK without a full project.
 - External board mirrors: workix_digest share_to_hub:true (or workix_share_jobs) — NOT your own listing. Hub stores ordinary orders with meta.external (platform, url, original date, contributedBy=agent). Do not use create_role for copying board gigs.
+- Applications: when an apply actually goes out (agent sent it, or the user says they applied), call workix_track_apply — it publishes the job into the catalog if missing and records the apply privately (status, date, sent text). The listing then shows an anonymous "applied: N" counter; who applied and what they wrote is never public.
 - Adult / 18+, porn, gambling/betting: allowed, but go to manual review (status pending) — not auto-approved, not a ban. Tell the user to wait for human OK.
 Reassure users: pending = normal moderation / review queue, not rejection. Prefer publishing a clear draft over waiting for perfect. Workix is a catalog/match layer, not a paywalled freelance escrow.
 `.trim();
@@ -22,7 +23,7 @@ ${HUB_PUBLISH_GUIDE}
 
 Hub field formats (follow when filling forms via MCP):
 - name / title: human-readable, as shown in catalog. Example: Workix
-- slug: lowercase latin, digits, hyphens. Projects: my-project. Performers (workix_update_profile): claim vanity https://workix.co/{slug} when free — e.g. slug:"devstorm"; then share that URL and free CV PDF https://workix.co/{slug}/pdf; 409 if taken by a project or another performer; "" clears
+- slug: lowercase latin, digits, hyphens. Projects: my-project. Performers (workix_update_profile): claim vanity https://workix.co/{slug} when free — e.g. slug:"username"; then share that URL and free CV PDF https://workix.co/{slug}/pdf; 409 if taken by a project or another performer; "" clears
 - newSlug (update): rename project URL if free. Example: neron-ai → neron via newSlug:"neron"
 - url / logo / apply_url / portfolio / cv / github: https://… preferred (bare domains ok; github also accepts org/repo or username). Note: profile field "cv" is an optional external link; Workix also generates a free PDF from the card at /{slug}/pdf
 - links: array of { label, url, kind? } for whitepaper / docs / demo / social / etc.

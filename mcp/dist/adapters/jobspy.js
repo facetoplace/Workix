@@ -1,6 +1,6 @@
 /**
  * Bridge to JobSpy (https://github.com/speedyapply/JobSpy, MIT) — Indeed,
- * Glassdoor, ZipRecruiter, Naukri and BDJobs.
+ * Glassdoor, ZipRecruiter, Naukri, BDJobs, Google Jobs, Bayt and LinkedIn.
  *
  * We shell out to the user's own `jobspy` install rather than porting its
  * scrapers. Two reasons, both deliberate:
@@ -24,6 +24,9 @@ const SITE_BY_PLATFORM = {
     ziprecruiter: "zip_recruiter",
     naukri: "naukri",
     bdjobs: "bdjobs",
+    google_jobs: "google",
+    bayt: "bayt",
+    linkedin: "linkedin",
 };
 export const JOBSPY_PLATFORMS = Object.keys(SITE_BY_PLATFORM);
 /**
@@ -53,8 +56,14 @@ const BUG_HINT = "That is an exception inside jobspy itself, not a block — upg
 const BLOCKED_HINT = "The board refused the request. Usually an IP-level block (Cloudflare) or a " +
     "rate limit rather than anything wrong on your side — try again later, from " +
     "a different IP, or pass proxies.";
+const SOCKS_HINT = "jobspy talks to the boards through `requests`, which needs PySocks before " +
+    "it can use a socks5:// proxy: pip install PySocks. Until then only http(s) " +
+    "proxies are handed over — see filterProxies().";
 /** Pick the one piece of advice that actually applies to this failure. */
 function diagnose(stderr) {
+    if (/Missing dependencies for SOCKS support/i.test(stderr)) {
+        return ` ${SOCKS_HINT}`;
+    }
     if (UPSTREAM_BUG.test(stderr))
         return ` ${BUG_HINT}`;
     if (/\b(401|invalid[_ -]?api[_ -]?key|authentication)\b/i.test(stderr))
@@ -148,6 +157,20 @@ function money(row) {
     const range = lo != null && hi != null ? `${lo}–${hi}` : String(lo ?? hi);
     return `${range} ${cur}${per}`;
 }
+/**
+ * Our proxy pool is mostly socks5, but jobspy drives `requests`, and requests
+ * cannot open a socks5 tunnel unless PySocks is installed — it raises
+ * "Missing dependencies for SOCKS support" and the board returns nothing.
+ *
+ * That failure is worse than no proxy at all: verified 2026-08-10, LinkedIn
+ * pulls fine on a direct datacenter IP and returned zero the moment it was
+ * handed a socks5 list. So hand over only what requests can definitely use,
+ * and let the caller's list shrink to empty rather than poisoning the run.
+ */
+function filterProxies(proxies) {
+    const usable = (proxies || []).filter((p) => /^https?:\/\//i.test(p));
+    return usable.length ? usable : undefined;
+}
 export async function fetchJobSpyJobs(opts) {
     const site = SITE_BY_PLATFORM[opts.platform];
     if (!site)
@@ -162,7 +185,15 @@ export async function fetchJobSpyJobs(opts) {
         results_wanted: Math.min(Math.max(opts.limit ?? 50, 1), 200),
         hours_old: opts.hours,
         location: opts.location,
-        proxies: opts.proxies?.length ? opts.proxies : undefined,
+        proxies: filterProxies(opts.proxies),
+        // Google is the one board that ignores `search_term`: jobspy pastes
+        // `google_search_term` into the Google Jobs box verbatim, so without it the
+        // board silently returns whatever Google shows for an empty query.
+        google_search_term: site === "google" ? opts.what || undefined : undefined,
+        // LinkedIn hides the body in search results; one extra request per card
+        // gets it. Off by default — it multiplies the request count on the board
+        // that rate-limits hardest (README: throttles around page 10 on one IP).
+        linkedin_fetch_description: site === "linkedin" ? opts.env.JOBSPY_LINKEDIN_DESCRIPTIONS === "1" : undefined,
     };
     const script = [
         "import json,sys",
@@ -206,6 +237,18 @@ export async function fetchJobSpyJobs(opts) {
                     diagnose(res.stderr),
             };
         }
+        // Nothing found and nothing logged. Google does exactly this — verified
+        // 2026-08-10: HTTP 200 from /search?udm=8, zero rows parsed, silence. The
+        // caller named this board explicitly, so an empty answer with no reason is
+        // still the wrong answer; name the two possibilities instead of guessing.
+        return {
+            jobs: [],
+            error: `jobspy ${opts.platform} (v${cachedVersion || "?"}) returned no rows and ` +
+                `logged no error — either the search genuinely has no matches, or the ` +
+                `board changed its markup and jobspy's parser found nothing. Widen the ` +
+                `query first; if a browser shows results for it, it is the parser: ` +
+                `https://github.com/speedyapply/JobSpy/issues`,
+        };
     }
     const now = new Date().toISOString();
     const jobs = [];

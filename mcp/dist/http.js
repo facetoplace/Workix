@@ -115,6 +115,7 @@ function once(url, opts) {
                         text,
                         ms: Date.now() - started,
                         viaProxy: Boolean(opts.proxy),
+                        finalUrl: url,
                         error: status >= 200 && status < 300
                             ? undefined
                             : `Status code ${status}`,

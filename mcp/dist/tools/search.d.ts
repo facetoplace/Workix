@@ -9,4 +9,6 @@ export declare function runSearch(args: {
     refresh?: boolean;
     include_jobs?: boolean;
     include_agent_gigs?: boolean;
+    /** Ignore the shared fetch cache and re-read every source from the network. */
+    force_refresh?: boolean;
 }): Promise<unknown>;

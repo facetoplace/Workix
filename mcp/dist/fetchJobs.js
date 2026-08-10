@@ -1,35 +1,120 @@
-import { AGENT_GIG_PLATFORMS, CORE_RSS_PLATFORMS, } from "./adapterModule.js";
+import { AGENT_GIG_PLATFORMS, CORE_RSS_PLATFORMS, JOB_BOARD_MODULES, RSS_JOB_PLATFORMS, } from "./adapterModule.js";
 import { callFetchJobs, ensurePlatforms } from "./adapterLoader.js";
+import { fetchAtsJobs } from "./adapters/ats.js";
+import { fetchHabrCareerJobs } from "./adapters/habr_career.js";
 import { JOBSPY_PLATFORMS } from "./adapters/jobspy.js";
 import { fetchProductRadarJobs } from "./adapters/product_radar.js";
 import { fetchRssJobs } from "./adapters/rss.js";
 import { fetchTelegramJobs } from "./adapters/telegram.js";
+import { pruneCache, readCache, writeCache } from "./fetchCache.js";
+import { getProxyPool } from "./proxyPool.js";
 import { upsertJobs } from "./store.js";
 function softError(err) {
     if (!err)
         return true;
     return err.includes("optional") || err.includes("missing");
 }
+/**
+ * Run a source through the shared cache. Only successful, non-empty results are
+ * stored, so a blocked board retries next run instead of staying dark for the
+ * whole TTL. Errors are never cached.
+ */
+async function cached(source, params, force, run) {
+    const hit = readCache(source, params, { force });
+    if (hit)
+        return { jobs: hit.jobs, cacheAgeMinutes: hit.ageMinutes };
+    const r = await run();
+    if (r.jobs.length)
+        writeCache(source, params, r.jobs);
+    return r;
+}
+/**
+ * RSS feeds are cached per platform, not per requested group: a session asking
+ * for three feeds and one asking for a single feed should share what overlaps.
+ * Misses still go out in one batched call so the feeds are fetched in parallel.
+ */
+async function cachedRss(ids, force, onCacheHit) {
+    const known = ids?.length ? ids : undefined;
+    if (!known) {
+        // Default set (core v1 boards) — no id list to split on, cache as one group.
+        const hit = readCache("core_rss", {}, { force });
+        if (hit) {
+            onCacheHit("core_rss", hit.ageMinutes);
+            return { jobs: hit.jobs };
+        }
+        const rss = await fetchRssJobs(undefined);
+        if (rss.jobs.length)
+            writeCache("core_rss", {}, rss.jobs);
+        return {
+            jobs: rss.jobs,
+            error: rss.errors.map((e) => `${e.platform}: ${e.error}`).join("; "),
+        };
+    }
+    const jobs = [];
+    const misses = [];
+    for (const id of known) {
+        const hit = readCache(`rss:${id}`, {}, { force });
+        if (hit) {
+            jobs.push(...hit.jobs);
+            onCacheHit(id, hit.ageMinutes);
+        }
+        else {
+            misses.push(id);
+        }
+    }
+    if (!misses.length)
+        return { jobs };
+    const rss = await fetchRssJobs(misses);
+    const byPlatform = new Map();
+    for (const j of rss.jobs) {
+        const list = byPlatform.get(j.platform) || [];
+        list.push(j);
+        byPlatform.set(j.platform, list);
+    }
+    for (const id of misses) {
+        const rows = byPlatform.get(id) || [];
+        if (rows.length)
+            writeCache(`rss:${id}`, {}, rows);
+    }
+    jobs.push(...rss.jobs);
+    return {
+        jobs,
+        error: rss.errors.map((e) => `${e.platform}: ${e.error}`).join("; "),
+    };
+}
 export async function refreshJobs(opts) {
     const platforms = opts?.platforms;
+    const force = Boolean(opts?.force_refresh);
     const errors = [];
     const collected = [];
+    const fromCache = [];
+    const note = (id, r) => {
+        if (r.cacheAgeMinutes !== undefined) {
+            fromCache.push(`${id} (${r.cacheAgeMinutes}m)`);
+        }
+    };
     const wantRss = !platforms?.length ||
         platforms.some((p) => CORE_RSS_PLATFORMS.includes(p));
     const rssIds = platforms?.filter((p) => CORE_RSS_PLATFORMS.includes(p));
+    const cacheHit = (id, age) => {
+        fromCache.push(`${id} (${age}m)`);
+    };
     if (wantRss) {
-        const rss = await fetchRssJobs(rssIds?.length ? rssIds : undefined);
-        collected.push(...rss.jobs);
-        for (const e of rss.errors)
-            errors.push(`${e.platform}: ${e.error}`);
+        const r = await cachedRss(rssIds, force, cacheHit);
+        collected.push(...r.jobs);
+        if (r.error)
+            errors.push(r.error);
     }
     const wantRadar = !platforms?.length || platforms.includes("product_radar");
     if (wantRadar) {
-        const radar = await fetchProductRadarJobs({ maxPages: 3 });
-        collected.push(...radar.jobs);
-        if (radar.error && !radar.jobs.length) {
-            errors.push(`product_radar: ${radar.error}`);
-        }
+        const r = await cached("product_radar", {}, force, async () => {
+            const radar = await fetchProductRadarJobs({ maxPages: 3 });
+            return { jobs: radar.jobs, error: radar.jobs.length ? undefined : radar.error };
+        });
+        collected.push(...r.jobs);
+        note("product_radar", r);
+        if (r.error)
+            errors.push(`product_radar: ${r.error}`);
     }
     const modulesWanted = [];
     const wantKwork = opts?.includeKwork !== false &&
@@ -43,44 +128,18 @@ export async function refreshJobs(opts) {
     if (opts?.include_jobs) {
         if (!platforms?.length || platforms.includes("hh"))
             modulesWanted.push("hh");
-        if (!platforms?.length || platforms.includes("remoteok")) {
-            modulesWanted.push("remoteok");
-        }
-        if (!platforms?.length || platforms.includes("remotive")) {
-            modulesWanted.push("remotive");
-        }
-        if (!platforms?.length || platforms.includes("arbeitnow")) {
-            modulesWanted.push("arbeitnow");
-        }
-        if (!platforms?.length || platforms.includes("adzuna")) {
-            modulesWanted.push("adzuna");
-        }
-        if (!platforms?.length || platforms.includes("himalayas")) {
-            modulesWanted.push("himalayas");
-        }
-        if (!platforms?.length || platforms.includes("weworkremotely")) {
-            modulesWanted.push("weworkremotely");
-        }
-        if (!platforms?.length || platforms.includes("jobicy")) {
-            modulesWanted.push("jobicy");
-        }
         if (!platforms?.length || platforms.includes("dreamoffer")) {
             modulesWanted.push("dreamoffer");
         }
-        if (!platforms?.length || platforms.includes("working_nomads")) {
-            modulesWanted.push("working_nomads");
-        }
-        if (!platforms?.length || platforms.includes("themuse")) {
-            modulesWanted.push("themuse");
-        }
-        if (!platforms?.length || platforms.includes("four_day_week")) {
-            modulesWanted.push("four_day_week");
-        }
-        if (!platforms?.length || platforms.includes("aidevboard")) {
-            modulesWanted.push("aidevboard");
-        }
-        if (!platforms?.length || platforms.includes("aquent")) {
-            modulesWanted.push("aquent");
+        for (const board of JOB_BOARD_MODULES) {
+            if (platforms?.length && !platforms.includes(board.platform))
+                continue;
+            if (board.metered &&
+                !platforms?.includes(board.platform) &&
+                process.env[board.metered] !== "1") {
+                continue;
+            }
+            modulesWanted.push(board.module || board.platform);
         }
     }
     if (opts?.include_agent_gigs) {
@@ -123,60 +182,38 @@ export async function refreshJobs(opts) {
             if (hh.error)
                 errors.push(`hh: ${hh.error}`);
         }
-        if (!platforms?.length || platforms.includes("remoteok")) {
-            const rok = await callFetchJobs("remoteok");
-            collected.push(...rok.jobs);
-            if (rok.error)
-                errors.push(`remoteok: ${rok.error}`);
-        }
-        if (!platforms?.length || platforms.includes("remotive")) {
-            const rem = await callFetchJobs("remotive");
-            collected.push(...rem.jobs);
-            if (rem.error)
-                errors.push(`remotive: ${rem.error}`);
-        }
-        if (!platforms?.length || platforms.includes("arbeitnow")) {
-            const an = await callFetchJobs("arbeitnow");
-            collected.push(...an.jobs);
-            if (an.error)
-                errors.push(`arbeitnow: ${an.error}`);
-        }
-        if (!platforms?.length || platforms.includes("adzuna")) {
-            const adz = await callFetchJobs("adzuna");
-            collected.push(...adz.jobs);
-            if (adz.error && !softError(adz.error)) {
-                errors.push(`adzuna: ${adz.error}`);
+        for (const board of JOB_BOARD_MODULES) {
+            if (platforms?.length && !platforms.includes(board.platform))
+                continue;
+            if (board.metered &&
+                !platforms?.includes(board.platform) &&
+                process.env[board.metered] !== "1") {
+                continue;
             }
-        }
-        if (!platforms?.length || platforms.includes("himalayas")) {
-            const him = await callFetchJobs("himalayas");
-            collected.push(...him.jobs);
-            if (him.error)
-                errors.push(`himalayas: ${him.error}`);
-        }
-        if (!platforms?.length || platforms.includes("weworkremotely")) {
-            const wwr = await callFetchJobs("weworkremotely");
-            collected.push(...wwr.jobs);
-            if (wwr.error)
-                errors.push(`weworkremotely: ${wwr.error}`);
-        }
-        if (!platforms?.length || platforms.includes("jobicy")) {
-            const jic = await callFetchJobs("jobicy");
-            collected.push(...jic.jobs);
-            if (jic.error)
-                errors.push(`jobicy: ${jic.error}`);
+            const params = board.keywords ? { keywords: opts.keywords } : {};
+            const r = await cached(board.platform, params, force, () => callFetchJobs(board.module || board.platform, board.keywords ? { keywords: opts.keywords } : undefined));
+            collected.push(...r.jobs);
+            note(board.platform, r);
+            if (r.error && !(board.soft && softError(r.error))) {
+                errors.push(`${board.platform}: ${r.error}`);
+            }
         }
         // JobSpy-backed boards are opt-in only — never on a bare include_jobs.
         // They need Python plus the optional `jobspy` package and a single board
         // can take minutes, so pulling them by default would make every digest
         // slow and noisy for the majority who have not installed it.
-        for (const p of JOBSPY_PLATFORMS) {
-            if (!platforms?.includes(p))
-                continue;
+        const jobspyWanted = JOBSPY_PLATFORMS.filter((p) => platforms?.includes(p));
+        // Every board behind this bridge blocks datacenter IPs to some degree —
+        // verified 2026-08-10: Bayt answers 403 direct, LinkedIn throttles around
+        // page 10 from one address. jobspy rotates whatever list it is handed, so
+        // give it the same pool the rest of our adapters use.
+        const jobspyProxies = jobspyWanted.length ? await getProxyPool() : [];
+        for (const p of jobspyWanted) {
             const js = await callFetchJobs("jobspy", {
                 platform: p,
                 what: opts.hh_text || (opts.keywords || []).join(" ") || undefined,
                 limit: 50,
+                proxies: jobspyProxies.length ? jobspyProxies.slice(0, 10) : undefined,
             });
             collected.push(...js.jobs);
             // Always surface, never softError(): these run only when the caller named
@@ -195,41 +232,38 @@ export async function refreshJobs(opts) {
             if (dream.error)
                 errors.push(`dreamoffer: ${dream.error}`);
         }
-        if (!platforms?.length || platforms.includes("working_nomads")) {
-            const wn = await callFetchJobs("working_nomads");
-            collected.push(...wn.jobs);
-            if (wn.error)
-                errors.push(`working_nomads: ${wn.error}`);
-        }
-        if (!platforms?.length || platforms.includes("themuse")) {
-            const muse = await callFetchJobs("themuse");
-            collected.push(...muse.jobs);
-            if (muse.error)
-                errors.push(`themuse: ${muse.error}`);
-        }
-        if (!platforms?.length || platforms.includes("four_day_week")) {
-            const fdw = await callFetchJobs("four_day_week");
-            collected.push(...fdw.jobs);
-            if (fdw.error)
-                errors.push(`four_day_week: ${fdw.error}`);
-        }
-        if (!platforms?.length || platforms.includes("aidevboard")) {
-            const ai = await callFetchJobs("aidevboard");
-            collected.push(...ai.jobs);
-            if (ai.error)
-                errors.push(`aidevboard: ${ai.error}`);
-        }
-        if (!platforms?.length || platforms.includes("aquent")) {
-            const aq = await callFetchJobs("aquent");
-            collected.push(...aq.jobs);
-            if (aq.error)
-                errors.push(`aquent: ${aq.error}`);
+        // Employer ATS boards live in core: the company list is a repo file, so a
+        // downloadable module would resolve it to its own install dir and find none.
+        if (!platforms?.length || platforms.includes("ats")) {
+            const r = await cached("ats", { keywords: opts.keywords }, force, () => fetchAtsJobs({ keywords: opts.keywords }));
+            collected.push(...r.jobs);
+            note("ats", r);
+            if (r.error && !softError(r.error))
+                errors.push(`ats: ${r.error}`);
         }
         if (!platforms?.length || platforms.includes("habr_career")) {
-            const habr = await fetchRssJobs(["habr_career"]);
-            collected.push(...habr.jobs);
-            for (const e of habr.errors)
-                errors.push(`${e.platform}: ${e.error}`);
+            const r = await cached("habr_career", { keywords: opts.keywords }, force, async () => {
+                const habr = await fetchHabrCareerJobs({ keywords: opts.keywords });
+                if (habr.jobs.length)
+                    return habr;
+                // The frontend JSON is unversioned — fall back to the RSS we used before.
+                const rss = await fetchRssJobs(["habr_career"]);
+                return {
+                    jobs: rss.jobs,
+                    error: rss.jobs.length ? undefined : habr.error,
+                };
+            });
+            collected.push(...r.jobs);
+            note("habr_career", r);
+            if (r.error)
+                errors.push(`habr_career: ${r.error}`);
+        }
+        const rssBoards = RSS_JOB_PLATFORMS.filter((id) => !platforms?.length || platforms.includes(id));
+        if (rssBoards.length) {
+            const r = await cachedRss(rssBoards, force, cacheHit);
+            collected.push(...r.jobs);
+            if (r.error)
+                errors.push(r.error);
         }
     }
     if (opts?.include_agent_gigs) {
@@ -269,5 +303,7 @@ export async function refreshJobs(opts) {
             errors.push(`telegram: ${tg.error}`);
     }
     const stored = upsertJobs(collected);
-    return { jobs: stored, errors };
+    // Cheap and self-limiting: drops only rows already past their TTL.
+    pruneCache();
+    return { jobs: stored, errors, cached: fromCache };
 }

@@ -55,6 +55,7 @@ export async function runOutreachList(args) {
         status,
         contact: args.contact,
         channel: args.channel,
+        jobId: args.job_id,
         limit: args.limit,
     });
     return {

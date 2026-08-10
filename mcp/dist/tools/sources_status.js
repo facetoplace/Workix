@@ -1,14 +1,68 @@
 import { callFetchJobs, getAdapter } from "../adapterLoader.js";
+import { loadAtsCompanies } from "../adapters/ats.js";
+import { jobspipeUsage } from "../adapters/jobspipe.js";
 import { pingProductRadar } from "../adapters/product_radar.js";
 import { pingRssPlatform } from "../adapters/rss.js";
 import { loadEnv } from "../env.js";
 import { proxyPoolInfo } from "../proxyPool.js";
+/** Boards that stay dark until their key is in env — and where to get one. */
+const KEYED_BOARDS = [
+    {
+        platform: "adzuna",
+        env: ["ADZUNA_APP_ID", "ADZUNA_APP_KEY"],
+        signup: "https://developer.adzuna.com/",
+    },
+    {
+        // Their dashboard spells it JOBS_PIPE_KEY; either name works.
+        platform: "jobspipe",
+        env: ["JOBSPIPE_API_KEY|JOBS_PIPE_KEY"],
+        signup: "https://jobspipe.dev/agent",
+    },
+    {
+        platform: "usajobs",
+        env: ["USAJOBS_API_KEY", "USAJOBS_EMAIL"],
+        signup: "https://developer.usajobs.gov/apirequest/",
+    },
+    {
+        platform: "superjob",
+        env: ["SUPERJOB_APP_ID"],
+        signup: "https://api.superjob.ru/",
+    },
+    {
+        platform: "careerjet",
+        env: ["CAREERJET_AFFID"],
+        signup: "https://www.careerjet.com/partners/",
+    },
+    {
+        platform: "jooble",
+        env: ["JOOBLE_API_KEY"],
+        signup: "https://jooble.org/api/about",
+    },
+];
 export async function runSourcesStatus() {
     loadEnv();
     const pool = await proxyPoolInfo();
-    const rssIds = ["fl_ru", "freelance_ru", "weblancer_net", "habr_career"];
+    const rssIds = [
+        "fl_ru",
+        "freelance_ru",
+        "weblancer_net",
+        "habr_career",
+        "djinni",
+        "jobspresso",
+        "reddit",
+    ];
     const rss = await Promise.all(rssIds.map((id) => pingRssPlatform(id)));
     const product_radar = await pingProductRadar();
+    // Key-gated boards: read env rather than loading the modules, so status stays
+    // instant and works before the adapter registry has been published.
+    // "A|B" means either name is accepted; a bare name is required.
+    const keyed = KEYED_BOARDS.map((b) => ({
+        platform: b.platform,
+        configured: b.env.every((slot) => slot.split("|").some((k) => Boolean(process.env[k]?.trim()))),
+        env: b.env,
+        signup: b.signup,
+    }));
+    const atsCompanies = loadAtsCompanies();
     const kworkMod = await getAdapter("kwork");
     const kworkConfigured = typeof kworkMod?.configured === "function" ? kworkMod.configured() : false;
     let kwork = { configured: kworkConfigured, skipped: true };
@@ -74,6 +128,7 @@ export async function runSourcesStatus() {
         };
     }
     const okCount = rss.filter((r) => r.ok).length;
+    const keyedOn = keyed.filter((k) => k.configured).length;
     return {
         proxy_pool: pool,
         rss,
@@ -82,9 +137,16 @@ export async function runSourcesStatus() {
         freelancehunt,
         upwork,
         freelancer_com,
+        ats: {
+            companies: atsCompanies.length,
+            providers: [...new Set(atsCompanies.map((c) => c.ats))],
+            note: "Employer boards from mcp/ats-companies.json (or ATS_COMPANIES env)",
+        },
+        keyed_boards: keyed,
+        jobspipe: jobspipeUsage(),
         adapters: {
             note: "Heavy board adapters are downloaded from the hub registry on first use",
         },
-        summary: `RSS ok ${okCount}/${rss.length}; product_radar=${product_radar.ok ? "ok" : "fail"}; upwork=${upworkConfigured ? "on" : "off"}; freelancer=${freelancerConfigured ? "on" : "off"}`,
+        summary: `RSS ok ${okCount}/${rss.length}; product_radar=${product_radar.ok ? "ok" : "fail"}; upwork=${upworkConfigured ? "on" : "off"}; freelancer=${freelancerConfigured ? "on" : "off"}; keyed boards ${keyedOn}/${keyed.length}; ats companies ${atsCompanies.length}`,
     };
 }

@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-06",
+  "updated": "2026-08-11",
   "note": "Canonical shared catalog for Workix MCP. Copy to local telegram-channels.json (gitignored) for personal overrides. PRs: edit THIS file — see TELEGRAM-CHANNELS.md / CONTRIBUTING.md. Do not commit private invites or personal lists. Login: TELEGRAM.md.",
   "channels": [
     {
@@ -204,6 +204,78 @@
       "priority": "high",
       "note": "RU freelance gigs + remote jobs; ads via @StetsMedia",
       "verified_at": "2026-08-06"
+    },
+    {
+      "id": "BlockHire",
+      "title": "BlockHire | Web3 Вакансии",
+      "url": "https://t.me/BlockHire",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "note": "RU fintech/web3/crypto + широкий стек (Go, Node, .NET, QA, DevOps); remote/hybrid RU/EU/Cyprus",
+      "verified_at": "2026-08-11"
+    },
+    {
+      "id": "runello_rus_frontend",
+      "title": "Runello — Front-end",
+      "url": "https://t.me/runello_rus_frontend",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "note": "Runello агрегатор; отклик через @RunelloBot / source ATS",
+      "verified_at": "2026-08-11"
+    },
+    {
+      "id": "runello_rus_typescript",
+      "title": "Runello — TypeScript",
+      "url": "https://t.me/runello_rus_typescript",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "note": "Часто fullstack TS; @RunelloBot",
+      "verified_at": "2026-08-11"
+    },
+    {
+      "id": "runello_rus_javascript",
+      "title": "Runello — JavaScript",
+      "url": "https://t.me/runello_rus_javascript",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "note": "JS/TS, в т.ч. automation; @RunelloBot",
+      "verified_at": "2026-08-11"
+    },
+    {
+      "id": "runello_rus_backend",
+      "title": "Runello — Backend",
+      "url": "https://t.me/runello_rus_backend",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "note": "Python/Go/Java; рядом tech lead и fullstack; @RunelloBot",
+      "verified_at": "2026-08-11"
+    },
+    {
+      "id": "runello_rus_prompt",
+      "title": "Runello — AI / ML / LLM",
+      "url": "https://t.me/runello_rus_prompt",
+      "kind": "jobs_feed",
+      "priority": "low",
+      "note": "Data Science / LLM; иногда AI+mobile; @RunelloBot",
+      "verified_at": "2026-08-11"
+    },
+    {
+      "id": "remotejobss",
+      "title": "Remote Jobs (EN)",
+      "url": "https://t.me/remotejobss",
+      "kind": "jobs_feed",
+      "priority": "low",
+      "note": "Крупный EN remote feed; высокий шум — фильтруй keywords",
+      "verified_at": "2026-08-11"
+    },
+    {
+      "id": "productradar_chat",
+      "title": "Product Radar Chat",
+      "url": "https://t.me/productradar_chat",
+      "kind": "community",
+      "priority": "low",
+      "note": "Обсуждения, не лента вакансий; «набираю команду» ловится точечным поиском. Не спамить",
+      "verified_at": "2026-08-11"
     }
   ],
   "removed_dead": [
@@ -218,6 +290,8 @@
     { "id": "android_jobs", "reason": "в основном #резюме соискателей" },
     { "id": "ios_jobs", "reason": "мало вакансий / шум" },
     { "id": "MobileDevRemote", "reason": "крошечный AI-агрегатор, не mobile-first" },
-    { "id": "work_hr", "reason": "вакансии для HR, не для разработчиков" }
+    { "id": "work_hr", "reason": "вакансии для HR, не для разработчиков" },
+    { "id": "devops_jobs", "reason": "жив и активен, но это чат-болталка, а не лента вакансий (peek 2026-08-11)" },
+    { "id": "habr_career", "reason": "официальный контент-канал Хабр Карьеры: статьи + дайджесты-ссылки, не отдельные вакансии; сами вакансии берём из Habr RSS (peek 2026-08-11)" }
   ]
 }

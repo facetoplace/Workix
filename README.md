@@ -68,6 +68,9 @@ With `WORKIX_API=https://workix.co`, an agent can search projects, roles, orders
 
 **Recommended:** install MCP from this repository’s source (freshest tools and adapters). npm/`npx` is optional and may lag behind git.
 
+Requires **Node 22.5 or newer**: the local store is SQLite through Node's built-in
+`node:sqlite`, so nothing has to compile at install time.
+
 ```bash
 git clone https://github.com/facetoplace/Workix.git
 cd Workix/mcp
@@ -143,8 +146,16 @@ The **Automation policy** column is deliberately conservative. Platform terms an
 | **HH.ru** | Official API | Browser | **4/5** | Official API rules and required user agent | Improve project/remote filters; API apply is optional |
 | **Remote OK** | Public API | Employer's site | **4/5** | Public feed; employer rules apply after redirect | Improve tag and technology filters |
 | **Remotive · Arbeitnow · Himalayas · Jobicy · Working Nomads · The Muse · 4 Day Week · AI Dev Jobs** | Public API | Employer's site | **4/5** | Public feeds; employer rules apply after redirect | Keep as `include_jobs` digest sources |
-| **We Work Remotely · Aquent** | Public RSS | Employer's site | **4/5** | Public feeds; employer rules apply after redirect | Keep as `include_jobs` digest sources |
+| **We Work Remotely · Aquent · Jobspresso** | Public RSS | Employer's site | **4/5** | Public feeds; employer rules apply after redirect | Keep as `include_jobs` digest sources |
+| **Employer ATS boards** (Greenhouse · Ashby · Lever · SmartRecruiters · Workable) | Public per-company API | Employer's own board | **4/5** | Public career-board endpoints; the apply link is the employer's | Widen the company list in `ats-companies.json` |
+| **Trudvsem (Работа России)** | Public open-data API | External | **4/5** | State open data; no account access | Add region presets; posting needs national e-signature and is out of scope |
+| **NoFluffJobs · Landing.jobs · Get on Board** | Public API | Employer's site | **4/5** | Public feeds; employer rules apply after redirect | Keep as `include_jobs` digest sources |
+| **Djinni** | Public RSS | Account on the board | **3/5** | Public feed; apply stays human-controlled | Keep as an `include_jobs` source |
 | **Adzuna** | Official API with your own keys | Employer's site | **4/5** | Registered API keys; free tier is rate-limited | Keep as `include_jobs`; surface quota errors clearly |
+| **JobsPipe** (LinkedIn · Indeed · Y Combinator · Greenhouse · Lever · Ashby · SmartRecruiters · Workday · Workable · Paylocity) | Official API with your own key | Employer's site | **4/5** | Metered: one credit per job returned; your key, your quota | Kept out of the automatic digest on purpose — see below |
+| **USAJOBS · Careerjet · Jooble** | Official API with your own key | External | **4/5** | Free keys; each has its own rules | Keep as `include_jobs` once the key is set |
+| **SuperJob** | Official API with your own key | Browser | **3/5** | Official API rules | Answers 403 from datacenter addresses; needs a key and often a proxy |
+| **Reddit** (r/forhire and similar) | Public Atom feed | Manual comment or DM | **2/5** | **No automated posting or DMs** | Feed only; the JSON API needs a registered OAuth app |
 | **Dream Offer** | Public HTTP feed | Employer's site | **3/5** | Public feed; no account access | Watch for feed changes |
 | **Claw Earn · SeekClaw · Openwork** | Agent API | Agent API | **4/5** | Agent-native boards; submission through their own API | Keep in `include_agent_gigs`; open listings are often empty |
 | **Superteam Earn** | Agent API with your own key | Agent API | **4/5** | Requires `SUPERTEAM_EARN_API_KEY` | Keep in `include_agent_gigs` |
@@ -155,7 +166,7 @@ The **Automation policy** column is deliberately conservative. Platform terms an
 | **Indeed** | JobSpy bridge (optional, needs Python) | Employer's site | **3/5** | Runs through your own `python-jobspy` install, under its terms and yours | Keep as an opt-in bridge; no scraper of our own |
 | **Glassdoor · ZipRecruiter · Naukri** | JobSpy bridge (optional, needs Python) | Employer's site | **1/5** | Same bridge; these answer 403 or time out from most addresses | Wired but unreliable — depends on your network |
 | **BDjobs** | JobSpy bridge — **broken upstream** | Employer's site | **1/5** | Blocked by a bug in `python-jobspy`, not by the board | Waiting on an upstream fix; listed so it is not mistaken for misconfiguration |
-| **Habr Career** | Browser watch | Browser | **2/5** | Public pages/RSS only; no mass apply | Add RSS to the shared digest |
+| **Habr Career** | Public frontend JSON, RSS fallback | Browser | **4/5** | Public endpoints only; no mass apply | Carries salary, grade and skills; RSS remains the fallback |
 | **Fiverr · SproutGigs** | Browser watch | Browser | **2/5** | Inbound briefs and manual offers; no scraper | Keep browser-assisted |
 | **Avito Services · YouDo** | Browser watch | Browser | **2/5** | Manual capture; no bypass of account rules | Keep browser-assisted |
 | **Product Radar / StartupFellows** | Browser or Telegram watch | External form or contact | **2/5** | Curated watch; manual contact | Keep as curated watch sources |
@@ -170,8 +181,14 @@ The current development order is:
 
 1. Stabilize Freelancer.com and complete the Upwork OAuth/apply workflow.
 2. Improve FL.ru, Freelance.ru, Weblancer, and Kwork reliability.
-3. Add better filters for Remote OK and HH.ru, then add Habr Career RSS.
+3. Add better filters for Remote OK and HH.ru, and grow the employer ATS company list.
 4. Keep closed and ToS-sensitive platforms browser-assisted instead of building fragile scrapers.
+
+### About metered sources
+
+Every source above is free to read except **JobsPipe**, which charges one credit per job it returns. Because of that it is the one board a plain `include_jobs` digest never touches — otherwise a scheduled digest could spend a monthly quota without anyone noticing. Reach it deliberately with the `workix_jobspipe_search` tool, by naming `platforms: ["jobspipe"]`, or by opting in with `JOBSPIPE_IN_DIGEST=1`. A local counter tracks what this MCP spent and refuses to start a call once your configured monthly budget is gone; `workix_jobspipe_usage` shows what is left.
+
+JobsPipe is read-only. It indexes other people's boards and has no endpoint for submitting a posting, so publishing a job through it is not possible — a listing reaches that index only by living on a source it already crawls.
 
 ### About the JobSpy bridge
 
@@ -183,7 +200,7 @@ Be aware that only Indeed returned results in our own testing. The rest are bloc
 
 ---
 
-**Coverage today:** 51 platforms in the catalog, 31 shipped as downloadable adapter modules. Beyond the job and freelance sources above, the same module system serves the **dStore** app catalog (publish a live site or PWA, find similar apps) and an optional **Telegram** channel reader.
+**Coverage today:** 64 platforms in the catalog, 36 shipped as downloadable adapter modules. Beyond the job and freelance sources above, the same module system serves the **dStore** app catalog (publish a live site or PWA, find similar apps) and an optional **Telegram** channel reader.
 
 The source catalog is [`mcp/platforms.json`](mcp/platforms.json). Run `workix_list_platforms` for the machine-readable list and `workix_sources_status` to see which integrations are available with your current local configuration.
 

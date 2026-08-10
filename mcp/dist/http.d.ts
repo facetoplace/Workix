@@ -5,6 +5,9 @@ export interface FetchResult {
     ms: number;
     viaProxy: boolean;
     error?: string;
+    /** Where the request actually landed after redirects — a removed posting
+     *  often 200s on the site root, which the status code alone hides. */
+    finalUrl?: string;
 }
 export declare function fetchText(url: string, opts?: {
     headers?: Record<string, string>;
