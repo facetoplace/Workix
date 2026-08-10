@@ -12,7 +12,21 @@ Thumbs.db
 # Local scratch, not part of the public surface
 assets/gist/
 .cursor/
-
-# mcp/dist is published on purpose (clone → run without local tsc)
 views/app_1.5.html
 views/test.html
+
+# Never public: personal watch lists, sessions, keys, generated share cards.
+# The sync already skips these; this is the second lock, in case one lands here by hand.
+mcp/profile.md
+mcp/telegram-channels.json
+mcp/registry.local.json
+mcp/.adapter-pack/
+mcp/.mcp-publisher/
+mcp/mcp-publisher.exe
+assets/users/
+assets/og/
+*.pem
+*.key
+*.hex
+
+# mcp/dist is published on purpose (clone → run without local tsc)

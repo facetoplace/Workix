@@ -19,7 +19,7 @@
     if (!u) return '';
     if (/^www\./i.test(u)) u = `https://${u}`;
     if (/^(https?:|mailto:|tel:|\/|#)/i.test(u)) return u;
-    // bare domain / path (skynes.dev, github.com/user)
+    // bare domain / path (example.dev, github.com/user)
     if (/^[\w.-]+\.[\w.-]+([/?#][^\s]*)?$/i.test(u) && !/\s/.test(u)) return `https://${u}`;
     return '';
   }
