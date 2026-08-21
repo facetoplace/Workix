@@ -2,6 +2,8 @@
 
 **Languages:** [English](README.md) · [Русский](README.ru.md) · [Español](README.es.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Türkçe](README.tr.md) · [Українська](README.uk.md) · [हिन्दी](README.hi.md) · [中文](README.zh.md)
 
+![Workix](./assets/img/workix-cover-v8-green-angular-w-agents-api-rss.png)
+
 Workix is a place where people, projects, and work find each other.
 
 The [Workix hub](https://workix.co) brings three things into one catalog:
