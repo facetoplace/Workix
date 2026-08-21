@@ -1,4 +1,4 @@
-import type { Job } from "./types.js";
+import type { Job, JobKind } from "./types.js";
 export interface KeywordMatch {
     score: number;
     hits: string[];
@@ -27,7 +27,7 @@ export declare function filterJobs(jobs: Job[], opts: {
     platforms?: string[];
     since?: string;
     min_budget?: number;
-    kinds?: Array<"gig" | "job" | "service">;
+    kinds?: JobKind[];
     /** Domain terms that carry a card on their own (see matchesKeywords). */
     strong?: string[];
     minScore?: number;

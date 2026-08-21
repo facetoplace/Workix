@@ -1,3 +1,4 @@
+import { dedupeJobs } from "../dedupe.js";
 import { refreshJobs } from "../fetchJobs.js";
 import { parseProfileFilters } from "../profile.js";
 import { cardSummary, filterJobs } from "../summarize.js";
@@ -39,20 +40,26 @@ export async function runSearch(args: {
     servedFromCache = r.cached;
   }
 
-  const filtered = filterJobs(listJobs(), {
-    hours: args.hours,
-    since: args.since,
-    keywords,
-    minus,
-    platforms: args.platforms,
-    min_budget: profile.min_budget,
-  });
+  // Same posting under one city slug per row (NoFluff and other regional
+  // boards) — collapse, including clones the store learned before dedupe.ts.
+  const collapsed = dedupeJobs(
+    filterJobs(listJobs(), {
+      hours: args.hours,
+      since: args.since,
+      keywords,
+      minus,
+      platforms: args.platforms,
+      min_budget: profile.min_budget,
+    }),
+  );
+  const filtered = collapsed.jobs;
 
   const page = filtered.slice(offset, offset + limit);
   return {
     total: filtered.length,
     offset,
     limit,
+    ...(collapsed.collapsed ? { duplicates_collapsed: collapsed.collapsed } : {}),
     ...(servedFromCache.length ? { served_from_cache: servedFromCache } : {}),
     results: page.map((j) => cardSummary(j, keywords)),
   };

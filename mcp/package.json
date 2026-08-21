@@ -1,6 +1,6 @@
 {
   "name": "@workix/mcp",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Remote jobs, freelance gigs and vacancies from 24 boards — Upwork, Freelancer.com, hh.ru, Kwork, RemoteOK, WeWorkRemotely, Adzuna and more — for AI agents over MCP. Search, digest, draft proposals and prepare apply steps; plus the Workix hub of startups, open roles and performers. Board adapters run locally, so platform credentials never leave your machine. Hub: https://workix.co — agent docs: https://workix.co/agent",
   "type": "module",
   "main": "dist/index.js",

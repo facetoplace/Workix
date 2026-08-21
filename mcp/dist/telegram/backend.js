@@ -55,13 +55,13 @@ export async function getAuthState() {
     const a = await td.getAuthState();
     return { ...a, backend, reason };
 }
-export async function searchChat(chatRef, query, limit = 20) {
+export async function searchChat(chatRef, query, limit = 20, since) {
     const { backend } = await resolveBackend();
     if (backend === "gramjs")
-        return gramjsSearchChat(chatRef, query, limit);
+        return gramjsSearchChat(chatRef, query, limit, since);
     if (backend === "tdlib") {
         const td = await import("./tdlib.js");
-        return td.searchChat(chatRef, query, limit);
+        return td.searchChat(chatRef, query, limit, since);
     }
     throw new Error("No Telegram backend — npm install telegram");
 }

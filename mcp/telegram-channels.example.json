@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-11",
+  "updated": "2026-08-17",
   "note": "Canonical shared catalog for Workix MCP. Copy to local telegram-channels.json (gitignored) for personal overrides. PRs: edit THIS file — see TELEGRAM-CHANNELS.md / CONTRIBUTING.md. Do not commit private invites or personal lists. Login: TELEGRAM.md.",
   "channels": [
     {
@@ -276,22 +276,568 @@
       "priority": "low",
       "note": "Обсуждения, не лента вакансий; «набираю команду» ловится точечным поиском. Не спамить",
       "verified_at": "2026-08-11"
+    },
+    {
+      "id": "forallmobile",
+      "title": "Job for Mobile: iOS, Android, React Native",
+      "url": "https://t.me/forallmobile",
+      "kind": "jobs_feed",
+      "priority": "high",
+      "lang": "ru",
+      "note": "Мобильная разработка: iOS/Android/RN/Flutter. Сеть «Job for …», живая лента",
+      "verified_at": "2026-08-11"
+    },
+    {
+      "id": "Remoteit",
+      "title": "Remote IT (Inflow)",
+      "url": "https://t.me/Remoteit",
+      "kind": "jobs_feed",
+      "priority": "high",
+      "lang": "ru",
+      "note": "Удалёнка по IT, ежедневные посты",
+      "verified_at": "2026-08-11"
+    },
+    {
+      "id": "mobiledevjob",
+      "title": "Mobile jobs",
+      "url": "https://t.me/mobiledevjob",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "lang": "ru",
+      "note": "Вакансии мобильных разработчиков",
+      "verified_at": "2026-08-11"
+    },
+    {
+      "id": "forfrontend",
+      "title": "Job for Frontend (JavaScript + Node.js)",
+      "url": "https://t.me/forfrontend",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "lang": "ru",
+      "note": "Фронтенд и Node.js",
+      "verified_at": "2026-08-11"
+    },
+    {
+      "id": "job_webdev",
+      "title": "Работа — вёрстка и фронтенд",
+      "url": "https://t.me/job_webdev",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "lang": "ru",
+      "note": "Вёрстка/фронтенд, часто разовые проекты",
+      "verified_at": "2026-08-11"
+    },
+    {
+      "id": "javascript_jobs_feed",
+      "title": "JavaScript Jobs — вакансии и резюме",
+      "url": "https://t.me/javascript_jobs_feed",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "lang": "ru",
+      "note": "Лента JS/React; резюме вперемешку с вакансиями",
+      "verified_at": "2026-08-11"
+    },
+    {
+      "id": "forgoandrust",
+      "title": "Job for Go, Rust Developers",
+      "url": "https://t.me/forgoandrust",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "lang": "ru",
+      "note": "Go/Rust, преимущественно senior",
+      "verified_at": "2026-08-11"
+    },
+    {
+      "id": "java_c_net_golang_jobs",
+      "title": "Вакансии .NET, Java, C#, C++, Golang",
+      "url": "https://t.me/java_c_net_golang_jobs",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "lang": "ru",
+      "note": "Бэкенд на JVM/.NET/C++/Go",
+      "verified_at": "2026-08-11"
+    },
+    {
+      "id": "alljvmjobs",
+      "title": "JVM Jobs",
+      "url": "https://t.me/alljvmjobs",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "lang": "ru",
+      "note": "Java/Kotlin/Scala/Clojure",
+      "verified_at": "2026-08-11"
+    },
+    {
+      "id": "jobforphp",
+      "title": "Job for PHP",
+      "url": "https://t.me/jobforphp",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "lang": "ru",
+      "note": "PHP-разработка",
+      "verified_at": "2026-08-11"
+    },
+    {
+      "id": "forruby",
+      "title": "Job for Ruby & Elixir",
+      "url": "https://t.me/forruby",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "lang": "ru",
+      "note": "Ruby/Elixir",
+      "verified_at": "2026-08-11"
+    },
+    {
+      "id": "forallqa",
+      "title": "Job for QA",
+      "url": "https://t.me/forallqa",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "lang": "ru",
+      "note": "QA / автотесты",
+      "verified_at": "2026-08-11"
+    },
+    {
+      "id": "datasciencejobs",
+      "title": "Data Science Jobs",
+      "url": "https://t.me/datasciencejobs",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "lang": "en",
+      "note": "DS/ML; дополняет NLP_jobs",
+      "verified_at": "2026-08-11"
+    },
+    {
+      "id": "foranalysts",
+      "title": "Job for Analysts & Data Scientists",
+      "url": "https://t.me/foranalysts",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "lang": "ru",
+      "note": "Аналитика и data science",
+      "verified_at": "2026-08-11"
+    },
+    {
+      "id": "forproducts",
+      "title": "Job for Products and Projects",
+      "url": "https://t.me/forproducts",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "lang": "ru",
+      "note": "Продакт/проджект-роли",
+      "verified_at": "2026-08-11"
+    },
+    {
+      "id": "product_jobs",
+      "title": "Вакансии для продактов и проджектов",
+      "url": "https://t.me/product_jobs",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "lang": "ru",
+      "note": "Продакт/проджект, отдельная лента",
+      "verified_at": "2026-08-11"
+    },
+    {
+      "id": "Relocats",
+      "title": "IT Relocation (Inflow)",
+      "url": "https://t.me/Relocats",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "lang": "ru",
+      "note": "Релокация за рубеж; сестринский канал Remoteit",
+      "verified_at": "2026-08-11"
+    },
+    {
+      "id": "jobscode_infull",
+      "title": "Jobs Code | In full",
+      "url": "https://t.me/jobscode_infull",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "lang": "ru",
+      "note": "Широкая IT-лента, ежедневно",
+      "verified_at": "2026-08-11"
+    },
+    {
+      "id": "geekjobs",
+      "title": "Job in IT & Digital",
+      "url": "https://t.me/geekjobs",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "lang": "ru",
+      "note": "IT и digital, крупные компании",
+      "verified_at": "2026-08-11"
+    },
+    {
+      "id": "zizu_IT_RU",
+      "title": "IT вакансии для всех",
+      "url": "https://t.me/zizu_IT_RU",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "lang": "ru",
+      "note": "Широкая лента: QA, фронт, бэк, UI/UX",
+      "verified_at": "2026-08-11"
+    },
+    {
+      "id": "jobforjunior",
+      "title": "Job for Junior",
+      "url": "https://t.me/jobforjunior",
+      "kind": "jobs_feed",
+      "priority": "low",
+      "lang": "ru",
+      "note": "Джуниор-позиции и стажировки",
+      "verified_at": "2026-08-11"
+    },
+    {
+      "id": "budujobs",
+      "title": "БУДУ",
+      "url": "https://t.me/budujobs",
+      "kind": "jobs_feed",
+      "priority": "low",
+      "lang": "ru",
+      "note": "Курируемая подборка IT/digital, посты редкие",
+      "verified_at": "2026-08-11"
+    },
+    {
+      "id": "cryptojobslist",
+      "title": "CryptoJobsList | Web3 Jobs",
+      "url": "https://t.me/cryptojobslist",
+      "kind": "jobs_feed",
+      "priority": "low",
+      "lang": "en",
+      "note": "Web3/крипто; англоязычная лента",
+      "verified_at": "2026-08-11"
+    },
+    {
+      "id": "job_web3",
+      "title": "Web 3.0 Job | Крипто вакансии",
+      "url": "https://t.me/job_web3",
+      "kind": "jobs_feed",
+      "priority": "low",
+      "lang": "ru",
+      "note": "Web3/крипто на русском",
+      "verified_at": "2026-08-11"
+    },
+    {
+      "id": "usetechcareer",
+      "title": "Юзтех.Карьера",
+      "url": "https://t.me/usetechcareer",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "lang": "ru",
+      "note": "Карьерный канал ГК Юзтех (single-employer корпорат). Банк/финтех-энтерпрайз: GenAI, SRE, PM, BA + мобильная разработка (лид Анна Жаркова). Под стоп-правило корпоратов РФ — брать точечно mobile.",
+      "verified_at": "2026-08-14"
+    },
+    {
+      "id": "nodejsjobsfeed",
+      "title": "Node.js Jobs Feed",
+      "url": "https://t.me/nodejsjobsfeed",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "note": "добавлено из списка пользователя 2026-08-17",
+      "verified_at": "2026-08-17"
+    },
+    {
+      "id": "ITjobsFeed",
+      "title": "IT Jobs Feed",
+      "url": "https://t.me/ITjobsFeed",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "note": "добавлено из списка пользователя 2026-08-17",
+      "verified_at": "2026-08-17"
+    },
+    {
+      "id": "DevOpsSRE_Jobs",
+      "title": "DevOps / SRE Jobs",
+      "url": "https://t.me/DevOpsSRE_Jobs",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "note": "добавлено из списка пользователя 2026-08-17",
+      "verified_at": "2026-08-17"
+    },
+    {
+      "id": "sre_devops_jobs_rss",
+      "title": "SRE / DevOps Jobs (RSS)",
+      "url": "https://t.me/sre_devops_jobs_rss",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "note": "добавлено из списка пользователя 2026-08-17",
+      "verified_at": "2026-08-17"
+    },
+    {
+      "id": "devops_jobs_feed",
+      "title": "DevOps Jobs Feed",
+      "url": "https://t.me/devops_jobs_feed",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "note": "добавлено из списка пользователя 2026-08-17",
+      "verified_at": "2026-08-17"
+    },
+    {
+      "id": "program_job",
+      "title": "Программист — вакансии",
+      "url": "https://t.me/program_job",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "note": "добавлено из списка пользователя 2026-08-17",
+      "verified_at": "2026-08-17"
+    },
+    {
+      "id": "middle_job_it",
+      "title": "Middle IT Jobs",
+      "url": "https://t.me/middle_job_it",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "note": "добавлено из списка пользователя 2026-08-17",
+      "verified_at": "2026-08-17"
+    },
+    {
+      "id": "backend_frontend_jobs",
+      "title": "Backend / Frontend Jobs",
+      "url": "https://t.me/backend_frontend_jobs",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "note": "добавлено из списка пользователя 2026-08-17",
+      "verified_at": "2026-08-17"
+    },
+    {
+      "id": "Python_Jbs",
+      "title": "Python Jobs",
+      "url": "https://t.me/Python_Jbs",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "note": "добавлено из списка пользователя 2026-08-17",
+      "verified_at": "2026-08-17"
+    },
+    {
+      "id": "mobile_jobs",
+      "title": "Mobile Jobs",
+      "url": "https://t.me/mobile_jobs",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "note": "добавлено из списка пользователя 2026-08-17",
+      "verified_at": "2026-08-17"
+    },
+    {
+      "id": "devops_jobs",
+      "title": "DevOps Jobs",
+      "url": "https://t.me/devops_jobs",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "note": "добавлено из списка пользователя 2026-08-17",
+      "verified_at": "2026-08-17"
+    },
+    {
+      "id": "qa_jobs",
+      "title": "QA Jobs",
+      "url": "https://t.me/qa_jobs",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "note": "добавлено из списка пользователя 2026-08-17",
+      "verified_at": "2026-08-17"
+    },
+    {
+      "id": "agile_jobs",
+      "title": "Agile / PM Jobs",
+      "url": "https://t.me/agile_jobs",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "note": "добавлено из списка пользователя 2026-08-17",
+      "verified_at": "2026-08-17"
+    },
+    {
+      "id": "uiux_jobs",
+      "title": "UI/UX Jobs",
+      "url": "https://t.me/uiux_jobs",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "note": "добавлено из списка пользователя 2026-08-17",
+      "verified_at": "2026-08-17"
+    },
+    {
+      "id": "projects_jobs",
+      "title": "Projects Jobs",
+      "url": "https://t.me/projects_jobs",
+      "kind": "jobs_feed",
+      "priority": "medium",
+      "note": "добавлено из списка пользователя 2026-08-17",
+      "verified_at": "2026-08-17"
+    },
+    {
+      "id": "cccoding",
+      "title": "CC Coding",
+      "url": "https://t.me/cccoding",
+      "kind": "jobs_feed",
+      "priority": "high",
+      "note": "Added by user 2026-08-21",
+      "verified_at": "2026-08-21"
+    },
+    {
+      "id": "needdev",
+      "title": "Need Dev",
+      "url": "https://t.me/needdev",
+      "kind": "jobs_feed",
+      "priority": "high",
+      "note": "Added by user 2026-08-21",
+      "verified_at": "2026-08-21"
+    },
+    {
+      "id": "pixeltechspec",
+      "title": "Pixel Tech Spec",
+      "url": "https://t.me/pixeltechspec",
+      "kind": "jobs_feed",
+      "priority": "high",
+      "note": "Added by user 2026-08-21",
+      "verified_at": "2026-08-21"
+    },
+    {
+      "id": "remote",
+      "title": "Remote",
+      "url": "https://t.me/remote",
+      "kind": "jobs_feed",
+      "priority": "high",
+      "note": "Added by user 2026-08-21",
+      "verified_at": "2026-08-21"
+    },
+    {
+      "id": "mordor_escape",
+      "title": "Mordor Escape",
+      "url": "https://t.me/mordor_escape",
+      "kind": "jobs_feed",
+      "priority": "high",
+      "note": "Added by user 2026-08-21",
+      "verified_at": "2026-08-21"
     }
   ],
   "removed_dead": [
-    { "id": "mobile_jobs_feed", "reason": "USERNAME_INVALID" },
-    { "id": "flutter_jobs", "reason": "USERNAME_INVALID" },
-    { "id": "react_jobs", "reason": "USERNAME_INVALID" },
-    { "id": "g_jobbot", "reason": "empty/no access" },
-    { "id": "backend__jobs", "reason": "entity not found" }
+    {
+      "id": "mobile_jobs_feed",
+      "reason": "USERNAME_INVALID"
+    },
+    {
+      "id": "flutter_jobs",
+      "reason": "USERNAME_INVALID"
+    },
+    {
+      "id": "react_jobs",
+      "reason": "USERNAME_INVALID"
+    },
+    {
+      "id": "g_jobbot",
+      "reason": "empty/no access"
+    },
+    {
+      "id": "backend__jobs",
+      "reason": "entity not found"
+    }
   ],
   "checked_skip": [
-    { "id": "rabota_flutter", "reason": "жив, но посты 2024–2025 — устарел" },
-    { "id": "android_jobs", "reason": "в основном #резюме соискателей" },
-    { "id": "ios_jobs", "reason": "мало вакансий / шум" },
-    { "id": "MobileDevRemote", "reason": "крошечный AI-агрегатор, не mobile-first" },
-    { "id": "work_hr", "reason": "вакансии для HR, не для разработчиков" },
-    { "id": "devops_jobs", "reason": "жив и активен, но это чат-болталка, а не лента вакансий (peek 2026-08-11)" },
-    { "id": "habr_career", "reason": "официальный контент-канал Хабр Карьеры: статьи + дайджесты-ссылки, не отдельные вакансии; сами вакансии берём из Habr RSS (peek 2026-08-11)" }
+    {
+      "id": "rabota_flutter",
+      "reason": "жив, но посты 2024–2025 — устарел"
+    },
+    {
+      "id": "android_jobs",
+      "reason": "в основном #резюме соискателей"
+    },
+    {
+      "id": "ios_jobs",
+      "reason": "мало вакансий / шум"
+    },
+    {
+      "id": "MobileDevRemote",
+      "reason": "крошечный AI-агрегатор, не mobile-first"
+    },
+    {
+      "id": "work_hr",
+      "reason": "вакансии для HR, не для разработчиков"
+    },
+    {
+      "id": "devops_jobs",
+      "reason": "жив и активен, но это чат-болталка, а не лента вакансий (peek 2026-08-11)"
+    },
+    {
+      "id": "habr_career",
+      "reason": "официальный контент-канал Хабр Карьеры: статьи + дайджесты-ссылки, не отдельные вакансии; сами вакансии берём из Habr RSS (peek 2026-08-11)"
+    },
+    {
+      "id": "forwebdev",
+      "reason": "жив, но последние посты 2025-05 — устарел (peek 2026-08-11)"
+    },
+    {
+      "id": "junior_vacancies",
+      "reason": "последний пост 2025-11 (peek 2026-08-11)"
+    },
+    {
+      "id": "jobs_abroad",
+      "reason": "последний пост 2025-04 (peek 2026-08-11)"
+    },
+    {
+      "id": "vezdeworker",
+      "reason": "последний пост 2023-10 (peek 2026-08-11)"
+    },
+    {
+      "id": "profunctor_jobs",
+      "reason": "последний пост 2022-08 (peek 2026-08-11)"
+    },
+    {
+      "id": "yourweb3jobs",
+      "reason": "последний пост 2022-09 (peek 2026-08-11)"
+    },
+    {
+      "id": "analyst_job",
+      "reason": "почти пустой: 2 поста, последний 2026-05 (peek 2026-08-11)"
+    },
+    {
+      "id": "dnative_job",
+      "reason": "живой, но SMM/digital, не разработка (peek 2026-08-11)"
+    },
+    {
+      "id": "forallmarketing",
+      "reason": "живой, но маркетинг, не разработка (peek 2026-08-11)"
+    },
+    {
+      "id": "mobile_jobs",
+      "reason": "нет публичного превью t.me/s/ — чат или закрытый (peek 2026-08-11)"
+    },
+    {
+      "id": "qa_jobs",
+      "reason": "нет публичного превью t.me/s/ — чат или закрытый (peek 2026-08-11)"
+    },
+    {
+      "id": "gogetajob",
+      "reason": "нет публичного превью t.me/s/ (peek 2026-08-11)"
+    },
+    {
+      "id": "myjobit",
+      "reason": "нет публичного превью t.me/s/ (peek 2026-08-11)"
+    },
+    {
+      "id": "jobs_it",
+      "reason": "нет публичного превью t.me/s/ (peek 2026-08-11)"
+    },
+    {
+      "id": "jobGeeks",
+      "reason": "нет публичного превью t.me/s/ (peek 2026-08-11)"
+    },
+    {
+      "id": "itarchitect_jobs",
+      "reason": "нет публичного превью t.me/s/ (peek 2026-08-11)"
+    },
+    {
+      "id": "projects_jobs",
+      "reason": "нет публичного превью t.me/s/ (peek 2026-08-11)"
+    },
+    {
+      "id": "analysts_hunter",
+      "reason": "нет публичного превью t.me/s/ (peek 2026-08-11)"
+    },
+    {
+      "id": "ethereum_jobs_market",
+      "reason": "нет публичного превью t.me/s/ (peek 2026-08-11)"
+    },
+    {
+      "id": "freelance_vacancy",
+      "reason": "нет публичного превью t.me/s/ (peek 2026-08-11)"
+    }
   ]
 }

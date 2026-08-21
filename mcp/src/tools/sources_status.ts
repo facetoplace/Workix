@@ -1,7 +1,17 @@
 import { callFetchJobs, getAdapter } from "../adapterLoader.js";
 import { loadAtsCompanies } from "../adapters/ats.js";
+import { pingFunding } from "../adapters/funding.js";
+import { pingInstahyre } from "../adapters/instahyre.js";
+import { pingKalibrr } from "../adapters/kalibrr.js";
+import { pingLaunches } from "../adapters/launches.js";
 import { jobspipeUsage } from "../adapters/jobspipe.js";
 import { pingProductRadar } from "../adapters/product_radar.js";
+import { pingStartupRanking } from "../adapters/startupranking.js";
+import { pingWantedly } from "../adapters/wantedly.js";
+import {
+  pingProductHunt,
+  productHuntConfigured,
+} from "../adapters/producthunt.js";
 import { pingRssPlatform } from "../adapters/rss.js";
 import { loadEnv } from "../env.js";
 import { proxyPoolInfo } from "../proxyPool.js";
@@ -43,6 +53,13 @@ const KEYED_BOARDS: ReadonlyArray<{
     env: ["JOOBLE_API_KEY"],
     signup: "https://jooble.org/api/about",
   },
+  {
+    // Optional, unlike the rest of this list: without the token the adapter
+    // still reads the public feed. The key only buys richer cards.
+    platform: "producthunt",
+    env: ["PRODUCTHUNT_TOKEN"],
+    signup: "https://api.producthunt.com/v2/docs",
+  },
 ];
 
 export async function runSourcesStatus(): Promise<unknown> {
@@ -56,7 +73,9 @@ export async function runSourcesStatus(): Promise<unknown> {
     "habr_career",
     "djinni",
     "jobspresso",
-    "reddit",
+      "reddit",
+      "startup_jobs",
+      "jobscollider",
   ];
   const rss = await Promise.all(rssIds.map((id) => pingRssPlatform(id)));
   const product_radar = await pingProductRadar();
@@ -149,12 +168,37 @@ export async function runSourcesStatus(): Promise<unknown> {
     };
   }
 
+  // Always pinged: without a token this reads the public Atom feed, so the
+  // source is live either way and status should say so rather than "skipped".
+  const producthunt = {
+    ...(await pingProductHunt()),
+    configured: productHuntConfigured(),
+    kind: "lead",
+  };
+  // Keyless, so it is always pinged — five feeds in parallel, cheap.
+  const funding = { ...(await pingFunding()), kind: "lead" };
+  // Cloudflare rotation, so this one can take a few seconds or fail outright.
+  const startupranking = { ...(await pingStartupRanking()), kind: "lead" };
+  const launches = { ...(await pingLaunches()), kind: "lead" };
+
+  // Asia — keyless public APIs, checked in parallel.
+  const [wantedly, kalibrr, instahyre] = await Promise.all([
+    pingWantedly(),
+    pingKalibrr(),
+    pingInstahyre(),
+  ]);
+
   const okCount = rss.filter((r) => r.ok).length;
   const keyedOn = keyed.filter((k) => k.configured).length;
   return {
     proxy_pool: pool,
     rss,
     product_radar,
+    producthunt,
+    funding,
+    startupranking,
+    launches,
+    asia: { wantedly, kalibrr, instahyre },
     kwork,
     freelancehunt,
     upwork,

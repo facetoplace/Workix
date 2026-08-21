@@ -5,7 +5,8 @@ export type PlatformId =
   | "kwork"
   | string;
 
-export type JobKind = "gig" | "job" | "service";
+/** `lead` = outbound material (a launch, a funded startup), not something to apply to. */
+export type JobKind = "gig" | "job" | "service" | "lead";
 
 export interface Job {
   id: string;

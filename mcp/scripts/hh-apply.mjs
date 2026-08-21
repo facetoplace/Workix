@@ -10,7 +10,7 @@
  */
 import { existsSync, readFileSync, mkdirSync } from "node:fs";
 import { join, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const MCP_ROOT = join(HERE, "..");
@@ -63,6 +63,44 @@ async function browser() {
   });
 }
 
+/**
+ * A sent application that only exists on hh.ru is invisible to the digest: it
+ * filters what was already worked on through the local `outreach` table, so a
+ * vacancy applied to from here kept resurfacing days later. Log it in the same
+ * table the MCP tools write to, with the letter that actually went out.
+ */
+async function logToOutreach({ status, vacancyTitle, note }) {
+  try {
+    // Same .env the MCP server reads, so WORKIX_MCP_DATA points both at one DB.
+    const { loadEnv } = await import(
+      pathToFileURL(join(MCP_ROOT, "dist", "env.js")).href
+    );
+    loadEnv();
+    const storeUrl = pathToFileURL(join(MCP_ROOT, "dist", "store.js")).href;
+    const { logOutreach, getJob } = await import(storeUrl);
+    const url = `https://hh.ru/vacancy/${vacancyId}`;
+    const job = getJob(url);
+    const rec = logOutreach({
+      id: `hh-apply-${vacancyId}`,
+      status,
+      channel: "hh",
+      contact: vacancyTitle || `hh:${vacancyId}`,
+      text: letter,
+      project: vacancyTitle,
+      url,
+      jobId: job?.id,
+      note,
+    });
+    console.log(`outreach: ${rec.status} ${rec.id} (${rec.url})`);
+  } catch (e) {
+    // Never let bookkeeping turn a delivered application into a failure — but
+    // say it loudly, because the digest will keep showing this vacancy.
+    console.log(
+      `[!] outreach не записан: ${e?.message || e}\n    Запиши вручную: workix_outreach_log status=sent channel=hh url=https://hh.ru/vacancy/${vacancyId}`,
+    );
+  }
+}
+
 const b = await browser();
 const page = await b.newPage();
 await page.setViewport({ width: 1400, height: 1000 });
@@ -91,6 +129,31 @@ if (!applyBtn) {
 await applyBtn.click();
 await new Promise((r) => setTimeout(r, 4000));
 console.log(`after click: ${page.url()}`);
+
+// Applying to a vacancy in another country raises a confirm dialog before the
+// response form ever appears ("Вы откликаетесь на вакансию в другой стране").
+// Without dismissing it the letter field is never rendered and the run aborts.
+const relocateConfirm = await page.evaluateHandle(() =>
+  [...document.querySelectorAll("button, a")].find((el) =>
+    /все равно откликнуться/i.test((el.innerText || "").trim()),
+  ),
+);
+if (relocateConfirm && (await relocateConfirm.evaluate((el) => Boolean(el)))) {
+  const dialog = await page.evaluate(() => {
+    const btn = [...document.querySelectorAll("button, a")].find((el) =>
+      /все равно откликнуться/i.test((el.innerText || "").trim()),
+    );
+    let box = btn;
+    for (let i = 0; i < 6 && box?.parentElement; i++) {
+      box = box.parentElement;
+      if ((box.innerText || "").length > 120) break;
+    }
+    return (box?.innerText || "").trim().replace(/\s+/g, " ").slice(0, 300);
+  });
+  console.log(`[confirm] ${dialog}`);
+  await relocateConfirm.asElement().click();
+  await new Promise((r) => setTimeout(r, 4000));
+}
 
 // hh sometimes hides the letter behind a "add cover letter" toggle.
 for (const sel of [
@@ -202,6 +265,17 @@ await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
 await new Promise((r) => setTimeout(r, 2500));
 const stillThere = await page.$('[data-qa="vacancy-response-link-top"]');
 console.log(stillThere ? "[?] кнопка отклика ещё на месте — проверь вручную" : "OK — отклик отправлен");
+
+// Confirmed by observed effect (apply control gone) → `sent`. When the control
+// is still there the send is unproven, so it goes in as `draft`: the digest
+// still stops re-offering it, and the row is honest about what happened.
+await logToOutreach({
+  status: stillThere ? "draft" : "sent",
+  vacancyTitle: title,
+  note: stillThere
+    ? "hh-apply: отправка не подтверждена (кнопка отклика на месте) — проверить вручную"
+    : "hh-apply: отклик отправлен, подтверждено исчезновением кнопки",
+});
 
 await page.close();
 b.disconnect ? b.disconnect() : await b.close();

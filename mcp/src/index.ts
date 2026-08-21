@@ -10,8 +10,10 @@ import { runOutreachList, runOutreachLog } from "./tools/outreach.js";
 import { runCheckpointGet, runCheckpointSet } from "./tools/checkpoint.js";
 import { runGetJob } from "./tools/get_job.js";
 import { runSearch } from "./tools/search.js";
+import { runStartupJobsRead } from "./tools/startup_jobs.js";
 import { runHubShareStatus, runShareJobs } from "./tools/share_jobs.js";
 import { runHhNegotiations } from "./tools/hh_negotiations.js";
+import { runHhSyncOutreach } from "./tools/hh_sync.js";
 import { runHhStatus } from "./tools/hh_session.js";
 import { runHistory } from "./tools/history.js";
 import {
@@ -33,6 +35,8 @@ import { runSubmitProposal } from "./tools/submit.js";
 import {
   runTgAuth,
   runTgSearch,
+  runTgScanEta,
+  runTgSend,
   runTgStatus,
 } from "./tools/telegram.js";
 import {
@@ -77,6 +81,7 @@ import {
   hubUpdateOrder,
   hubUpdateRole,
   hubUpdateStartup,
+  hubDeleteStartup,
 } from "./tools/hub.js";
 import {
   HUB_FIELD_GUIDE,
@@ -267,10 +272,38 @@ server.tool(
 );
 
 server.tool(
+  "workix_hh_sync_outreach",
+  "Импорт статусов откликов hh в локальный outreach: дайджест отсеивает уже отработанное по таблице outreach, а отклики, отправленные скриптом hh-apply или руками на сайте, туда не попадали — и вакансии всплывали снова. Заводит недостающие строки (channel=hh, статус из состояния переговоров: sent | reply | blocked | skip) и обновляет устаревший статус. Идемпотентно; чужие записи с текстом письма не перезаписываются. hh только читается, ничего не отправляется. dry_run:true — показать, что будет записано.",
+  {
+    pages: z
+      .number()
+      .min(1)
+      .max(10)
+      .optional()
+      .describe("Страниц списка откликов, по умолчанию 10 (~200 записей)"),
+    dry_run: z
+      .boolean()
+      .optional()
+      .describe("Ничего не писать, только показать план"),
+  },
+  async (args) => textResult(await runHhSyncOutreach(args)),
+);
+
+server.tool(
   "workix_tg_status",
   "Optional Telegram TDLib module status: deps (tdl/prebuilt-tdlib), TELEGRAM_API_ID/HASH, auth state, channels list. Session is local only.",
   {},
   async () => textResult(await runTgStatus()),
+);
+
+server.tool(
+  "workix_startup_jobs_read",
+  "Read-only bridge to the official Startup Jobs MCP. Allowed tools: search_jobs, get_job, get_company, get_company_jobs, list_roles, list_countries, job_trends, salary_benchmarks. No write/apply operation is exposed.",
+  {
+    tool: z.enum(["search_jobs", "get_job", "get_company", "get_company_jobs", "list_roles", "list_countries", "job_trends", "salary_benchmarks"]),
+    args: z.record(z.unknown()).optional(),
+  },
+  async (args) => textResult(await runStartupJobsRead(args)),
 );
 
 server.tool(
@@ -289,18 +322,65 @@ server.tool(
 
 server.tool(
   "workix_tg_search",
-  "Search messages in Telegram chats/channels via local TDLib (must be auth ready). Default chats from telegram-channels.json; or pass chats:[\"https://t.me/siliconpravdachat\"]. Saves hits to local store. No spam / mass messaging.",
+  "Search messages in Telegram chats/channels via local TDLib/GramJS (must be auth ready). Default chats from telegram-channels.json (only the first max_chats are walked — chats_available/chats_skipped say what was left); or pass chats:[\"https://t.me/siliconpravdachat\"]. Telegram search is substring-only, so an \"a OR b\" query is split into separate searches per term and merged (see terms/terms_searched in the answer). Saves hits to local store. No spam / mass messaging.",
   {
-    query: z.string().optional().describe("Search words; empty = recent history"),
+    query: z
+      .string()
+      .optional()
+      .describe(
+        "Search words; empty = recent history. \"a OR b\" / comma lists are split into one search per term",
+      ),
     chats: z
       .array(z.string())
-      .max(20)
+      .max(500)
       .optional()
       .describe("t.me URLs, @username, or chat ids"),
-    limit: z.number().min(1).max(30).optional().describe("Per chat, default 10"),
+    limit: z
+      .number()
+      .min(1)
+      .max(30)
+      .optional()
+      .describe("Per chat per term, default 10"),
     save: z.boolean().optional().describe("Save to local job store (default true)"),
+    max_chats: z
+      .number()
+      .min(1)
+      .max(500)
+      .optional()
+      .describe("Optional deliberate cap; omitted means the complete watch list with persisted rotation"),
+    since: z
+      .string()
+      .optional()
+      .describe("ISO date/time cutoff; default = latest checkpoint.at, or last 30 days if no checkpoint"),
   },
   async (args) => textResult(await runTgSearch(args)),
+);
+
+server.tool(
+  "workix_tg_scan_eta",
+  "Estimate how long a Telegram scan will take BEFORE running it, from the moving average of recent scans (per chat×term cost). Call this first and tell the user the expected wait, then run workix_tg_search. Improves as more scans are recorded.",
+  {
+    query: z.string().optional().describe("Same query you'll pass to workix_tg_search"),
+    chats: z.array(z.string()).max(500).optional(),
+    max_chats: z.number().min(1).max(500).optional(),
+  },
+  async (args) => textResult(await runTgScanEta(args)),
+);
+
+server.tool(
+  "workix_tg_send",
+  "Send ONE Telegram message from the logged-in account (face2place / Alice). DRY RUN by default — returns what would be sent and sends nothing; pass confirm:true to actually send. One message per call, no mass sending. Real sends are logged to outreach. NEVER send without the user's explicit ok; cold outreach is spammy and risks the account.",
+  {
+    to: z.string().describe("@username, t.me link, or numeric user/chat id"),
+    text: z.string().min(1).max(4000).describe("Message text"),
+    confirm: z
+      .boolean()
+      .optional()
+      .describe("Must be true to actually send; otherwise dry-run (nothing sent)"),
+    note: z.string().max(300).optional().describe("Note for the outreach log"),
+    job_id: z.string().optional(),
+  },
+  async (args) => textResult(await runTgSend(args)),
 );
 
 server.tool(
@@ -834,6 +914,15 @@ server.tool(
 );
 
 server.tool(
+  "workix_delete_startup",
+  "Remove own project/company card from the catalog. This is a SOFT close: the listing is set to status=closed and hidden from the public catalog; the card is kept and can be reopened via workix_update_startup. Permanent hard delete (roles + applications) is admin-only on the server.",
+  {
+    slug: zSlug.describe("Project/company slug to close (lookup key)"),
+  },
+  async (args) => textResult(await hubDeleteStartup(args)),
+);
+
+server.tool(
   "workix_list_roles",
   "List roles (optional startup slug, mine=true for owned).",
   {
@@ -976,7 +1065,7 @@ server.tool(
 
 server.tool(
   "workix_feedback",
-  "Send a bug report, product suggestion, or support request to Workix admins (hub API → Telegram). support/suggestion: max 1/hour. Prefer WORKIX_AGENT_KEY. Do not spam; one clear message per issue.",
+  "Send a bug report, product suggestion, or support request to Workix admins (hub API → Telegram). Also the channel to CLAIM a card: if a slug you want is already taken, or you found a catalog card of yourself / your company (e.g. an auto-imported listing) and want ownership, send type:\"support\" with subject:\"claim <slug>\" and the slug/URL in context — do not create a duplicate. support/suggestion: max 1/hour. Prefer WORKIX_AGENT_KEY. Do not spam; one clear message per issue.",
   {
     type: z.enum(["bug", "suggestion", "support", "other"]),
     message: z.string().min(20).max(2000),

@@ -55,6 +55,8 @@ export const RSS_JOB_PLATFORMS = [
     "jobspresso",
     "reddit",
     "dribbble_jobs",
+    "startup_jobs",
+    "jobscollider",
 ];
 /**
  * Job boards pulled on `include_jobs`, in digest order.

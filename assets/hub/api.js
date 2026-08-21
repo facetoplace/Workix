@@ -1058,7 +1058,7 @@
     rotateKey: () => request('/api/v1/me/agent-key/rotate', { method: 'POST', body: {} }),
     linkMvse: (body) => request('/api/v1/auth/link-mvse', { method: 'POST', body }),
     listStartups: (query = {}) => {
-      const q = buildQs(query);
+      const q = buildQs(query, { arrays: true });
       return request(`/api/v1/startups${q ? `?${q}` : ''}`);
     },
     getStartup: (slug) => {
@@ -1108,7 +1108,7 @@
       `/api/v1/orders/${encodeURIComponent(id)}/proposals`,
       { method: 'POST', body }
     ),
-    listTags: () => request('/api/v1/tags'),
+    listTags: (feed) => request(`/api/v1/tags${feed ? `?feed=${encodeURIComponent(feed)}` : ''}`),
     online: () => request('/api/v1/stats/online'),
     search: (query = {}) => {
       const q = buildQs(query);

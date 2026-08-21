@@ -231,6 +231,17 @@ export function listOutreach(opts) {
     const sql = `SELECT * FROM outreach ${where.length ? `WHERE ${where.join(" AND ")}` : ""} ORDER BY at DESC LIMIT ${limit}`;
     return db().prepare(sql).all(...params).map(toOutreach);
 }
+/**
+ * Every outreach row, unpaginated — for importers that have to reconcile the
+ * whole log (hh negotiations backfill) rather than show a page of it.
+ * listOutreach caps at 100 on purpose: that cap is a UI limit, not a data one.
+ */
+export function listAllOutreach() {
+    const rows = db()
+        .prepare("SELECT * FROM outreach ORDER BY at DESC")
+        .all();
+    return rows.map(toOutreach);
+}
 /** Normalize a link so the same posting matches across trackers/mirrors. */
 export function normalizeLink(url) {
     if (!url)

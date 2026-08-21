@@ -67,5 +67,7 @@ TELEGRAM_2FA_PASSWORD=your_cloud_password
 | `missing_credentials` | `TG_APP_API_*` в `.env` |
 | `wait_phone` | снова `npm run tg:login` |
 | Бан / flood | не спамь; правила чатов |
+| `total: 0` по всем чатам | поиск Telegram — подстрока, `OR` он не понимает. `workix_tg_search` теперь сам режет `a OR b` (и списки через запятую) на отдельные поиски: смотри `terms_searched` в ответе — если там 1, а слов было несколько, запрос ушёл как есть |
+| обошло не все каналы | по умолчанию берутся первые 20 из `telegram-channels.json` (`chats_available` / `chats_skipped` в ответе). Больше — `max_chats`, но каждый терм это полный проход по каждому чату |
 
 Сброс сессии: удали `mcp/data/telegram/`, снова `npm run tg:login`.

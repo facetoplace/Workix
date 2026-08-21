@@ -1,6 +1,18 @@
 # Workix MCP
 
+**Runtime source catalog:** the current platform list is [`platforms.json`](./platforms.json), with status semantics documented in [`../docs/18-runtime-platforms.md`](../docs/18-runtime-platforms.md). The older platform research matrices are historical evidence, not an active integration list. `include_jobs` is active; `watch_pending` is explicit-test only; `watch_browser` is manual browser-only.
+
 Local MCP server for AI agents ([Cursor](https://cursor.com), Claude, etc.) that work with the [Workix hub](https://workix.co) and freelance boards.
+
+### What's new in 1.1.0
+
+- Added adapters for JobSearchDB, regional job boards, Remocate, Startup Jobs MCP, Startupium, and TheHub.
+- Expanded Telegram collection with checkpoints, incremental `since` searches, scan timing, source-quality scoring, and safer channel rotation.
+- Added new startup/job discovery tools and expanded the runtime source catalog.
+- Added source-access and runtime-platform documentation covering access modes, limits, credentials, and automation risk.
+- Rebuilt the TypeScript distribution and adapter bundles for clone-and-run installs.
+
+Full release notes: [`CHANGELOG.md`](./CHANGELOG.md).
 
 Workix is a shared catalog where **projects** (startups/products/communities), **roles & orders**, and **performers** find each other. It is not a closed freelance marketplace: listings point to the owner’s preferred contact or apply flow. Agents use this MCP to search that catalog, manage your listings, and also pull opportunities from external boards while keeping platform credentials on the user’s machine.
 
@@ -69,6 +81,7 @@ from re-applying to a job, re-posting a card, or showing the same digest twice.
 | Proposal drafts | `drafts` | `workix_job_state` → `draft` | `workix_draft_proposal` |
 | Already mirrored to workix.co | `hub_shares` | `workix_hub_share_status`, `workix_history` | `workix_share_jobs`, `workix_digest share_to_hub:true` |
 | Where the last session stopped | `checkpoints` | `workix_checkpoint_get` | `workix_checkpoint_set` |
+| Telegram source quality / rotation | `source_quality` | `workix_tg_search` result + checkpoint note | `workix_tg_search` |
 | Board response cache | `fetch_cache` | `workix_store_status` | collection; `force_refresh:true` bypasses |
 
 **One call before acting on a card:**
@@ -160,7 +173,9 @@ shared to the hub, drafted, or referenced by an outreach entry stays regardless 
 
 ## Downloadable platform modules
 
-Core MCP always includes hub tools + **RSS** (FL / Weblancer / Djinni / Jobspresso / Reddit), Freelance.ru HTML (`/task` via RU SOCKS5), Product Radar hiring HTML (`/category/hiring/?page=N`, direct), **Habr Career** (frontend JSON, RSS fallback) and **employer ATS boards** (the company list is a repo file, so it cannot travel in a module).
+Core MCP always includes hub tools + **RSS** (FL / Weblancer / Djinni / Jobspresso / Reddit), Freelance.ru HTML (`/task` via RU SOCKS5), Product Radar hiring HTML (`/category/hiring/?page=N`, direct), **Habr Career** (frontend JSON, RSS fallback), **employer ATS boards** (the company list is a repo file, so it cannot travel in a module) and **Product Hunt** (GraphQL, `PRODUCTHUNT_TOKEN`).
+
+Core also carries the three **Asian boards** (`wantedly`, `kalibrr`, `instahyre`) and the four **lead** sources (`producthunt`, `launches`, `funding`, `startupranking`) — all keyless except where noted below.
 
 Other boards ship as modules from the hub — **36** of them, covering **64** catalogued platforms:
 
@@ -365,8 +380,10 @@ No flag beyond `include_jobs: true`, no key:
 | **Reddit** | global | Atom only — the JSON API is OAuth-gated and 403s datacenter IPs |
 | **getmatch** (added 2026-08-10) | RU / relocate | `/api/offers` — open salary on most cards, no server-side search |
 | **HN "Who is hiring?"** (added 2026-08-10) | global | the monthly thread via `hn.algolia.com/api/v1` |
-
 | **Dice** (added 2026-08-10) | US tech-only | its own MCP server — see below |
+| **Wantedly** (added 2026-08-11) | JP | `/api/v1/projects` — Japanese startup hiring |
+| **Kalibrr** (added 2026-08-11) | PH / SEA | `/kjs/job_board/search` — salary, remote/hybrid, location |
+| **Instahyre** (added 2026-08-11) | IN | `/api/v1/job_search/` — curated Indian tech hiring, ~16k roles |
 
 Two notes on getmatch and HN. **getmatch** has no server-side search at all — `q`, `search`,
 `text`, `query` and `sq` are silently dropped, so `keywords` are matched here over a page pulled
@@ -378,6 +395,31 @@ body. `HN_HIRING_STORY=<id>` reads a specific month instead of the current one.
 ATS coverage is the company list in [`ats-companies.json`](./ats-companies.json) — add rows to
 widen it, or override the file with `ATS_COMPANIES=greenhouse:stripe,ashby:linear`. The apply
 URL is the employer's own board, so it never goes stale the way an aggregator copy does.
+
+The three **Asian** boards close a gap the rest of this list structurally misses: global
+remote-first boards only ever list remote-first roles, so local hiring in Tokyo, Manila or
+Bangalore was invisible. Two quirks worth knowing. **Wantedly** posts are "projects" that sell the
+team rather than the title — the role sits in `looking_for`, and the text is mostly Japanese, so
+filter by stack (`Flutter`, `React`), which is written in Latin script either way. **Kalibrr**
+requires `offset` alongside `limit` (without it the API answers 400 and says so), and serves no
+job URL — the adapter assembles `/c/<company>/jobs/<id>/<slug>`. **Instahyre** carries no publish
+dates: it is a standing list of open roles, not a feed.
+
+### Lead sources — not vacancies (added 2026-08-11)
+
+A different kind of card: not "apply here" but "this company has something to buy right now".
+A product launch or a funding headline ranked next to a job posting is noise, so these carry
+`kind: "lead"` and **never** ride along on a bare `include_jobs` — each runs only when named.
+
+| Source | Turn on with | Key | What it gives |
+|--------|--------------|-----|---------------|
+| **Product Hunt** | `platforms: ["producthunt"]` | **not required** | Today's launches. With no token it reads the public Atom feed (50 entries); `PRODUCTHUNT_TOKEN` adds website, topics and makers over GraphQL. A rejected or throttled token falls back to the feed instead of going dark |
+| **Show HN + r/SideProject** | `platforms: ["launches"]` | none | The two Product Hunt alternatives that actually have a public surface: HN Algolia (`tags=show_hn`, author handle and thread included) and the r/SideProject Atom feed |
+| **Funding news** | `platforms: ["funding"]` | none | Crunchbase News · TechCrunch Venture · Tech.eu · EU-Startups · Sifted. Headlines are filtered against a funding pattern, company / amount / stage are extracted, one round reported by three outlets collapses into one card, and VC fund closings are dropped |
+| **StartupRanking** | `platforms: ["startupranking"]` | needs `PROXY_1` | SR Score ranking. A direct request hits a Cloudflare challenge, but some SOCKS exits clear it, so the adapter rotates the pool |
+
+Outreach, not apply: the link goes to the product site or the maker's profile. Nothing is ever
+sent without a human saying yes — same rule as everywhere else in Workix.
 
 ### Boards that only speak MCP
 

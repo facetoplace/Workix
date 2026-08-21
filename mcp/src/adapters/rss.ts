@@ -39,6 +39,8 @@ const JOB_KIND_PLATFORMS = new Set([
   "habr_career",
   "djinni",
   "jobspresso",
+  "startup_jobs",
+  "jobscollider",
 ]);
 
 const ALT_URLS: Record<string, string[]> = {

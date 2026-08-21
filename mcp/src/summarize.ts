@@ -1,4 +1,4 @@
-import type { Job } from "./types.js";
+import type { Job, JobKind } from "./types.js";
 
 /**
  * Keyword matching used to be `haystack.includes(word)`, which let a single
@@ -133,7 +133,7 @@ export function filterJobs(
     platforms?: string[];
     since?: string;
     min_budget?: number;
-    kinds?: Array<"gig" | "job" | "service">;
+    kinds?: JobKind[];
     /** Domain terms that carry a card on their own (see matchesKeywords). */
     strong?: string[];
     minScore?: number;

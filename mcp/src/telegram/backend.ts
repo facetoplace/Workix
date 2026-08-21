@@ -75,12 +75,13 @@ export async function searchChat(
   chatRef: string,
   query: string,
   limit = 20,
+  since?: string,
 ): Promise<TgMessageHit[]> {
   const { backend } = await resolveBackend();
-  if (backend === "gramjs") return gramjsSearchChat(chatRef, query, limit);
+  if (backend === "gramjs") return gramjsSearchChat(chatRef, query, limit, since);
   if (backend === "tdlib") {
     const td = await import("./tdlib.js");
-    return td.searchChat(chatRef, query, limit);
+    return td.searchChat(chatRef, query, limit, since);
   }
   throw new Error("No Telegram backend — npm install telegram");
 }

@@ -69,6 +69,15 @@ export declare function hubUpdateStartup(args: {
     status?: "draft" | "pending" | "active" | "approved" | "closed" | "frozen";
     applyDefaults?: Record<string, string>;
 }): Promise<Record<string, unknown>>;
+/**
+ * "Delete" a company/startup card from the catalog. This is a SOFT close: the
+ * listing is flipped to status "closed" (hidden from the public catalog) via the
+ * owner-permitted PATCH. The row is kept — full hard delete (removing roles and
+ * applications for good) is admin-only on the server (DELETE /startups/:slug).
+ */
+export declare function hubDeleteStartup(args: {
+    slug: string;
+}): Promise<Record<string, unknown>>;
 export declare function hubListRoles(args?: {
     startup?: string;
     q?: string;

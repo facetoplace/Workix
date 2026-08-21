@@ -803,6 +803,9 @@
       const orders = ref([]);
       const performers = ref([]);
       const boardTags = ref([]);
+      // Per-feed popular categories (server facets), sorted by real frequency.
+      const feedFacets = reactive({ orders: [], projects: [], performers: [] });
+      const facetsLoaded = reactive({ orders: false, projects: false, performers: false });
       const online = ref(0);
       // Today's presence, split by client kind (API: /stats/online)
       const onlineHumans = ref(0);
@@ -1142,34 +1145,52 @@
         return roles.value.filter((r) => r.startupId === st.id || r.startupSlug === st.slug);
       }
 
+      // Location / seniority / work-mode tags are filter axes, not categories —
+      // keep them out of the popular-category list (mirrors server FACET_STOP).
+      const FACET_STOP = new Set([
+        'remote', 'удалённо', 'удаленно', 'гибрид', 'hybrid', 'onsite', 'офис', 'office',
+        'релокация', 'релокейт', 'relocation', 'relocate',
+        'junior', 'middle', 'senior', 'lead', 'teamlead', 'team lead', 'head', 'principal',
+        'intern', 'trainee', 'джуниор', 'мидл', 'миддл', 'сеньор', 'синьор', 'лид', 'тимлид',
+        'стажёр', 'стажер', 'ведущий', 'главный', 'cto', 'ceo', 'coo', 'cfo', 'vp',
+        'москва', 'moscow', 'санкт-петербург', 'saint petersburg', 'st petersburg', 'спб',
+        'петербург', 'екатеринбург', 'новосибирск', 'казань', 'нижний новгород', 'краснодар',
+        'самара', 'воронеж', 'волгоград', 'ростов-на-дону', 'уфа', 'пермь', 'челябинск', 'омск',
+        'красноярск', 'владивосток', 'хабаровск', 'иркутск', 'астрахань', 'тюмень', 'саратов',
+        'минск', 'киев', 'алматы', 'ташкент', 'дубай', 'dubai', 'лондон', 'london', 'берлин',
+        'ереван', 'тбилиси', 'ua', 'ukraine', 'uae',
+      ]);
+      function isFacetNoise(name) {
+        const n = String(name || '').trim().toLowerCase();
+        return !n || FACET_STOP.has(n);
+      }
+
       const availableTags = computed(() => {
-        if (boardTags.value.length && (feed.value === 'orders' || feed.value === 'performers')) {
-          return boardTags.value;
-        }
-        // Fallback: derive string tags from loaded cards
+        // Preferred: server-computed popular categories for this feed.
+        const facets = feedFacets[feed.value];
+        if (facets && facets.length) return facets;
+        // Fallback: derive string tags from loaded cards (frequency-sorted)
         const set = new Map();
+        const bump = (id, name, emoji) => {
+          if (!name) return;
+          const cur = set.get(id) || { id, name, emoji: emoji || null, count: 0 };
+          cur.count += 1;
+          set.set(id, cur);
+        };
+        const eat = (list) => (list || []).forEach((item) => (item.tags || []).forEach((x) => {
+          const name = typeof x === 'string' ? x : x.name;
+          const id = typeof x === 'string' ? x : (x.id || x.name);
+          if (name && !isFacetNoise(name)) bump(id, name, x && x.emoji);
+        }));
         if (feed.value === 'projects') {
-          startups.value.forEach((st) => {
-            rolesForStartup(st).forEach((r) => (r.tags || []).forEach((x) => {
-              const name = typeof x === 'string' ? x : x.name;
-              const id = typeof x === 'string' ? x : (x.id || x.name);
-              if (name) set.set(id, { id, name, emoji: (x && x.emoji) || null });
-            }));
-          });
+          startups.value.forEach((st) => eat(rolesForStartup(st)));
         } else if (feed.value === 'orders') {
-          orders.value.forEach((o) => (o.tags || []).forEach((x) => {
-            const name = typeof x === 'string' ? x : x.name;
-            const id = typeof x === 'string' ? x : (x.id || x.name);
-            if (name) set.set(id, { id, name, emoji: (x && x.emoji) || null });
-          }));
+          eat(orders.value);
         } else {
-          performers.value.forEach((p) => (p.tags || []).forEach((x) => {
-            const name = typeof x === 'string' ? x : x.name;
-            const id = typeof x === 'string' ? x : (x.id || x.name);
-            if (name) set.set(id, { id, name, emoji: (x && x.emoji) || null });
-          }));
+          eat(performers.value);
         }
-        return [...set.values()].sort((a, b) => String(a.name).localeCompare(String(b.name)));
+        return [...set.values()].sort((a, b) => (b.count || 0) - (a.count || 0)
+          || String(a.name).localeCompare(String(b.name)));
       });
 
       function roleKind(r) {
@@ -1908,19 +1929,31 @@
         });
       }
 
+      async function loadFacets(kind) {
+        if (!['orders', 'projects', 'performers'].includes(kind)) return;
+        try {
+          const res = await WorkixAPI.listTags(kind);
+          feedFacets[kind] = res.items || [];
+        } catch (e) {
+          feedFacets[kind] = [];
+        } finally {
+          facetsLoaded[kind] = true;
+        }
+      }
+
       async function loadCatalog() {
-        const [r, tg, on] = await Promise.all([
+        const [r, on] = await Promise.all([
           WorkixAPI.listRoles({}).catch(() => ({ items: [] })),
-          WorkixAPI.listTags().catch(() => ({ items: [] })),
           WorkixAPI.online().catch(() => ({ online: 0 })),
         ]);
         roles.value = mapRoleItems(r.items);
-        boardTags.value = tg.items || [];
         applyOnline(on);
         if (!filters.tagsOn.length) filters.tagsOn = ['all'];
+        await loadFacets(feed.value);
         await resetFeed(feed.value);
         // Warm the other feeds lightly (first page only)
         const others = ['projects', 'performers', 'orders'].filter((k) => k !== feed.value);
+        await Promise.all(others.map((k) => loadFacets(k).catch(() => {})));
         await Promise.all(others.map((k) => resetFeed(k).catch(() => {})));
         await nextTick();
         bindFeedSentinels();
@@ -1947,6 +1980,7 @@
         filters.tagsOn = ['all'];
         filters.openTo = [];
         filters.priceFrom = null;
+        if (!facetsLoaded[name]) loadFacets(name);
         resetFeed(name).then(() => nextTick().then(bindFeedSentinels));
         window.scrollTo(0, 0);
       }

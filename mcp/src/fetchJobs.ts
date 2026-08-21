@@ -7,10 +7,24 @@ import {
 import { callFetchJobs, ensurePlatforms } from "./adapterLoader.js";
 import { fetchAtsJobs } from "./adapters/ats.js";
 import { fetchHabrCareerJobs } from "./adapters/habr_career.js";
+import { fetchInstahyreJobs } from "./adapters/instahyre.js";
 import { JOBSPY_PLATFORMS } from "./adapters/jobspy.js";
+import { fetchKalibrrJobs } from "./adapters/kalibrr.js";
+import { fetchLaunchLeads } from "./adapters/launches.js";
+import { fetchFundingLeads } from "./adapters/funding.js";
+import { fetchProductHuntLeads } from "./adapters/producthunt.js";
 import { fetchProductRadarJobs } from "./adapters/product_radar.js";
+import { fetchStartupRankingLeads } from "./adapters/startupranking.js";
+import { fetchStartupiumLeads } from "./adapters/startupium.js";
+import { fetchTheHubJobs } from "./adapters/thehub.js";
+import { fetchStartupJobsMcp } from "./adapters/startup_jobs_mcp.js";
+import { fetchRemocateJobs } from "./adapters/remocate.js";
+import { fetchRegionalBoardJobs } from "./adapters/regional_boards.js";
+import { fetchJobSearchDbBoards } from "./adapters/jobsearchdb.js";
 import { fetchRssJobs } from "./adapters/rss.js";
-import { fetchTelegramJobs } from "./adapters/telegram.js";
+import { fetchTelegramJobs, telegramActivated } from "./adapters/telegram.js";
+import { fetchWantedlyJobs } from "./adapters/wantedly.js";
+import { dedupeJobs } from "./dedupe.js";
 import { pruneCache, readCache, writeCache } from "./fetchCache.js";
 import { getProxyPool } from "./proxyPool.js";
 import { upsertJobs } from "./store.js";
@@ -25,6 +39,20 @@ interface SourceResult {
   jobs: Job[];
   error?: string;
 }
+
+/**
+ * Asian boards with public, keyless APIs — probed 2026-08-11. They fill the one
+ * gap the rest of the catalogue never covered: JP / IN / SEA hiring that is not
+ * remote-first and therefore invisible to the global remote boards.
+ */
+const ASIA_BOARDS: ReadonlyArray<{
+  platform: string;
+  fetch: (o: { keywords?: string[] }) => Promise<SourceResult>;
+}> = [
+  { platform: "wantedly", fetch: (o) => fetchWantedlyJobs(o) },
+  { platform: "kalibrr", fetch: (o) => fetchKalibrrJobs(o) },
+  { platform: "instahyre", fetch: (o) => fetchInstahyreJobs(o) },
+];
 
 /**
  * Run a source through the shared cache. Only successful, non-empty results are
@@ -120,6 +148,8 @@ export async function refreshJobs(opts?: {
   jobs: Job[];
   errors: string[];
   cached: string[];
+  /** Per-location clones of one posting dropped before the store saw them. */
+  duplicates_collapsed: number;
 }> {
   const platforms = opts?.platforms;
   const force = Boolean(opts?.force_refresh);
@@ -163,6 +193,158 @@ export async function refreshJobs(opts?: {
     collected.push(...r.jobs);
     note("product_radar", r);
     if (r.error) errors.push(`product_radar: ${r.error}`);
+  }
+
+  const wantStartupium = platforms?.includes("startupium");
+  if (wantStartupium) {
+    const r = await cached(
+      "startupium",
+      { keywords: opts?.keywords },
+      force,
+      () => fetchStartupiumLeads({ kind: "all", keywords: opts?.keywords }),
+    );
+    collected.push(...r.jobs);
+    note("startupium", r);
+    if (r.error) errors.push(`startupium: ${r.error}`);
+  }
+
+  const wantTheHub =
+    platforms?.includes("thehub") ||
+    (Boolean(opts?.include_jobs) && !platforms?.length);
+  if (wantTheHub) {
+    const r = await cached(
+      "thehub",
+      { keywords: opts?.keywords },
+      force,
+      () => fetchTheHubJobs({ keywords: opts?.keywords }),
+    );
+    collected.push(...r.jobs);
+    note("thehub", r);
+    if (r.error) errors.push(`thehub: ${r.error}`);
+  }
+
+  const wantStartupJobs =
+    platforms?.includes("startup_jobs") ||
+    (Boolean(opts?.include_jobs) && !platforms?.length);
+  if (wantStartupJobs) {
+    const r = await cached(
+      "startup_jobs",
+      { keywords: opts?.keywords },
+      force,
+      async () => {
+        const mcp = await fetchStartupJobsMcp({ keywords: opts?.keywords });
+        if (mcp.jobs.length) return mcp;
+        const rss = await cachedRss(["startup_jobs"], force, cacheHit);
+        return { jobs: rss.jobs, error: mcp.error || rss.error };
+      },
+    );
+    collected.push(...r.jobs);
+    note("startup_jobs", r);
+    if (r.error && !r.jobs.length) errors.push(`startup_jobs: ${r.error}`);
+  }
+
+  const wantRemocate =
+    platforms?.includes("remocate") ||
+    (Boolean(opts?.include_jobs) && !platforms?.length);
+  if (wantRemocate) {
+    const r = await cached(
+      "remocate",
+      { keywords: opts?.keywords },
+      force,
+      () => fetchRemocateJobs({ keywords: opts?.keywords }),
+    );
+    collected.push(...r.jobs);
+    note("remocate", r);
+    if (r.error && !r.jobs.length) errors.push(`remocate: ${r.error}`);
+  }
+
+  if (platforms?.includes("jobsearchdb")) {
+    const r = await cached("jobsearchdb", { keywords: opts?.keywords }, force, () =>
+      fetchJobSearchDbBoards({ keywords: opts?.keywords }),
+    );
+    collected.push(...r.jobs);
+    note("jobsearchdb", r);
+    if (r.error && !r.jobs.length) errors.push(`jobsearchdb: ${r.error}`);
+  }
+
+  const regionalBoards: Array<{ id: string; activeByDefault: boolean }> = [
+    { id: "justjoin_it", activeByDefault: true },
+    { id: "budu_jobs", activeByDefault: true },
+    { id: "jobio", activeByDefault: true },
+    { id: "hiringcafe", activeByDefault: true },
+    { id: "grepjob", activeByDefault: true },
+    { id: "yc_work_at_startup", activeByDefault: false },
+    { id: "wellfound", activeByDefault: false },
+    { id: "lennys_jobs", activeByDefault: false },
+    { id: "accel_jobs", activeByDefault: false },
+    { id: "sequoia_jobs", activeByDefault: false },
+    { id: "capitalg_jobs", activeByDefault: false },
+    { id: "index_startup_jobs", activeByDefault: false },
+    { id: "generalcatalyst_jobs", activeByDefault: false },
+  ];
+  for (const board of regionalBoards) {
+    const platform = board.id;
+    if (platforms?.length && !platforms.includes(platform)) continue;
+    if (!platforms?.length && !opts?.include_jobs) continue;
+    if (!platforms?.length && !board.activeByDefault) continue;
+    const r = await cached(platform, { keywords: opts?.keywords }, force, () =>
+      fetchRegionalBoardJobs(platform, { keywords: opts?.keywords }),
+    );
+    collected.push(...r.jobs);
+    note(platform, r);
+    if (r.error && !r.jobs.length) errors.push(`${platform}: ${r.error}`);
+  }
+
+  // Product Hunt emits leads (`kind: "lead"`), not vacancies — opt-in only, the
+  // same way the JobSpy boards are. A launch ranked next to a job posting is
+  // noise, so it must never ride along on a bare include_jobs. Once
+  // `include_leads` exists this moves behind that flag.
+  if (platforms?.includes("producthunt")) {
+    const r = await cached(
+      "producthunt",
+      { keywords: opts?.keywords },
+      force,
+      () => fetchProductHuntLeads({ keywords: opts?.keywords }),
+    );
+    collected.push(...r.jobs);
+    note("producthunt", r);
+    // Named outright by the caller, so even the soft "no token" answer is what
+    // they asked about — surface it rather than swallowing it.
+    if (r.error) errors.push(r.error);
+  }
+
+  // Funding news, same lead contract as Product Hunt: opt-in by name only.
+  if (platforms?.includes("funding")) {
+    const r = await cached("funding", { keywords: opts?.keywords }, force, () =>
+      fetchFundingLeads({ keywords: opts?.keywords }),
+    );
+    collected.push(...r.jobs);
+    note("funding", r);
+    if (r.error) errors.push(r.error);
+  }
+
+  // Product Hunt alternatives (Show HN + r/SideProject) — leads, opt-in by name.
+  if (platforms?.includes("launches")) {
+    const r = await cached("launches", { keywords: opts?.keywords }, force, () =>
+      fetchLaunchLeads({ keywords: opts?.keywords }),
+    );
+    collected.push(...r.jobs);
+    note("launches", r);
+    if (r.error) errors.push(r.error);
+  }
+
+  // StartupRanking: same lead contract, plus a Cloudflare rotation inside the
+  // adapter — cached hard, because a cleared challenge is worth reusing.
+  if (platforms?.includes("startupranking")) {
+    const r = await cached(
+      "startupranking",
+      { keywords: opts?.keywords },
+      force,
+      () => fetchStartupRankingLeads({ keywords: opts?.keywords }),
+    );
+    collected.push(...r.jobs);
+    note("startupranking", r);
+    if (r.error) errors.push(r.error);
   }
 
   const modulesWanted: string[] = [];
@@ -321,8 +503,24 @@ export async function refreshJobs(opts?: {
       note("habr_career", r);
       if (r.error) errors.push(`habr_career: ${r.error}`);
     }
+    // Asia — public APIs, no keys. Wired in core rather than as downloadable
+    // modules so they work in a fresh checkout; moving them into the module
+    // registry is a packing run, not a rewrite (see TODO).
+    for (const board of ASIA_BOARDS) {
+      if (platforms?.length && !platforms.includes(board.platform)) continue;
+      const r = await cached(
+        board.platform,
+        { keywords: opts.keywords },
+        force,
+        () => board.fetch({ keywords: opts.keywords }),
+      );
+      collected.push(...r.jobs);
+      note(board.platform, r);
+      if (r.error) errors.push(`${board.platform}: ${r.error}`);
+    }
+
     const rssBoards = RSS_JOB_PLATFORMS.filter(
-      (id) => !platforms?.length || platforms.includes(id),
+      (id) => id !== "startup_jobs" && (!platforms?.length || platforms.includes(id)),
     );
     if (rssBoards.length) {
       const r = await cachedRss(rssBoards, force, cacheHit);
@@ -356,19 +554,55 @@ export async function refreshJobs(opts?: {
     }
   }
 
-  // Optional TDLib — only when explicitly requested (platforms includes telegram)
-  if (platforms?.includes("telegram")) {
-    const tg = await fetchTelegramJobs({
-      keywords: opts?.upwork_query
-        ? String(opts.upwork_query).split(/\s+/).filter(Boolean)
-        : undefined,
-    });
+  // Telegram folds into the same scan — no separate branch. It runs when the
+  // caller names it explicitly (platforms includes "telegram"), OR on a full
+  // scan (no platform filter) when the session is activated locally. The gate is
+  // local-only (telegramActivated reads env + session file + channels, no
+  // network), so a full scan for someone who never set up TG stays silent and
+  // fast. The fetch itself is wrapped in a budget: getAuthState() and per-chat
+  // search hit the network and can flood-wait for a minute, and the vacancy scan
+  // must degrade to a soft error rather than hang on a throttled account.
+  const wantTelegram =
+    platforms?.includes("telegram") ||
+    (!platforms?.length && telegramActivated());
+  if (wantTelegram) {
+    const tgKeywords =
+      opts?.keywords?.length
+        ? opts.keywords
+        : opts?.upwork_query
+          ? String(opts.upwork_query).split(/\s+/).filter((w) => w && w !== "OR")
+          : undefined;
+    const budgetMs = Math.max(
+      Number(process.env.WORKIX_TG_SCAN_BUDGET_MS) || 90_000,
+      10_000,
+    );
+    const tg = await Promise.race([
+      fetchTelegramJobs({ keywords: tgKeywords }),
+      new Promise<{ jobs: Job[]; error?: string }>((resolve) =>
+        setTimeout(
+          () =>
+            resolve({
+              jobs: [],
+              error: `telegram: scan exceeded ${Math.round(budgetMs / 1000)}s budget — skipped (raise WORKIX_TG_SCAN_BUDGET_MS)`,
+            }),
+          budgetMs,
+        ),
+      ),
+    ]);
     collected.push(...tg.jobs);
     if (tg.error) errors.push(`telegram: ${tg.error}`);
   }
 
-  const stored = upsertJobs(collected);
+  // Multi-location boards hand back one row per city for the same posting —
+  // collapse before the store learns them as separate cards (see dedupe.ts).
+  const deduped = dedupeJobs(collected);
+  const stored = upsertJobs(deduped.jobs);
   // Cheap and self-limiting: drops only rows already past their TTL.
   pruneCache();
-  return { jobs: stored, errors, cached: fromCache };
+  return {
+    jobs: stored,
+    errors,
+    cached: fromCache,
+    duplicates_collapsed: deduped.collapsed,
+  };
 }

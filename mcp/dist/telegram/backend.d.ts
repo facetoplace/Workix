@@ -11,7 +11,7 @@ export declare function getAuthState(): Promise<{
     backend?: TgBackend;
     reason?: string;
 }>;
-export declare function searchChat(chatRef: string, query: string, limit?: number): Promise<TgMessageHit[]>;
+export declare function searchChat(chatRef: string, query: string, limit?: number, since?: string): Promise<TgMessageHit[]>;
 export declare function tgSetPhone(phone: string): Promise<unknown>;
 export declare function tgCheckCode(code: string): Promise<unknown>;
 export declare function tgCheckPassword(password: string): Promise<unknown>;

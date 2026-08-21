@@ -29,6 +29,6 @@ export declare function resolveChatId(urlOrUser: string): Promise<{
     title: string;
     username?: string;
 }>;
-export declare function searchChat(chatRef: string, query: string, limit?: number): Promise<TgMessageHit[]>;
+export declare function searchChat(chatRef: string, query: string, limit?: number, since?: string): Promise<TgMessageHit[]>;
 export declare function closeTdClient(): Promise<void>;
 export declare function lastLoadError(): string | null;

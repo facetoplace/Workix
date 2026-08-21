@@ -18,4 +18,6 @@ export declare function refreshJobs(opts?: {
     jobs: Job[];
     errors: string[];
     cached: string[];
+    /** Per-location clones of one posting dropped before the store saw them. */
+    duplicates_collapsed: number;
 }>;

@@ -376,6 +376,24 @@ export async function hubUpdateStartup(args: {
   return hubFetch(`/api/v1/startups/${encodeURIComponent(slug)}`, { method: "PATCH", body });
 }
 
+/**
+ * "Delete" a company/startup card from the catalog. This is a SOFT close: the
+ * listing is flipped to status "closed" (hidden from the public catalog) via the
+ * owner-permitted PATCH. The row is kept — full hard delete (removing roles and
+ * applications for good) is admin-only on the server (DELETE /startups/:slug).
+ */
+export async function hubDeleteStartup(args: { slug: string }) {
+  const res = await hubFetch(`/api/v1/startups/${encodeURIComponent(args.slug)}`, {
+    method: "PATCH",
+    body: { status: "closed" },
+  });
+  if (!res.ok) return res;
+  return {
+    ...res,
+    note: "Soft close: listing set to status=closed and hidden from the public catalog. The card is kept; permanent deletion is admin-only.",
+  };
+}
+
 export async function hubListRoles(args: { startup?: string; q?: string; mine?: boolean } = {}) {
   const qs = new URLSearchParams();
   if (args.startup) qs.set("startup", args.startup);

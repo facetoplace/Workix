@@ -47,7 +47,7 @@ export declare const PLATFORM_MODULE_MAP: Record<string, string>;
  * No module, no key — the URL lives in platforms.json.
  * `reddit` is one multireddit feed, not one platform per subreddit.
  */
-export declare const RSS_JOB_PLATFORMS: readonly ["djinni", "jobspresso", "reddit", "dribbble_jobs"];
+export declare const RSS_JOB_PLATFORMS: readonly ["djinni", "jobspresso", "reddit", "dribbble_jobs", "startup_jobs", "jobscollider"];
 /**
  * Job boards pulled on `include_jobs`, in digest order.
  *

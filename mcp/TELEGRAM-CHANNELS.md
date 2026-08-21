@@ -90,5 +90,10 @@ After changing the JSON, you may update the tables in this file to match. The JS
 | jobs_in_it_remoute | jobs_feed | Aggregator (typo in username) |
 | digital_hr | jobs_feed | DigitalHR agency |
 | getitrussia | jobs_feed | Get IT |
+| forallmobile | jobs_feed | Mobile: iOS / Android / RN / Flutter |
+| Remoteit | jobs_feed | Remote IT (Inflow) |
+
+A digest run reads the first **12** channels by priority (`WORKIX_TG_MAX_CHANNELS`, max 40), so
+entries at the end of the `high` group stay out of the default digest until the limit is raised.
 
 Full list: see `channels` in [`telegram-channels.example.json`](./telegram-channels.example.json).

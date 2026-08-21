@@ -349,6 +349,18 @@ export function listOutreach(opts?: {
   return (db().prepare(sql).all(...params) as unknown as OutreachRow[]).map(toOutreach);
 }
 
+/**
+ * Every outreach row, unpaginated — for importers that have to reconcile the
+ * whole log (hh negotiations backfill) rather than show a page of it.
+ * listOutreach caps at 100 on purpose: that cap is a UI limit, not a data one.
+ */
+export function listAllOutreach(): OutreachRecord[] {
+  const rows = db()
+    .prepare("SELECT * FROM outreach ORDER BY at DESC")
+    .all() as unknown as OutreachRow[];
+  return rows.map(toOutreach);
+}
+
 /** Normalize a link so the same posting matches across trackers/mirrors. */
 export function normalizeLink(url?: string): string | undefined {
   if (!url) return undefined;

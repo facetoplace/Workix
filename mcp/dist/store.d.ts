@@ -32,6 +32,12 @@ export declare function listOutreach(opts?: {
     jobId?: string;
     limit?: number;
 }): OutreachRecord[];
+/**
+ * Every outreach row, unpaginated — for importers that have to reconcile the
+ * whole log (hh negotiations backfill) rather than show a page of it.
+ * listOutreach caps at 100 on purpose: that cap is a UI limit, not a data one.
+ */
+export declare function listAllOutreach(): OutreachRecord[];
 /** Normalize a link so the same posting matches across trackers/mirrors. */
 export declare function normalizeLink(url?: string): string | undefined;
 /**

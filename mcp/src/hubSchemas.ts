@@ -41,6 +41,7 @@ Hub field formats (follow when filling forms via MCP):
 - stage (project): idea | stealth | preseed | seed | mvp | early | growth | scale | mature | project
 - status (create): draft (save) | pending (moderation). Use pending to publish — moderation is normal, not a barrier.
 - status (update / lifecycle): draft | pending | closed | frozen. closed = outdated/done; frozen = on hold. Authors set these on projects, roles, and orders.
+- Claiming a slug / an existing card. A FREE slug is yours to take for free, right through the agent: your own vanity URL via workix_update_profile (slug), a company via workix_create_startup / workix_update_startup (slug) — no charge, no approval needed. Only when it is already TAKEN (409 on create/update), or you found a catalog card of yourself / your company (e.g. an auto-imported listing with no publisher) and want control over it, do NOT create a duplicate — send an ownership request to admins via workix_feedback (type:"support", subject:"claim <slug>", context: the slug or https://workix.co/{slug} URL), stating how you are the rightful owner. Admins free the slug or transfer the card to you.
 - contact (apply): email or @telegram
 - openTo: e.g. ["full-time","part-time","contract","co-build","collab","promo","UGC"] (creators: prefer collab/promo/UGC)
 - availability (performer): open | working | resting | ideas | busy

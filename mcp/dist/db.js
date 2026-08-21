@@ -121,6 +121,17 @@ CREATE TABLE IF NOT EXISTS meta (
   k TEXT PRIMARY KEY,
   v TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS source_quality (
+  source       TEXT PRIMARY KEY,
+  searches     INTEGER NOT NULL DEFAULT 0,
+  hits         INTEGER NOT NULL DEFAULT 0,
+  errors       INTEGER NOT NULL DEFAULT 0,
+  last_at      TEXT,
+  last_query   TEXT,
+  score        REAL NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS source_quality_last ON source_quality(last_at);
 `;
 export function db() {
     const dir = resolveDataDir();

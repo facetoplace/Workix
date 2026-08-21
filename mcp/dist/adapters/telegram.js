@@ -3,17 +3,34 @@
  */
 import { loadTgChannels } from "../telegram/channels.js";
 import { getAuthState, searchChat } from "../telegram/backend.js";
+import { tgCredentialsConfigured } from "../telegram/credentials.js";
+import { hasGramjsSession } from "../telegram/gramjs.js";
+import { telegramSearchSince } from "../telegram/searchSince.js";
+/**
+ * Is Telegram set up enough to fold into a full scan? This is a LOCAL-only
+ * check — credentials in env, a saved session file, and at least one channel —
+ * so it never touches the network. That matters: getAuthState() connects to
+ * Telegram (with retries) and can hang for a minute when the account is
+ * flood-limited, and a background digest must not stall on it. We decide to
+ * *attempt* TG from local signals, then guard the fetch itself with a timeout.
+ */
+export function telegramActivated() {
+    try {
+        if (!tgCredentialsConfigured())
+            return false;
+        if (!hasGramjsSession())
+            return false;
+        return loadTgChannels().channels.length > 0;
+    }
+    catch {
+        return false;
+    }
+}
 /**
  * One digest run reads at most this many channels — each is a network round-trip,
  * and Telegram answers a long sweep with flood-waits. Raise it with
  * WORKIX_TG_MAX_CHANNELS when the watch list outgrows the default.
  */
-function maxChannels() {
-    const raw = Number(process.env.WORKIX_TG_MAX_CHANNELS);
-    if (!Number.isFinite(raw) || raw < 1)
-        return 12;
-    return Math.min(Math.floor(raw), 40);
-}
 const PRIORITY_RANK = { high: 0, medium: 1, low: 2 };
 /**
  * Which channels this run actually reads. Taking them in file order meant a
@@ -55,12 +72,13 @@ export async function fetchTelegramJobs(opts) {
     }
     const keywords = (opts?.keywords || []).map((k) => String(k).trim()).filter(Boolean);
     const query = keywords.slice(0, 4).join(" ") || "";
+    const since = telegramSearchSince().since;
     const per = Math.min(Math.max(Number(opts?.limit) || 8, 1), 15);
     const jobs = [];
     const errors = [];
-    for (const ch of watchOrder(channels).slice(0, maxChannels())) {
+    for (const ch of watchOrder(channels)) {
         try {
-            const hits = await searchChat(ch.url, query, per);
+            const hits = await searchChat(ch.url, query, per, since);
             for (const h of hits) {
                 jobs.push({
                     id: h.id,

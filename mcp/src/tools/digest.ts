@@ -1,3 +1,4 @@
+import { dedupeJobs } from "../dedupe.js";
 import { refreshJobs } from "../fetchJobs.js";
 import { checkJobsAlive } from "../freshness.js";
 import { getPreset } from "../presets.js";
@@ -80,6 +81,13 @@ export async function runDigest(args: {
     strong,
     min_budget: profile?.min_budget,
   });
+
+  // Same posting served once per city (NoFluff and friends). refreshJobs already
+  // collapses this run's fetch; this second pass catches clones that entered the
+  // store before the collapse existed.
+  const collapsed = dedupeJobs(filtered);
+  const dropped_duplicates = collapsed.collapsed;
+  filtered = collapsed.jobs;
 
   if (onlyNew) {
     filtered = filtered.filter((j) => !wasShownInDigest(j.id));
@@ -172,6 +180,13 @@ export async function runDigest(args: {
     // Which sources came from the shared cache instead of the network, with age.
     ...(cached.length ? { served_from_cache: cached } : {}),
     ...(dropped_dead ? { dropped_dead, dead_links } : {}),
+    ...(dropped_duplicates
+      ? {
+          dropped_duplicates,
+          duplicates_note:
+            "Схлопнуты дубли одной вакансии по городам (один и тот же постинг под разными city-слагами).",
+        }
+      : {}),
     // Silent filtering reads as "nothing was out there" — say what was cut.
     ...(dropped_contacted
       ? {

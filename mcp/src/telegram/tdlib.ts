@@ -257,6 +257,7 @@ export async function searchChat(
   chatRef: string,
   query: string,
   limit = 20,
+  since?: string,
 ): Promise<TgMessageHit[]> {
   const c = await getTdClient();
   const { chatId, title, username } = await resolveChatId(chatRef);
@@ -264,6 +265,7 @@ export async function searchChat(
 
   const q = String(query || "").trim();
   const lim = Math.min(Math.max(Number(limit) || 20, 1), 50);
+  const cutoff = since ? new Date(since).getTime() : 0;
 
   let messages: Record<string, unknown>[] = [];
   if (q) {
@@ -296,6 +298,7 @@ export async function searchChat(
     if (!text) continue;
     const messageId = Number(msg.id);
     const dateSec = Number(msg.date || 0);
+    if (cutoff && dateSec * 1000 < cutoff) continue;
     const link = messageLink(username, chatId, messageId);
     const titleLine = text.split("\n").find((l) => l.trim()) || title;
     out.push({

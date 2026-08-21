@@ -131,11 +131,14 @@ export async function gramjsSearchChat(
   chatRef: string,
   query: string,
   limit = 20,
+  since?: string,
 ): Promise<TgMessageHit[]> {
   const c = await getGramjsClient();
   const username = parseUsername(chatRef);
   const entity = await c.getEntity(username.startsWith("+") || /^-?\d+$/.test(chatRef) ? chatRef : username);
-  const lim = Math.min(Math.max(Number(limit) || 20, 1), 50);
+  const requested = Math.min(Math.max(Number(limit) || 20, 1), 50);
+  const cutoff = since ? new Date(since).getTime() : 0;
+  const lim = cutoff ? 50 : requested;
   const q = String(query || "").trim();
 
   const out: TgMessageHit[] = [];
@@ -152,10 +155,10 @@ export async function gramjsSearchChat(
       ? `https://t.me/${uname}/${messageId}`
       : `https://t.me/c/${String(chatId).replace(/^-100/, "")}/${messageId}`;
     const title = entity.title || entity.firstName || uname || "telegram";
-    const date = msg.date
-      ? new Date(msg.date * 1000).toISOString()
-      : new Date().toISOString();
+    const dateMs = msg.date ? Number(msg.date) * 1000 : Date.now();
+    const date = new Date(dateMs).toISOString();
     const titleLine = text.split("\n").find((l: string) => l.trim()) || String(title);
+    if (cutoff && dateMs < cutoff) continue;
     out.push({
       id: `tg_${chatId}_${messageId}`,
       platform: "telegram",
@@ -168,9 +171,31 @@ export async function gramjsSearchChat(
       chatId,
       messageId,
     });
-    if (out.length >= lim) break;
+    if (out.length >= requested) break;
   }
   return out;
+}
+
+/** Send one message to a user/chat from the logged-in account. */
+export async function gramjsSendMessage(
+  to: string,
+  text: string,
+): Promise<{ ok: true; peer: string; chatId: number; messageId: number; link?: string }> {
+  const c = await getGramjsClient();
+  const ref = String(to || "").trim();
+  const arg = ref.startsWith("+") || /^-?\d+$/.test(ref) ? ref : parseUsername(ref);
+  const entity = await c.getEntity(arg);
+  const res = await c.sendMessage(entity, { message: String(text) });
+  const messageId = Number(res?.id ?? 0);
+  const chatId = Number(entity.id ?? 0);
+  const uname = entity.username as string | undefined;
+  return {
+    ok: true,
+    peer: uname ? "@" + uname : String(chatId),
+    chatId,
+    messageId,
+    link: uname && messageId ? `https://t.me/${uname}/${messageId}` : undefined,
+  };
 }
 
 export async function closeGramjs(): Promise<void> {

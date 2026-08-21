@@ -107,6 +107,8 @@ export const RSS_JOB_PLATFORMS = [
   "jobspresso",
   "reddit",
   "dribbble_jobs",
+  "startup_jobs",
+  "jobscollider",
 ] as const;
 
 /**
