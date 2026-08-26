@@ -10,7 +10,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { resolveDataDir } from "../db.js";
 
-export type ScanKind = "tg_search" | "digest";
+export type ScanKind = "tg_search" | "tg_dump" | "digest";
 
 type ScanRecord = {
   at: string;

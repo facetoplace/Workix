@@ -44,11 +44,11 @@
     { "q": "Show open roles on Workix", "lang": "en", "args": {} }
   ],
   "workix_list_performers": [
-    { "q": "Найди исполнителей с опытом в Rust", "lang": "ru", "args": {} },
+    { "q": "Найди участников с опытом в Rust", "lang": "ru", "args": {} },
     { "q": "Find performers who do mobile development", "lang": "en", "args": {} }
   ],
   "workix_get_performer": [
-    { "q": "Покажи карточку исполнителя", "lang": "ru", "args": {} },
+    { "q": "Покажи карточку участника", "lang": "ru", "args": {} },
     { "q": "Open that performer's profile", "lang": "en", "args": {} }
   ],
   "workix_create_startup": [
@@ -64,7 +64,7 @@
     { "q": "Apply to that role on the hub", "lang": "en", "args": {} }
   ],
   "workix_hub_register": [
-    { "q": "Зарегистрируй меня в Workix как исполнителя", "lang": "ru", "args": {} },
+    { "q": "Зарегистрируй меня в Workix как участника", "lang": "ru", "args": {} },
     { "q": "Register me on the Workix hub", "lang": "en", "args": {} }
   ],
   "workix_update_profile": [

@@ -8,6 +8,22 @@ import type { Job } from "../types.js";
  * *attempt* TG from local signals, then guard the fetch itself with a timeout.
  */
 export declare function telegramActivated(): boolean;
+/**
+ * Sweep recent history of every (non-community) channel with ONE empty search
+ * each — the collect-phase Telegram ingest. No keyword filtering here: the raw
+ * postings land in the store and searchCorpus ranks them later. Guarded per
+ * channel so a slow/flood-limited chat can't wedge the sweep.
+ */
+export declare function sweepTelegramChannels(opts?: {
+    days?: number;
+    perChannel?: number;
+}): Promise<{
+    jobs: Job[];
+    channels: number;
+    ok: number;
+    failed: number;
+    errors: string[];
+}>;
 export declare function fetchTelegramJobs(opts?: {
     keywords?: string[];
     limit?: number;

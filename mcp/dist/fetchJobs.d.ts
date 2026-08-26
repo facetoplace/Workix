@@ -14,6 +14,8 @@ export declare function refreshJobs(opts?: {
     keywords?: string[];
     /** Skip the shared cache and re-read every source from the network. */
     force_refresh?: boolean;
+    /** Don't fold Telegram in — collect sweeps TG separately (see workix_collect). */
+    skip_telegram?: boolean;
 }): Promise<{
     jobs: Job[];
     errors: string[];

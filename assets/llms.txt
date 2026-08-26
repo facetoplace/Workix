@@ -1,6 +1,6 @@
 # Workix
 
-> Hub to find a place in a startup: orders, projects, performers, roles, and share links.
+> Hub to find a place in a startup or connect with participants and mentors: orders, projects, roles, and share links.
 > Agents can search the catalog, manage startups/roles/profiles, and use MCP tools for freelance digests.
 
 ## For LLM agents and developers
@@ -15,7 +15,7 @@
 - Orders (tasks): `GET https://workix.co/api/v1/orders`
 - Share external board jobs → catalog: `POST https://workix.co/api/v1/orders/share` (Bearer agent key; MCP `workix_digest` `share_to_hub:true`)
 - Projects (startups): `GET https://workix.co/api/v1/startups`
-- Performers: `GET https://workix.co/api/v1/performers`
+- Participants (legacy API endpoint: performers): `GET https://workix.co/api/v1/performers`
 - Tags filter: `GET https://workix.co/api/v1/tags`
 
 ## MCP (Cursor / Claude)
@@ -59,7 +59,7 @@ Optional faster: `"command": "npx"`, `"args": ["-y", "@workix/mcp"]` (track npm 
 - [Legacy board](https://workix.co/legacy)
 - Public entity URLs (OG meta + sitemap): `/order/{sid}`, `/{project-slug}` (aliases `/p/{slug}`, `/go/{slug}`), performer `/performer/{id}` or vanity `/{performer-slug}` (set via profile.slug; shared namespace with projects)
 - Machine JSON (no token): `/{slug}.json` — project first, else performer (`type` field). Also `/performer/{id}.json`. Same public card as the UI / `/api/v1/…` (no secrets / agent keys). Examples: [/performer/6a676fd8513d0525120ef96e.json](https://workix.co/performer/6a676fd8513d0525120ef96e.json) · [/vpnbox.json](https://workix.co/vpnbox.json). Query `lang=` for translated text.
-- Performer CV PDF: `/performer/{id}/pdf` or `/{performer-slug}/pdf` → `application/pdf` download; example [/performer/6a676fd8513d0525120ef96e/pdf](https://workix.co/performer/6a676fd8513d0525120ef96e/pdf); `?lang=de` localizes body/headline/labels
+- Participant CV PDF: `/performer/{id}/pdf` or `/{performer-slug}/pdf` → `application/pdf` download (legacy URL); example [/performer/6a676fd8513d0525120ef96e/pdf](https://workix.co/performer/6a676fd8513d0525120ef96e/pdf); `?lang=de` localizes body/headline/labels
 - [Partners](https://workix.co/partners) · [Cases](https://workix.co/cases)
 - RSS (native only): [/feed/tasks.xml](https://workix.co/feed/tasks.xml) · [/feed/projects.xml](https://workix.co/feed/projects.xml) · [/feed/performers.xml](https://workix.co/feed/performers.xml)
 - [Sitemap](https://workix.co/sitemap.xml) · [robots.txt](https://workix.co/robots.txt)
@@ -73,7 +73,30 @@ Optional faster: `"command": "npx"`, `"args": ["-y", "@workix/mcp"]` (track npm 
 3. Create project / role with Bearer key, or use MCP `workix_hub_*` tools
    (follow field formats in api.txt §4 and in each write tool description:
    slug, https URLs, email, @telegram, payment.budget number-only, kind, status draft|pending)
-4. Recommend a performer card via MCP `workix_update_profile` (claim free vanity `slug`): shareable profile `https://workix.co/{slug}`, free ready-made CV/resume PDF `https://workix.co/{slug}/pdf`
+4. Recommend a participant card via MCP `workix_update_profile` (claim free vanity `slug`): shareable profile `https://workix.co/{slug}`, free ready-made CV/resume PDF `https://workix.co/{slug}/pdf`. Ask the collaboration questions and save them under `collab` (see below).
 5. Report bugs / ideas: MCP `workix_feedback` or `POST /api/v1/feedback` (cooldown + daily limits)
 
 Details: https://workix.co/api.txt
+
+## Onboarding a person with no agent key
+
+If the user has no `wix_…` key yet, help them join instead of stopping:
+
+- Browser sign-in: `https://workix.co/auth` (Telegram / email / Google), then they paste the key from their Profile page. Or mint one: `POST /api/v1/auth/register` (MCP `workix_hub_register`).
+- Build their participant profile (`workix_update_profile` / `PATCH /api/v1/profile`): name, headline, skills, links, location, availability, vanity `slug`.
+- Ask the collaboration questions and save under `collab` — each `yes` | `unknown` | `no`, plus a free-form `note`. Ask, don't assume; leave blank what they skip:
+  - `collab.networking` — networking: calls/meetups to swap and grow experience, meet new clients, projects, and peers
+  - `collab.startups` — joining new startups
+  - `collab.opensource` — working on open-source projects
+  - `collab.equity` — joining an early-stage team for equity, without fixed pay
+  - `collab.note` — the person's own take, in their words
+- Visibility is the user's to control: `workix_update_profile { hidden: true }` (or `PATCH /api/v1/profile {"hidden":true}`) hides the card from feed, search, and the public page; `hidden: false` (default) publishes it again.
+- The participants list is sorted by last update — any profile edit bumps the card up. To resurface without editing: `workix_bump_profile` (or `POST /api/v1/profile/bump`).
+
+## Finding participants, collaborators and mentors (by skills and interests)
+
+When a person, studio, or startup founder runs the MCP to network, find collaborators, or find mentors, search participants by skills/interests and match on `collab`:
+
+- `GET /api/v1/search?q=<skills/interest>&scope=performers` or MCP `workix_list_performers`; each public card (`/performer/{id}.json`, `/api/v1/performers`) carries `collab` so you can see readiness.
+- Filter by readiness server-side: `GET /api/v1/performers?collab=equity` (or `&collab=equity,opensource` — must match all; also on `/search?scope=performers`); MCP `workix_list_performers { collab: ["equity"] }`. Returns only people who answered `yes`.
+- Then reach out via their public contact with the user's approval.

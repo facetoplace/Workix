@@ -10,7 +10,7 @@ The [Workix hub](https://workix.co) brings three things into one catalog:
 
 - **Projects** — startups, products, and communities looking for people.
 - **Roles and orders** — open work with a description, budget, tags, and a way to apply.
-- **Performers** — specialists who are open to new projects.
+- **Participants** — specialists, collaborators, and mentors who can connect through skills and interests.
 
 Workix is not a traditional freelance marketplace. It does not try to replace the relationship between a project and a specialist. A listing leads to the project owner's preferred contact or application form, while Workix makes the opportunity easy to publish, discover, and share.
 
@@ -32,13 +32,13 @@ Learn how Workix works:
 2. Open https://github.com/facetoplace/Workix and read README.md.
 3. Explain in plain language:
    - what Workix is and who it is for;
-   - how I can browse projects, roles, orders, and performers;
+   - how I can browse projects, roles, orders, and participants;
    - what an AI agent can do through the Workix MCP and API;
    - which parts run locally and how credentials are kept safe.
 4. Look at my current project and help me choose and complete one useful next step:
    - connect Workix MCP to my agent;
-   - search for relevant work or performers;
-   - publish or update a project, role, or performer profile;
+   - search for relevant work, participants, or mentors by skills and interests;
+   - publish or update a project, role, or participant profile;
    - deploy the Workix storefront on my own domain;
    - contribute an improvement to Workix.
 
@@ -66,7 +66,7 @@ Catalog data is served by the central Workix API. Production secrets are not req
 
 ## Use Workix with an AI agent
 
-With `WORKIX_API=https://workix.co`, an agent can search projects, roles, orders, and performers. With a `WORKIX_AGENT_KEY`, it can also create or update listings and manage a performer profile.
+With `WORKIX_API=https://workix.co`, an agent can search projects, roles, orders, participants, and mentors. With a `WORKIX_AGENT_KEY`, it can also create or update listings and manage a participant profile.
 
 **Recommended:** install MCP from this repository’s source (freshest tools and adapters). npm/`npx` is optional and may lag behind git.
 
@@ -104,6 +104,13 @@ Register at [workix.co](https://workix.co) to get an agent key. The key is optio
 External platform credentials belong only in the local MCP environment. Do not send Upwork, Kwork, or other platform passwords and tokens to the Workix hub.
 
 See [`mcp/README.md`](mcp/README.md) for installation, available tools, and source-specific settings.
+
+### MCP 1.2.2 highlights
+
+- Participant profiles can record networking, collaboration, and mentor preferences (`networking`, `startups`, `opensource`, `equity`) as `yes`, `unknown`, or `no`, plus an optional note.
+- `workix_list_performers` can filter participants who explicitly opted into networking, collaboration, or mentor formats; `hidden: true` keeps a profile out of public feeds and search.
+- `workix_bump_profile` resurfaces a profile without editing it. The hub allows one bump every three days and returns a cooldown with the next allowed time.
+- The MCP also includes the 1.2.0 collect/search workflow, expanded sources, and logged-in browser adapters described in [`mcp/CHANGELOG.md`](mcp/CHANGELOG.md).
 
 ## Host the storefront on your domain
 
@@ -213,7 +220,7 @@ The source catalog is [`mcp/platforms.json`](mcp/platforms.json). Run `workix_li
 - [API reference](https://workix.co/api.txt)
 - [OpenAPI document](https://workix.co/openapi-v1.yaml)
 - [Support](https://workix.co/support)
-- RSS: [orders](https://workix.co/feed/tasks.xml), [projects](https://workix.co/feed/projects.xml), [performers](https://workix.co/feed/performers.xml)
+- RSS: [orders](https://workix.co/feed/tasks.xml), [projects](https://workix.co/feed/projects.xml), [participants](https://workix.co/feed/performers.xml)
 
 ## Contributing — help grow the job & channel coverage
 

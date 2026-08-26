@@ -144,6 +144,8 @@ export async function refreshJobs(opts?: {
   keywords?: string[];
   /** Skip the shared cache and re-read every source from the network. */
   force_refresh?: boolean;
+  /** Don't fold Telegram in — collect sweeps TG separately (see workix_collect). */
+  skip_telegram?: boolean;
 }): Promise<{
   jobs: Job[];
   errors: string[];
@@ -276,11 +278,11 @@ export async function refreshJobs(opts?: {
     { id: "yc_work_at_startup", activeByDefault: false },
     { id: "wellfound", activeByDefault: false },
     { id: "lennys_jobs", activeByDefault: false },
-    { id: "accel_jobs", activeByDefault: false },
-    { id: "sequoia_jobs", activeByDefault: false },
-    { id: "capitalg_jobs", activeByDefault: false },
-    { id: "index_startup_jobs", activeByDefault: false },
-    { id: "generalcatalyst_jobs", activeByDefault: false },
+    { id: "accel_jobs", activeByDefault: true },
+    { id: "sequoia_jobs", activeByDefault: true },
+    { id: "capitalg_jobs", activeByDefault: true },
+    { id: "index_startup_jobs", activeByDefault: true },
+    { id: "generalcatalyst_jobs", activeByDefault: true },
   ];
   for (const board of regionalBoards) {
     const platform = board.id;
@@ -563,8 +565,9 @@ export async function refreshJobs(opts?: {
   // search hit the network and can flood-wait for a minute, and the vacancy scan
   // must degrade to a soft error rather than hang on a throttled account.
   const wantTelegram =
-    platforms?.includes("telegram") ||
-    (!platforms?.length && telegramActivated());
+    !opts?.skip_telegram &&
+    (platforms?.includes("telegram") ||
+      (!platforms?.length && telegramActivated()));
   if (wantTelegram) {
     const tgKeywords =
       opts?.keywords?.length

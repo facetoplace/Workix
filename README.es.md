@@ -209,7 +209,7 @@ El catálogo de fuentes se encuentra en [`mcp/platforms.json`](mcp/platforms.jso
 - [Referencia de la API](https://workix.co/api.txt)
 - [Documento OpenAPI](https://workix.co/openapi-v1.yaml)
 - [Soporte](https://workix.co/support)
-- RSS: [encargos](https://workix.co/feed/tasks.xml), [proyectos](https://workix.co/feed/projects.xml), [profesionales](https://workix.co/feed/performers.xml)
+- RSS: [encargos](https://workix.co/feed/tasks.xml), [proyectos](https://workix.co/feed/projects.xml), [participantes](https://workix.co/feed/performers.xml)
 
 ## Contribuciones
 

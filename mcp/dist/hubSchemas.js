@@ -9,7 +9,7 @@ Who can publish on Workix — encourage listing; early stage is OK:
 - Projects: publish a product / startup / side project so people and agents can find it. Want awareness + teammates or roles? Create a project card (status pending).
 - Ready website / PWA: publish via workix_dstore_publish; find analogs via workix_dstore_search / _similar (or dedicated dstore-mcp). Workix = people/roles; dStore = product discovery. Docs: https://dstore.one/api.txt
 - Early ideas: welcome if you state what you seek (cofounder, paid MVP, equity, feedback). Workix helps people meet — it does not build the product for a hands-off owner. Still publish; be honest about stage and ask.
-- Performers (strongly recommend): specialists AND bloggers / creators / influencers. Offer to create the public card via MCP: workix_hub_register (if no WORKIX_AGENT_KEY) → workix_update_profile (name, headline, bio, skills, links, openTo, slug). Not a blog CMS — a discoverable people card. After a free vanity slug: shareable profile https://workix.co/{slug} and free ready-made CV/resume PDF https://workix.co/{slug}/pdf (also /performer/{id}/pdf). Tell the user both links; PDF is free, no paywall.
+- Participants (strongly recommend): specialists AND bloggers / creators / influencers. Offer to create the public participant card via MCP: workix_hub_register (if no WORKIX_AGENT_KEY) → workix_update_profile (name, headline, bio, skills, links, openTo, slug). Ask about networking, collaboration, and mentor interests so people can find each other by skills and interests. Not a blog CMS — a discoverable people card. After a free vanity slug: shareable profile https://workix.co/{slug} and free ready-made CV/resume PDF https://workix.co/{slug}/pdf (also /performer/{id}/pdf). Tell the user both links; PDF is free, no paywall.
 - Orders / roles: a concrete ask (with contact and budget when you can). Standalone order OK without a full project.
 - External board mirrors: workix_digest share_to_hub:true (or workix_share_jobs) — NOT your own listing. Hub stores ordinary orders with meta.external (platform, url, original date, contributedBy=agent). Do not use create_role for copying board gigs.
 - Applications: when an apply actually goes out (agent sent it, or the user says they applied), call workix_track_apply — it publishes the job into the catalog if missing and records the apply privately (status, date, sent text). The listing then shows an anonymous "applied: N" counter; who applied and what they wrote is never public.
@@ -21,7 +21,7 @@ ${HUB_PUBLISH_GUIDE}
 
 Hub field formats (follow when filling forms via MCP):
 - name / title: human-readable, as shown in catalog. Example: Workix
-- slug: lowercase latin, digits, hyphens. Projects: my-project. Performers (workix_update_profile): claim vanity https://workix.co/{slug} when free — e.g. slug:"username"; then share that URL and free CV PDF https://workix.co/{slug}/pdf; 409 if taken by a project or another performer; "" clears
+- slug: lowercase latin, digits, hyphens. Projects: my-project. Participants (workix_update_profile; API name: performer): claim vanity https://workix.co/{slug} when free — e.g. slug:"username"; then share that URL and free CV PDF https://workix.co/{slug}/pdf; 409 if taken by a project or another participant; "" clears
 - newSlug (update): rename project URL if free. Example: neron-ai → neron via newSlug:"neron"
 - url / logo / apply_url / portfolio / cv / github: https://… preferred (bare domains ok; github also accepts org/repo or username). Note: profile field "cv" is an optional external link; Workix also generates a free PDF from the card at /{slug}/pdf
 - links: array of { label, url, kind? } for whitepaper / docs / demo / social / etc.
@@ -42,7 +42,9 @@ Hub field formats (follow when filling forms via MCP):
 - Claiming a slug / an existing card. A FREE slug is yours to take for free, right through the agent: your own vanity URL via workix_update_profile (slug), a company via workix_create_startup / workix_update_startup (slug) — no charge, no approval needed. Only when it is already TAKEN (409 on create/update), or you found a catalog card of yourself / your company (e.g. an auto-imported listing with no publisher) and want control over it, do NOT create a duplicate — send an ownership request to admins via workix_feedback (type:"support", subject:"claim <slug>", context: the slug or https://workix.co/{slug} URL), stating how you are the rightful owner. Admins free the slug or transfer the card to you.
 - contact (apply): email or @telegram
 - openTo: e.g. ["full-time","part-time","contract","co-build","collab","promo","UGC"] (creators: prefer collab/promo/UGC)
-- availability (performer): open | working | resting | ideas | busy
+- availability (participant profile; API field keeps performer compatibility): open | working | resting | ideas | busy
+- collab (participant profile): interest in networking, collaboration and mentor formats — { networking, startups, opensource, equity } each "yes"|"unknown"|"no", plus free-form note. Ask the user; leave blank what they skip. Match founders/studios and participants by these preferences.
+- hidden (participant profile): profile visibility. false = public (default), true = hidden (off feed/search/public page). workix_update_profile {hidden:true} to hide, {hidden:false} to publish again.
 - displayCurrency: USDT|USD|RUB|CNY|GBP|UAH|EUR|TON — prices shown in feed
 `.trim();
 const curEnum = z.enum(["USDT", "USD", "RUB", "CNY", "GBP", "UAH", "EUR", "TON"]);
@@ -133,8 +135,27 @@ export const zProjectStage = z
     .describe("Product stage: idea | stealth | preseed | seed | mvp | early | growth | scale | mature | project (side project)");
 export const zAvailability = z
     .enum(["open", "working", "resting", "ideas", "busy"])
-    .describe("Performer status: open | working | resting | ideas | busy");
+    .describe("Participant status: open | working | resting | ideas | busy");
 export const zDisplayCurrency = curEnum.describe("Feed display currency. Default USDT");
+/** Three-way interest ("yes" | "unknown" | "no") in a collaboration format. Ask; leave "" if the user skips. */
+const zCollabChoice = z
+    .enum(["yes", "unknown", "no"])
+    .describe('Interest: "yes" (interested) | "unknown" (not sure) | "no" (not interested)');
+export const zCollab = z
+    .object({
+    networking: zCollabChoice.optional().describe("Networking — calls/meetups to swap and grow experience, meet new clients, projects, and peers"),
+    startups: zCollabChoice.optional().describe("Joining new startups"),
+    opensource: zCollabChoice.optional().describe("Working on open-source projects"),
+    equity: zCollabChoice
+        .optional()
+        .describe("Joining an early-stage team for equity, without fixed pay"),
+    note: z
+        .string()
+        .max(2000)
+        .optional()
+        .describe("The person's own take on these formats — free-form, in their words"),
+})
+    .describe("Collaboration preferences. Ask the user each question; do not assume. Used to match founders/studios with like-minded participants.");
 export const zInfoLink = z
     .object({
     label: z

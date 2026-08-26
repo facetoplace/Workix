@@ -44,6 +44,25 @@ export declare const zLifecycleStatus: z.ZodEnum<["draft", "pending", "active", 
 export declare const zProjectStage: z.ZodEnum<["idea", "stealth", "preseed", "seed", "mvp", "early", "growth", "scale", "mature", "project"]>;
 export declare const zAvailability: z.ZodEnum<["open", "working", "resting", "ideas", "busy"]>;
 export declare const zDisplayCurrency: z.ZodEnum<["USDT", "USD", "RUB", "CNY", "GBP", "UAH", "EUR", "TON"]>;
+export declare const zCollab: z.ZodObject<{
+    networking: z.ZodOptional<z.ZodEnum<["yes", "unknown", "no"]>>;
+    startups: z.ZodOptional<z.ZodEnum<["yes", "unknown", "no"]>>;
+    opensource: z.ZodOptional<z.ZodEnum<["yes", "unknown", "no"]>>;
+    equity: z.ZodOptional<z.ZodEnum<["yes", "unknown", "no"]>>;
+    note: z.ZodOptional<z.ZodString>;
+}, "strip", z.ZodTypeAny, {
+    note?: string | undefined;
+    networking?: "unknown" | "yes" | "no" | undefined;
+    startups?: "unknown" | "yes" | "no" | undefined;
+    opensource?: "unknown" | "yes" | "no" | undefined;
+    equity?: "unknown" | "yes" | "no" | undefined;
+}, {
+    note?: string | undefined;
+    networking?: "unknown" | "yes" | "no" | undefined;
+    startups?: "unknown" | "yes" | "no" | undefined;
+    opensource?: "unknown" | "yes" | "no" | undefined;
+    equity?: "unknown" | "yes" | "no" | undefined;
+}>;
 export declare const zInfoLink: z.ZodObject<{
     label: z.ZodString;
     url: z.ZodString;

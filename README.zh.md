@@ -209,7 +209,7 @@ Indeed、Glassdoor、ZipRecruiter、Naukri 和 BDjobs 通过 [JobSpy](https://gi
 - [API 参考](https://workix.co/api.txt)
 - [OpenAPI 文档](https://workix.co/openapi-v1.yaml)
 - [支持](https://workix.co/support)
-- RSS：[订单](https://workix.co/feed/tasks.xml)、[项目](https://workix.co/feed/projects.xml)、[服务者](https://workix.co/feed/performers.xml)
+- RSS：[订单](https://workix.co/feed/tasks.xml)、[项目](https://workix.co/feed/projects.xml)、[参与者](https://workix.co/feed/performers.xml)
 
 ## 参与贡献
 

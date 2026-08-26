@@ -6,8 +6,8 @@ const BOARDS = {
     jobio: { id: "jobio", base: "https://www.jobio.co.il", paths: ["/ru/job-list"], host: /jobio\.co\.il/i },
     hiringcafe: { id: "hiringcafe", base: "https://hiringcafe.com", paths: ["/"], host: /hiringcafe\.com/i },
     grepjob: { id: "grepjob", base: "https://grepjob.com", paths: ["/"], host: /grepjob\.com/i },
-    yc_work_at_startup: { id: "yc_work_at_startup", base: "https://www.workatastartup.com", paths: ["/jobs"], host: /workatastartup\.com/i },
-    wellfound: { id: "wellfound", base: "https://wellfound.com", paths: ["/jobs"], host: /wellfound\.com/i },
+    yc_work_at_startup: { id: "yc_work_at_startup", base: "https://www.workatastartup.com", paths: ["/jobs"], host: /workatastartup\.com/i, cookieJar: "yc" },
+    wellfound: { id: "wellfound", base: "https://wellfound.com", paths: ["/jobs"], host: /wellfound\.com/i, cookieJar: "wellfound" },
     lennys_jobs: { id: "lennys_jobs", base: "https://www.lennysjobs.com", paths: ["/"], host: /lennysjobs\.com/i },
     accel_jobs: { id: "accel_jobs", base: "https://jobs.accel.com", paths: ["/jobs"], host: /jobs\.accel\.com/i },
     sequoia_jobs: { id: "sequoia_jobs", base: "https://jobs.sequoiacap.com", paths: ["/jobs"], host: /sequoiacap\.com/i },
@@ -51,11 +51,21 @@ function field(data, ...keys) {
     return undefined;
 }
 export async function fetchRegionalBoardJobs(platform, opts) {
+    // YC Work at a Startup is a login-gated SPA that blocks plain HTTP — read it
+    // through the persistent `yc` browser profile instead of fetchText.
+    if (platform === "yc_work_at_startup") {
+        const { fetchYcJobs } = await import("./yc.js");
+        return fetchYcJobs(opts);
+    }
+    if (platform === "wellfound") {
+        const { fetchWellfoundJobs } = await import("./wellfound.js");
+        return fetchWellfoundJobs(opts);
+    }
     const board = BOARDS[platform];
     if (!board)
         return { jobs: [], error: `${platform}: unsupported regional board` };
     const limit = Math.min(Math.max(opts?.limit ?? 40, 1), 100);
-    const pages = await Promise.all(board.paths.map((path) => fetchText(`${board.base}${path}`, { proxy: false, timeoutMs: 20000 })));
+    const pages = await Promise.all(board.paths.map((path) => fetchText(`${board.base}${path}`, { proxy: false, timeoutMs: 20000, cookieJar: board.cookieJar })));
     const html = pages.find((p) => p.ok)?.text || "";
     if (!html)
         return { jobs: [], error: `${platform}: public page unavailable` };
@@ -78,7 +88,7 @@ export async function fetchRegionalBoardJobs(platform, opts) {
     if (jobs.length)
         return { jobs: jobs.slice(0, limit) };
     const details = await Promise.all(urls.map(async (link) => {
-        const r = await fetchText(link, { proxy: false, timeoutMs: 15000 });
+        const r = await fetchText(link, { proxy: false, timeoutMs: 15000, cookieJar: board.cookieJar });
         if (!r.ok)
             return null;
         const title = decode(r.text.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i)?.[1] || r.text.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] || link.split("/").pop() || platform);

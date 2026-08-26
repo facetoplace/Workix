@@ -209,7 +209,7 @@ Indeed, Glassdoor, ZipRecruiter, Naukri і BDjobs читаються через 
 - [Довідник API](https://workix.co/api.txt)
 - [Документ OpenAPI](https://workix.co/openapi-v1.yaml)
 - [Підтримка](https://workix.co/support)
-- RSS: [замовлення](https://workix.co/feed/tasks.xml), [проєкти](https://workix.co/feed/projects.xml), [виконавці](https://workix.co/feed/performers.xml)
+- RSS: [замовлення](https://workix.co/feed/tasks.xml), [проєкти](https://workix.co/feed/projects.xml), [учасники](https://workix.co/feed/performers.xml)
 
 ## Як зробити внесок
 

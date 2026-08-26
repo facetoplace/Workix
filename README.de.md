@@ -209,7 +209,7 @@ Der Quellenkatalog befindet sich unter [`mcp/platforms.json`](mcp/platforms.json
 - [API-Referenz](https://workix.co/api.txt)
 - [OpenAPI-Dokument](https://workix.co/openapi-v1.yaml)
 - [Support](https://workix.co/support)
-- RSS: [Aufträge](https://workix.co/feed/tasks.xml), [Projekte](https://workix.co/feed/projects.xml), [Auftragnehmende](https://workix.co/feed/performers.xml)
+- RSS: [Aufträge](https://workix.co/feed/tasks.xml), [Projekte](https://workix.co/feed/projects.xml), [Teilnehmende](https://workix.co/feed/performers.xml)
 
 ## Mitwirken
 

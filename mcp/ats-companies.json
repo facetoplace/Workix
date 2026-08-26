@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-10",
+  "updated": "2026-08-25",
   "note": "Employer career boards read straight from the ATS. Each entry is one company; the apply URL is the employer's own, so there is no aggregator in the middle. Add rows freely — the adapter fans out over this file. Override the whole list with ATS_COMPANIES=greenhouse:slug,ashby:slug,…",
   "providers": {
     "greenhouse": "https://boards-api.greenhouse.io/v1/boards/{slug}/jobs",
@@ -9,20 +9,182 @@
     "workable": "https://apply.workable.com/api/v3/accounts/{slug}/jobs"
   },
   "companies": [
-    { "ats": "greenhouse", "slug": "stripe", "name": "Stripe" },
-    { "ats": "greenhouse", "slug": "figma", "name": "Figma" },
-    { "ats": "greenhouse", "slug": "discord", "name": "Discord" },
-    { "ats": "greenhouse", "slug": "airbnb", "name": "Airbnb" },
-    { "ats": "greenhouse", "slug": "databricks", "name": "Databricks" },
-    { "ats": "greenhouse", "slug": "anthropic", "name": "Anthropic" },
-    { "ats": "ashby", "slug": "ramp", "name": "Ramp" },
-    { "ats": "ashby", "slug": "linear", "name": "Linear" },
-    { "ats": "ashby", "slug": "notion", "name": "Notion" },
-    { "ats": "ashby", "slug": "vercel", "name": "Vercel" },
-    { "ats": "ashby", "slug": "mercury", "name": "Mercury" },
-    { "ats": "ashby", "slug": "openai", "name": "OpenAI" },
-    { "ats": "lever", "slug": "leverdemo", "name": "Lever (demo board)" },
-    { "ats": "smartrecruiters", "slug": "Visa", "name": "Visa" },
-    { "ats": "workable", "slug": "zego", "name": "Zego" }
+    {
+      "ats": "greenhouse",
+      "slug": "stripe",
+      "name": "Stripe"
+    },
+    {
+      "ats": "greenhouse",
+      "slug": "figma",
+      "name": "Figma"
+    },
+    {
+      "ats": "greenhouse",
+      "slug": "discord",
+      "name": "Discord"
+    },
+    {
+      "ats": "greenhouse",
+      "slug": "airbnb",
+      "name": "Airbnb"
+    },
+    {
+      "ats": "greenhouse",
+      "slug": "databricks",
+      "name": "Databricks"
+    },
+    {
+      "ats": "greenhouse",
+      "slug": "anthropic",
+      "name": "Anthropic"
+    },
+    {
+      "ats": "ashby",
+      "slug": "ramp",
+      "name": "Ramp"
+    },
+    {
+      "ats": "ashby",
+      "slug": "linear",
+      "name": "Linear"
+    },
+    {
+      "ats": "ashby",
+      "slug": "notion",
+      "name": "Notion"
+    },
+    {
+      "ats": "ashby",
+      "slug": "vercel",
+      "name": "Vercel"
+    },
+    {
+      "ats": "ashby",
+      "slug": "mercury",
+      "name": "Mercury"
+    },
+    {
+      "ats": "ashby",
+      "slug": "openai",
+      "name": "OpenAI"
+    },
+    {
+      "ats": "lever",
+      "slug": "leverdemo",
+      "name": "Lever (demo board)"
+    },
+    {
+      "ats": "smartrecruiters",
+      "slug": "Visa",
+      "name": "Visa"
+    },
+    {
+      "ats": "workable",
+      "slug": "zego",
+      "name": "Zego"
+    },
+    {
+      "ats": "greenhouse",
+      "slug": "tailscale",
+      "name": "Tailscale",
+      "note": "VPN/networking"
+    },
+    {
+      "ats": "greenhouse",
+      "slug": "proton",
+      "name": "Proton",
+      "note": "privacy/VPN"
+    },
+    {
+      "ats": "ashby",
+      "slug": "sierra",
+      "name": "Sierra",
+      "note": "AI agents"
+    },
+    {
+      "ats": "ashby",
+      "slug": "cognition",
+      "name": "Cognition (Devin)",
+      "note": "AI coding agent"
+    },
+    {
+      "ats": "ashby",
+      "slug": "decagon",
+      "name": "Decagon",
+      "note": "AI agents"
+    },
+    {
+      "ats": "ashby",
+      "slug": "dust",
+      "name": "Dust",
+      "note": "AI agents platform"
+    },
+    {
+      "ats": "ashby",
+      "slug": "elevenlabs",
+      "name": "ElevenLabs",
+      "note": "AI voice, remote-first"
+    },
+    {
+      "ats": "ashby",
+      "slug": "perplexity",
+      "name": "Perplexity",
+      "note": "AI search"
+    },
+    {
+      "ats": "ashby",
+      "slug": "replit",
+      "name": "Replit",
+      "note": "dev tools / AI coding"
+    },
+    {
+      "ats": "ashby",
+      "slug": "runway",
+      "name": "Runway",
+      "note": "generative AI"
+    },
+    {
+      "ats": "ashby",
+      "slug": "revenuecat",
+      "name": "RevenueCat",
+      "note": "mobile monetization SDK"
+    },
+    {
+      "ats": "ashby",
+      "slug": "zed",
+      "name": "Zed",
+      "note": "Rust code editor / systems"
+    },
+    {
+      "ats": "greenhouse",
+      "slug": "warp",
+      "name": "Warp",
+      "note": "dev-tools / terminal"
+    },
+    {
+      "ats": "ashby",
+      "slug": "modal",
+      "name": "Modal",
+      "note": "serverless AI infra"
+    },
+    {
+      "ats": "ashby",
+      "slug": "baseten",
+      "name": "Baseten",
+      "note": "ML infra"
+    },
+    {
+      "ats": "ashby",
+      "slug": "writer",
+      "name": "Writer",
+      "note": "AI agents / writing"
+    },
+    {
+      "ats": "ashby",
+      "slug": "granola",
+      "name": "Granola",
+      "note": "AI notes (seed)"
+    }
   ]
 }

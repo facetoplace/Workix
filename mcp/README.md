@@ -1,20 +1,27 @@
 # Workix MCP
 
-**Runtime source catalog:** the current platform list is [`platforms.json`](./platforms.json), with status semantics documented in [`../docs/18-runtime-platforms.md`](../docs/18-runtime-platforms.md). The older platform research matrices are historical evidence, not an active integration list. `include_jobs` is active; `watch_pending` is explicit-test only; `watch_browser` is manual browser-only.
+**Runtime source catalog:** the current platform list is [`platforms.json`](./platforms.json). The older platform research matrices are historical evidence, not an active integration list. `include_jobs` is active; `watch_pending` is explicit-test only; `watch_browser` is manual browser-only.
 
 Local MCP server for AI agents ([Cursor](https://cursor.com), Claude, etc.) that work with the [Workix hub](https://workix.co) and freelance boards.
 
-### What's new in 1.1.0
+### What's new in 1.2.2
 
-- Added adapters for JobSearchDB, regional job boards, Remocate, Startup Jobs MCP, Startupium, and TheHub.
-- Expanded Telegram collection with checkpoints, incremental `since` searches, scan timing, source-quality scoring, and safer channel rotation.
-- Added new startup/job discovery tools and expanded the runtime source catalog.
-- Added source-access and runtime-platform documentation covering access modes, limits, credentials, and automation risk.
-- Rebuilt the TypeScript distribution and adapter bundles for clone-and-run installs.
+- **Participants and mentors.** Public hub copy now describes people as participants: specialists, collaborators, founders, and mentors can connect through skills and interests. The API tool names and legacy `performer` URLs remain unchanged for compatibility.
+- **Collaboration matching.** Participant cards can record networking, startup, open-source, and equity preferences under `collab`; `workix_list_performers` can filter by those preferences.
+- **Profile visibility and bump.** `hidden` controls whether a participant appears in feeds/search, while `workix_bump_profile` resurfaces a card no more than once every 3 days.
+
+### What's new in 1.2.0
+
+- **Collect → search split.** `workix_collect` ingests every source into the store in parallel (HTTP/RSS/boards/HH + a full Telegram channel sweep); `workix_db_search` then ranks/filters the store across all platforms with no network — word-boundary keyword match, résumé/"for hire" drop, cross-post collapse, per-advertiser cap, and an "already applied" cross-check against the outreach log.
+- **Telegram two modes.** `workix_tg_search` now takes `mode: search | dump` — server-side per-term walk vs. sweep-then-match-locally. Fixed the `since` window (Telegram-only checkpoint, 2-day floor).
+- **New sources:** `web3.career`, `reactjobs.io` (React/RN/Flutter/mobile), and `aijobs.net` (AI/ML) adapters; ATS company list expanded +17 (Proton, Tailscale, Sierra, Cognition, Decagon, ElevenLabs, Perplexity, RevenueCat, Zed, Modal, Baseten, …); **YC Work at a Startup** and **Wellfound** read through a logged-in browser profile (`scripts/board-open.mjs` + `board-save.mjs`).
+- Telegram channel lists (`telegram-channels.json` / `.example.json`) synced to 80 channels, dead entries pruned.
+
+Previously (1.1.0): adapters for JobSearchDB, regional boards, Remocate, Startup Jobs MCP, Startupium, TheHub; Telegram checkpoints / incremental `since` / scan timing / source-quality rotation; runtime source catalog and access docs.
 
 Full release notes: [`CHANGELOG.md`](./CHANGELOG.md).
 
-Workix is a shared catalog where **projects** (startups/products/communities), **roles & orders**, and **performers** find each other. It is not a closed freelance marketplace: listings point to the owner’s preferred contact or apply flow. Agents use this MCP to search that catalog, manage your listings, and also pull opportunities from external boards while keeping platform credentials on the user’s machine.
+Workix is a shared catalog where **projects** (startups/products/communities), **roles & orders**, **participants**, and **mentors** find each other. Search by skills and interests, then connect through the owner’s preferred contact or apply flow. It is not a closed freelance marketplace: agents use this MCP to search that catalog, manage your listings, and also pull opportunities from external boards while keeping platform credentials on the user’s machine.
 
 **Install (recommended):** clone this repo → `mcp/` → `npm install && npm run build` · Docs: [workix.co/agent](https://workix.co/agent) · [api.txt](https://workix.co/api.txt) · [llms.txt](https://workix.co/llms.txt)  
 Optional shortcut: `npx -y @workix/mcp` (npm may lag behind git).
@@ -55,8 +62,8 @@ Sources: [`scripts/dump-tools.mjs`](./scripts/dump-tools.mjs) · [`scripts/datas
 
 ### What you can use it for
 
-- **Discover** — search hub projects, roles, orders, and performers relevant to a skill or niche
-- **Publish / update** — create or edit a startup or role, maintain a performer profile (`WORKIX_AGENT_KEY`)
+- **Discover** — search hub projects, roles, orders, participants, and mentors relevant to skills or interests
+- **Publish / update** — create or edit a startup or role, maintain a participant profile (`WORKIX_AGENT_KEY`)
 - **Freelance workflow** — digests and search across supported boards, draft proposals, prepare browser apply steps (submit only with human confirmation)
 - **Ship a product card** — publish a live site/PWA URL into the dStore catalog and find similar apps
 
@@ -301,11 +308,11 @@ Optional: `WORKIX_PROFILE_PATH`, `WORKIX_MCP_DATA`.
 |------|------|
 | `workix_hub_health` / `workix_hub_register` / `workix_hub_me` / `workix_hub_rotate_key` | Auth & health (`rotate_key` needs `confirm:true`; writes `mcp/.env` by default) |
 | `workix_list_startups` / `workix_get_startup` / `workix_create_startup` / `workix_update_startup` | Projects — products, startups, early ideas OK (`pending` = publish) |
-| `workix_list_performers` / `workix_get_performer` | Performers (builders + bloggers/creators) + their listings |
+| `workix_list_performers` / `workix_get_performer` | Participants (builders + bloggers/creators) and mentors + their listings; filter by `collab` readiness |
 | `workix_list_hub_orders` / `workix_get_hub_order` | Hub orders (`scraped` / `external` → no personal publisher card; detail may include `external`) |
 | `workix_list_roles` / `workix_create_role` / `workix_update_role` | Roles / orders (concrete asks; paid or cofounder) |
 | `workix_share_jobs` | Mirror local board job ids → hub catalog (`POST /orders/share`; prefer digest flag) |
-| `workix_get_profile` / `workix_update_profile` | Create/update own performer card via MCP; claim vanity `slug` → shareable `https://workix.co/{slug}` + free CV PDF `https://workix.co/{slug}/pdf` (also `/{slug}.json`) |
+| `workix_get_profile` / `workix_update_profile` | Create/update your participant card via MCP; claim vanity `slug` → shareable `https://workix.co/{slug}` + free CV PDF `https://workix.co/{slug}/pdf` (also `/{slug}.json`) |
 
 Write tools echo a short **who can publish** guide: early stage welcome; moderation (`pending`) is normal — do not discourage listing.
 | `workix_hub_apply` | Apply on hub |
@@ -320,6 +327,8 @@ Write tools echo a short **who can publish** guide: early stage welcome; moderat
 | `workix_dstore_search` / `_similar` / `_get` / `_publish` / `_list` / `_quota` | [dStore](https://dstore.one) catalog — same REST as official **dstore-mcp** ([api.txt](https://dstore.one/api.txt)) |
 | _(optional)_ separate MCP `dstore` | `search_catalog`, `get_app`, `get_similar`, `add_url`, `get_list`, `quota_status` — see api.txt §0 |
 | `workix_digest` / `workix_search` / `workix_get_job` | Read boards (auto-downloads adapters). `share_to_hub:true` on digest batch-mirrors cards to hub (no per-item confirm; needs `WORKIX_AGENT_KEY`) |
+| `workix_collect` | **Phase 1** — ingest every source into the store in parallel (HTTP/RSS/boards/HH + full Telegram sweep). Ranks nothing; refresh the store, then search it offline |
+| `workix_db_search` | **Phase 2** — rank/filter the store across all platforms, no network. Word-boundary keyword match, cross-post collapse, per-advertiser cap, résumé drop, `applied`/`hide_applied` cross-check vs. the outreach log |
 | `workix_draft_proposal` | Draft reply |
 | `workix_outreach_log` / `workix_outreach_list` | Local log: contact, channel, full text, status (`draft`/`sent`/`ok`…). Mirror into `docs/apply-log-*.md` |
 | `workix_track_apply` | The application actually went out → record it on workix.co (publishes the job if missing, stores status + date + the sent text, privately) |
@@ -331,7 +340,26 @@ Write tools echo a short **who can publish** guide: early stage welcome; moderat
 | `workix_sources_status` / `workix_list_platforms` / `workix_open_watch_source` | Status & watch |
 | `workix_ensure_platforms` / `workix_install_platform` / `workix_remove_platform` | Adapter cache |
 | `workix_upwork_auth_url` / `workix_upwork_exchange_code` | Upwork OAuth |
-| `workix_tg_status` / `workix_tg_auth` / `workix_tg_search` | Optional Telegram (GramJS; TDLib where native works). Install: `npm install telegram`. Env: `TG_APP_API_ID` + `TG_APP_API_HASH`. Login: `npm run tg:login`. |
+| `workix_tg_status` / `workix_tg_auth` / `workix_tg_search` | Optional Telegram (GramJS; TDLib where native works). `workix_tg_search` takes `mode: search` (server-side per-term) or `mode: dump` (sweep recent history → match locally, with `applied`/`cross_posts`/`hide_applied`). Install: `npm install telegram`. Env: `TG_APP_API_ID` + `TG_APP_API_HASH`. Login: `npm run tg:login`. |
+
+### Gated boards via a logged-in browser profile (YC, Wellfound)
+
+Some boards are login-gated SPAs that block plain HTTP. They read through a
+persistent Chrome profile you log in to **once** — no credential ever reaches the
+agent, only the resulting session:
+
+```bash
+cd mcp
+# opens a real window; log in, then in another shell capture the session:
+node scripts/board-open.mjs yc        https://www.workatastartup.com/
+node scripts/board-save.mjs yc
+node scripts/board-open.mjs wellfound https://wellfound.com/login
+node scripts/board-save.mjs wellfound
+```
+
+After that the `yc_work_at_startup` and `wellfound` adapters reuse the session:
+YC runs headless on the saved profile; Wellfound is Cloudflare-gated, so its
+adapter launches a real (minimized) Chrome. Both are opt-in (name the platform).
 
 ### hh.ru session
 

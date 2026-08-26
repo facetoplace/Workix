@@ -209,7 +209,7 @@ Kaynak kataloğu [`mcp/platforms.json`](mcp/platforms.json) dosyasındadır. Mak
 - [API referansı](https://workix.co/api.txt)
 - [OpenAPI belgesi](https://workix.co/openapi-v1.yaml)
 - [Destek](https://workix.co/support)
-- RSS: [iş ilanları](https://workix.co/feed/tasks.xml), [projeler](https://workix.co/feed/projects.xml), [uzmanlar](https://workix.co/feed/performers.xml)
+- RSS: [iş ilanları](https://workix.co/feed/tasks.xml), [projeler](https://workix.co/feed/projects.xml), [katılımcılar](https://workix.co/feed/performers.xml)
 
 ## Katkıda bulunma
 

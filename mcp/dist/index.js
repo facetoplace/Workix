@@ -10,6 +10,7 @@ import { runOutreachList, runOutreachLog } from "./tools/outreach.js";
 import { runCheckpointGet, runCheckpointSet } from "./tools/checkpoint.js";
 import { runGetJob } from "./tools/get_job.js";
 import { runSearch } from "./tools/search.js";
+import { runCollect, runDbSearch } from "./tools/collect.js";
 import { runStartupJobsRead } from "./tools/startup_jobs.js";
 import { runHubShareStatus, runShareJobs } from "./tools/share_jobs.js";
 import { runHhNegotiations } from "./tools/hh_negotiations.js";
@@ -27,8 +28,8 @@ import { runUpworkAuthUrl, runUpworkExchangeCode, } from "./tools/upwork_auth.js
 import { runOpenWatchSource, WATCH_SOURCE_IDS } from "./tools/watch.js";
 import { runEnsurePlatforms, runInstallPlatform, runListPlatforms, runRemovePlatform, } from "./tools/adapters.js";
 import { runDstoreGet, runDstoreInfo, runDstoreList, runDstorePublish, runDstoreQuota, runDstoreSearch, runDstoreSimilar, } from "./tools/dstore.js";
-import { hubApply, hubCreateRole, hubCreateStartup, hubFeedback, hubGetOrder, hubGetPerformer, hubGetProfile, hubGetStartup, hubHealth, hubListMyStartups, hubListOrders, hubListPerformers, hubListRoles, hubListStartups, hubMe, hubRegister, hubRotateAgentKey, hubUpdateProfile, hubUpdateOrder, hubUpdateRole, hubUpdateStartup, hubDeleteStartup, } from "./tools/hub.js";
-import { HUB_FIELD_GUIDE, zApplyDefaults, zDisplayCurrency, zEmailSoft, zInfoLinks, zPayment, zRoleKind, zSlug, zAvailability, zLifecycleStatus, zProjectStage, zStatus, zTags, zTelegram, zUrlSoft, } from "./hubSchemas.js";
+import { hubApply, hubCreateRole, hubCreateStartup, hubFeedback, hubGetOrder, hubGetPerformer, hubGetProfile, hubGetStartup, hubHealth, hubListMyStartups, hubListOrders, hubListPerformers, hubListRoles, hubListStartups, hubMe, hubRegister, hubRotateAgentKey, hubUpdateProfile, hubBumpProfile, hubUpdateOrder, hubUpdateRole, hubUpdateStartup, hubDeleteStartup, } from "./tools/hub.js";
+import { HUB_FIELD_GUIDE, zApplyDefaults, zDisplayCurrency, zEmailSoft, zInfoLinks, zPayment, zRoleKind, zSlug, zAvailability, zCollab, zLifecycleStatus, zProjectStage, zStatus, zTags, zTelegram, zUrlSoft, } from "./hubSchemas.js";
 loadEnv();
 function textResult(data, opts) {
     const body = typeof data === "string" ? data : JSON.stringify(data, null, 2);
@@ -45,9 +46,11 @@ function textResult(data, opts) {
 const server = new McpServer({ name: "workix", version: "1.0.0" }, {
     instructions: [
         "Workix MCP connects an AI agent to the Workix hub (https://workix.co) and to local freelance/job sources.",
-        "Hub catalog: search and open projects/startups, roles, orders, and performers; with WORKIX_AGENT_KEY create/update startups and roles, manage your performer profile, register/rotate an agent key, apply, and send feedback.",
-        "PERFORMER CARD (recommend): when the user seeks work, collab, or a shareable resume, offer to create/update their Workix performer card via MCP (workix_hub_register if needed → workix_update_profile with slug). Tell them: public profile to share https://workix.co/{slug}; free ready-made CV/resume PDF download https://workix.co/{slug}/pdf (also /performer/{id}/pdf). No paywall.",
-        "Use when the user wants to find collaborators or work on Workix, publish a project or role, create/update a performer card, or browse the shared catalog via tools instead of the website.",
+        "Hub catalog: search and open projects/startups, roles, orders, participants, and mentors; with WORKIX_AGENT_KEY create/update startups and roles, manage your participant profile, register/rotate an agent key, apply, and send feedback.",
+        "PARTICIPANT CARD (recommend): when the user seeks work, collaboration, networking, mentorship, or a shareable resume, offer to create/update their Workix participant card via MCP (workix_hub_register if needed → workix_update_profile with slug). Tell them: public profile to share https://workix.co/{slug}; free ready-made CV/resume PDF download https://workix.co/{slug}/pdf (also /performer/{id}/pdf). No paywall.",
+        "NO KEY YET: if there is no WORKIX_AGENT_KEY, don't stop — help the person join. Either point them to browser sign-in at https://workix.co/auth (Telegram/email/Google, then paste the wix_… key from their Profile), or mint one with workix_hub_register. Then build their participant profile and ASK the collaboration questions (networking, new startups, open-source, equity/early-stage without fixed pay), saving answers under collab; ask, don't assume.",
+        "FINDING LIKE-MINDED PEOPLE: keep in mind you can run a participant search (workix_list_performers). When a person, studio, or startup founder runs the MCP, use it to find contacts of like-minded people for whom working with them could be interesting — match on skills/tags and on each card's collab preferences, then reach out via public contact with the user's approval.",
+        "Use when the user wants to find collaborators or mentors by skills/interests, network on Workix, publish a project or role, create/update a participant card, or browse the shared catalog via tools instead of the website.",
         "Freelance boards: workix_digest / workix_search / workix_get_job across supported platforms (RSS + downloadable adapters). Credentials stay in local env — never send board passwords/tokens to the hub. Draft with workix_draft_proposal; submit only with explicit human confirmation; workix_prepare_browser_apply for manual apply flows.",
         "LOCAL MEMORY (SQLite mcp/data/workix.db): job cards, which were already shown in a digest, drafts, outreach with status, hub mirrors, session checkpoints, and the shared board cache. Nothing here is sent to the hub on its own.",
         "STATE BEFORE ACTION (required): call workix_job_state {job_id|url} before draft / submit / share on a card. It answers in one call whether it was already shown in a digest, already mirrored to workix.co (sid + url), whether a draft exists, and whether a real apply happened with which status — locally and in the hub tracker, so an apply made on another device also counts (hub_application). Mirroring to the catalog is NOT an application: outreach rows with channel=hub are catalog mirrors and are excluded from `applied`.",
@@ -99,6 +102,25 @@ server.tool("workix_search", "Поиск заказов по keywords / platform
         .optional()
         .describe("Bypass the shared fetch cache and re-read every source from the network."),
 }, async (args) => textResult(await runSearch(args)));
+server.tool("workix_collect", "Phase 1 — COLLECT. Ingest every source into the local store, ranking nothing. HTTP/RSS/boards/HH (via refreshJobs) and a full Telegram channel sweep run in PARALLEL; all postings are upserted. Then query with workix_db_search (no network). Use this to refresh the store, then search it as many times as you like offline.", {
+    keywords: z.array(z.string()).optional().describe("Defaults to profile keywords"),
+    include_jobs: z.boolean().optional().describe("Job boards + HH (default true)"),
+    include_agent_gigs: z.boolean().optional().describe("Agent gig sources (default true)"),
+    tg_days: z.number().min(1).max(120).optional().describe("Telegram sweep window in days (default 30)"),
+    skip_http: z.boolean().optional().describe("Skip HTTP/RSS/boards (Telegram-only collect)"),
+    skip_telegram: z.boolean().optional().describe("Skip the Telegram sweep (HTTP-only collect)"),
+    force_refresh: z.boolean().optional().describe("Bypass the fetch cache for HTTP sources"),
+}, async (args) => textResult(await runCollect(args)));
+server.tool("workix_db_search", "Phase 2 — SEARCH. Rank/filter what's already in the store across ALL platforms. No network: run workix_collect first to refresh. Word keywords match on token boundary (\"ton\" ≠ \"button\"); cross-posts collapse; résumés drop; postings already in the outreach log are flagged (applied/applied_via) — pass hide_applied to drop them.", {
+    query: z.string().optional().describe("\"a OR b\" / comma terms; defaults to profile keywords"),
+    keywords: z.array(z.string()).optional(),
+    platforms: z.array(z.string()).optional().describe("Restrict to these platforms (e.g. [\"telegram\",\"hh\"])"),
+    days: z.number().min(1).max(365).optional().describe("Window in days (default 30)"),
+    hours: z.number().optional().describe("Window in hours (overrides days)"),
+    limit: z.number().min(1).max(100).optional(),
+    hide_applied: z.boolean().optional().describe("Drop postings already in the outreach log"),
+    include_resumes: z.boolean().optional().describe("Keep candidate résumés (default: dropped)"),
+}, async (args) => textResult(await runDbSearch(args)));
 server.tool("workix_get_job", "Полная карточка заказа по id или URL. Для watch (Fiverr и т.п.): url+platform+title — захват в store для draft/browser apply.", {
     id: z.string().optional(),
     url: z.string().optional(),
@@ -164,7 +186,21 @@ server.tool("workix_tg_auth", "Continue Telegram user login (BYO). Depending on 
     code: z.string().optional().describe("Login code from Telegram/SMS"),
     password: z.string().optional().describe("2FA cloud password if required"),
 }, async (args) => textResult(await runTgAuth(args)));
-server.tool("workix_tg_search", "Search messages in Telegram chats/channels via local TDLib/GramJS (must be auth ready). Default chats from telegram-channels.json (only the first max_chats are walked — chats_available/chats_skipped say what was left); or pass chats:[\"https://t.me/siliconpravdachat\"]. Telegram search is substring-only, so an \"a OR b\" query is split into separate searches per term and merged (see terms/terms_searched in the answer). Saves hits to local store. No spam / mass messaging.", {
+server.tool("workix_tg_search", "Search messages in Telegram chats/channels via local TDLib/GramJS (must be auth ready). Two modes: mode:'search' (default) runs a server-side substring search per term across chats — best for deep history of a specific rare term; mode:'dump' sweeps each chat's recent history once (empty search) into the local store, then matches the whole Telegram corpus locally — best for a broad, changing keyword set and freshness. Dump uses an explicit window (since or last `days`, default 30), never the checkpoint, so a just-written checkpoint can't shrink it to zero. Default chats from telegram-channels.json (only the first max_chats are walked — chats_available/chats_skipped say what was left); or pass chats:[\"https://t.me/siliconpravdachat\"]. Saves hits to local store. No spam / mass messaging.", {
+    mode: z
+        .enum(["search", "dump"])
+        .optional()
+        .describe("search = server-side per-term (default); dump = sweep recent history then match locally"),
+    days: z
+        .number()
+        .min(1)
+        .max(120)
+        .optional()
+        .describe("dump only: window size in days when `since` is not given (default 30)"),
+    hide_applied: z
+        .boolean()
+        .optional()
+        .describe("dump only: drop postings already in the outreach log (matched by url or company/product name)"),
     query: z
         .string()
         .optional()
@@ -411,17 +447,21 @@ server.tool("workix_list_startups", "Public approved hub projects catalog (produ
     limit: z.number().min(1).max(50).optional(),
     offset: z.number().min(0).optional(),
 }, async (args) => textResult(await hubListStartups(args)));
-server.tool("workix_get_startup", "Hub project by slug: description, roles, publisher performer (if not hub-sync). Follow publisher.pageUrl → workix_get_performer.", {
+server.tool("workix_get_startup", "Hub project by slug: description, roles, publisher participant (if not hub-sync). Follow publisher.pageUrl → workix_get_performer.", {
     slug: z.string(),
     include_roles: z.boolean().optional().describe("Include project roles (default true)"),
 }, async (args) => textResult(await hubGetStartup(args)));
-server.tool("workix_list_performers", "Public hub performers catalog — specialists, builders, bloggers/creators (not jobs-only).", {
+server.tool("workix_list_performers", "Public hub participants catalog — specialists, builders, bloggers/creators (not jobs-only). When a founder/studio/startup runs the MCP, use this to find like-minded people who might want to work with them: filter by q/tags and by collab readiness, then read each card's collab { networking, startups, opensource, equity } (each \"yes\"|\"unknown\"|\"no\"). Pass collab to return only people who answered \"yes\" to those topics (e.g. collab:[\"equity\"] for an unpaid early-stage team, collab:[\"opensource\"] for OSS; multiple = must match all). Reach out via the card's public contact only with the user's approval.", {
     q: z.string().optional(),
     tags: z.array(z.string()).optional(),
+    collab: z
+        .array(z.enum(["networking", "startups", "opensource", "equity"]))
+        .optional()
+        .describe('Keep only participants open ("yes") to ALL of these collaboration topics'),
     limit: z.number().min(1).max(50).optional(),
     offset: z.number().min(0).optional(),
 }, async (args) => textResult(await hubListPerformers(args)));
-server.tool("workix_get_performer", "Hub performer profile + published projects, orders, roles. id may be ObjectId or vanity slug (workix.co/{slug}). Use project.slug → workix_get_startup; order.sid → workix_get_hub_order.", { id: z.string().describe("Performer id or user id") }, async (args) => textResult(await hubGetPerformer(args)));
+server.tool("workix_get_performer", "Hub participant profile + published projects, orders, roles. id may be ObjectId or vanity slug (workix.co/{slug}). Use project.slug → workix_get_startup; order.sid → workix_get_hub_order.", { id: z.string().describe("Participant id or user id") }, async (args) => textResult(await hubGetPerformer(args)));
 server.tool("workix_list_hub_orders", "Public hub orders feed (Workix catalog, not external freelance boards).", {
     q: z.string().optional(),
     publisher: z.string().optional().describe("Filter by publisher user id"),
@@ -515,7 +555,7 @@ server.tool("workix_update_hub_order", `Update own standalone hub order by sid/i
     status: zLifecycleStatus.optional().describe("Lifecycle: draft | pending | active | closed | frozen"),
 }, async (args) => textResult(await hubUpdateOrder(args), { withFieldGuide: true }));
 server.tool("workix_get_profile", "Get authenticated hub profile/resume. When slug is set: pageUrl https://workix.co/{slug} (shareable) + pdfUrl https://workix.co/{slug}/pdf (free CV/resume download).", {}, async () => textResult(await hubGetProfile()));
-server.tool("workix_update_profile", `Create/update the user's public Workix performer card via MCP (developers, designers, AND bloggers/creators/influencers). Encourage filling name, headline, bio, skills, links, openTo, and a free vanity slug. After slug: tell the user to share https://workix.co/{slug} and download a free ready-made CV/resume PDF at https://workix.co/{slug}/pdf (also /performer/{id}/pdf). 409 if slug taken by a project or another performer. ${HUB_FIELD_GUIDE}`, {
+server.tool("workix_update_profile", `Create/update the user's public Workix participant card via MCP (developers, designers, AND bloggers/creators/influencers). Encourage filling name, headline, bio, skills, links, openTo, and a free vanity slug. Also ask the collaboration and mentorship questions and save them under collab (networking / startups / opensource / equity — each "yes"|"unknown"|"no" — plus a free-form note); ask, don't assume. The user controls visibility: hidden:true hides the card from feed/search/public page, hidden:false (default) publishes it. After slug: tell the user to share https://workix.co/{slug} and download a free ready-made CV/resume PDF at https://workix.co/{slug}/pdf (also /performer/{id}/pdf). 409 if slug taken by a project or another participant. ${HUB_FIELD_GUIDE}`, {
     name: z.string().min(1).max(120).optional().describe("Display name. Example: Alex Ivanov"),
     slug: z
         .union([zSlug, z.literal("")])
@@ -546,7 +586,13 @@ server.tool("workix_update_profile", `Create/update the user's public Workix per
     availability: zAvailability.optional().describe("open | working | resting | ideas | busy"),
     payment: zPayment.optional().describe("Rate / salary expectations (optional)"),
     displayCurrency: zDisplayCurrency.optional(),
+    collab: zCollab.optional(),
+    hidden: z
+        .boolean()
+        .optional()
+        .describe("Profile visibility. false = public (default): the card can appear in feed/search and at workix.co/{slug} once it has info + a contact. true = hidden: removed from feed, search, and the public page everywhere. Set true to hide, false to publish again."),
 }, async (args) => textResult(await hubUpdateProfile(args), { withFieldGuide: true }));
+server.tool("workix_bump_profile", "Resurface the user's participant card to the top of the catalog. The participants list is sorted by last update, so this pushes their card up without changing anything. The hub allows one bump every 3 days and returns a cooldown with the next allowed time; do not retry before then. Note: any workix_update_profile edit already bumps the card; use this only when there is nothing to edit but the user wants to be seen again.", {}, async () => textResult(await hubBumpProfile()));
 server.tool("workix_hub_apply", `Apply to a hub role with the same ratings as order proposals (interest/difficulty/clarity + budget/time + pitch → score). Notifies founder. ${HUB_FIELD_GUIDE}`, {
     roleId: z.string().describe("Target role id"),
     name: z.string().min(1).max(120).optional().describe("Name the founder will see. Example: Alex"),

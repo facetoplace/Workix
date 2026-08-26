@@ -209,7 +209,7 @@ Indeed, Glassdoor, ZipRecruiter, Naukri और BDjobs [JobSpy](https://github.co
 - [API संदर्भ](https://workix.co/api.txt)
 - [OpenAPI दस्तावेज़](https://workix.co/openapi-v1.yaml)
 - [सहायता](https://workix.co/support)
-- RSS: [ऑर्डर](https://workix.co/feed/tasks.xml), [प्रोजेक्ट](https://workix.co/feed/projects.xml), [पेशेवर](https://workix.co/feed/performers.xml)
+- RSS: [ऑर्डर](https://workix.co/feed/tasks.xml), [प्रोजेक्ट](https://workix.co/feed/projects.xml), [प्रतिभागी](https://workix.co/feed/performers.xml)
 
 ## योगदान
 

@@ -1,4 +1,4 @@
-export type ScanKind = "tg_search" | "digest";
+export type ScanKind = "tg_search" | "tg_dump" | "digest";
 /** Record a finished scan and return its per-unit cost. */
 export declare function recordScan(input: {
     kind: ScanKind;

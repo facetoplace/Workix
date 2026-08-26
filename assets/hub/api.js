@@ -1115,6 +1115,7 @@
       return request(`/api/v1/search${q ? `?${q}` : ''}`);
     },
     updateProfile: (body) => request('/api/v1/profile', { method: 'PATCH', body }),
+    bumpProfile: () => request('/api/v1/profile/bump', { method: 'POST', body: {} }),
     importProfile: (body) => request('/api/v1/profile/import', { method: 'POST', body }),
     apply: (body) => request('/api/v1/applies', { method: 'POST', body }),
     /** "I applied to this job" — private tracker; listings only show anonymous counts. */

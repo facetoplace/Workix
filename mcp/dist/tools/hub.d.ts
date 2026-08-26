@@ -22,6 +22,7 @@ export declare function hubGetStartup(args: {
 export declare function hubListPerformers(args?: {
     q?: string;
     tags?: string[];
+    collab?: string[];
     limit?: number;
     offset?: number;
 }): Promise<Record<string, unknown>>;
@@ -155,6 +156,7 @@ export declare function hubShareOrders(items: Array<{
 }>): Promise<Record<string, unknown>>;
 export declare function hubGetProfile(): Promise<Record<string, unknown>>;
 export declare function hubUpdateProfile(args: Record<string, unknown>): Promise<Record<string, unknown>>;
+export declare function hubBumpProfile(): Promise<Record<string, unknown>>;
 export declare function hubApply(args: {
     roleId: string;
     name?: string;

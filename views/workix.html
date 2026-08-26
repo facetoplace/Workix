@@ -473,7 +473,7 @@
               </article>
             </template>
 
-            <!-- Performers = resumes from DB -->
+            <!-- Participants = people profiles from DB -->
             <template v-else>
               <div v-if="!filteredPerformers.length && !(feedPager.performers && feedPager.performers.loadingMore)" class="wx-card wx-feed-empty p-6 wx-muted">{{ t('empty_performers') }}</div>
               <article v-for="p in filteredPerformers" :key="p.id" class="wx-card wx-row-card p-4 mb-3">
@@ -1495,15 +1495,23 @@
       <!-- STARTUP FORM -->
       <section v-else-if="route.name==='startup-form'" class="max-w-2xl mx-auto w-full">
         <h1 class="text-2xl font-semibold mb-4">{{ route.slug ? t('edit_startup') : t('create_startup') }}</h1>
-        <div class="wx-card wx-agent-connect p-5 mb-4">
-          <h2 class="wx-agent-form-title text-base font-semibold mb-1">
-            <emoji id="5796185041717433060" class="wx-inline-emoji"></emoji>
-            <span>{{ t('agent_form_title') }}</span>
-          </h2>
-          <p class="wx-muted text-sm mb-3">{{ t('agent_form_hint') }}</p>
-          <pre class="wx-agent-cmd" tabindex="0">{{ agentPrompt }}</pre>
-          <button class="wx-btn wx-btn-ghost mt-3 w-full sm:w-auto" type="button" @click="copyAgentPrompt">{{ t('agent_connect_copy') }}</button>
-        </div>
+        <transition name="wx-collapse">
+          <div v-if="!agentBlockHidden" class="wx-card wx-agent-connect p-5 mb-4">
+            <h2 class="wx-agent-form-title text-base font-semibold mb-1">
+              <emoji id="5796185041717433060" class="wx-inline-emoji"></emoji>
+              <span>{{ t('agent_form_title') }}</span>
+            </h2>
+            <p class="wx-muted text-sm mb-3">{{ t('agent_form_hint') }}</p>
+            <pre class="wx-agent-cmd" tabindex="0">{{ agentPrompt }}</pre>
+            <div class="wx-agent-actions mt-3">
+              <button class="wx-btn wx-btn-ghost w-full sm:w-auto" type="button" @click="copyAgentPrompt">{{ t('agent_connect_copy') }}</button>
+              <button class="wx-agent-hide" type="button" @click="hideAgentBlock" :title="t('agent_block_hide_hint')">
+                <svg class="wx-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M3 3l18 18M10.6 10.7a2 2 0 002.7 2.8M9.4 5.2A9.6 9.6 0 0112 5c5 0 8.5 3.5 10 7-.5 1.2-1.3 2.4-2.3 3.4M6.1 6.2C4.2 7.5 2.8 9.2 2 12c1.5 3.5 5 7 10 7 1.4 0 2.7-.3 3.9-.8"/></svg>
+                <span>{{ t('agent_block_hide') }}</span>
+              </button>
+            </div>
+          </div>
+        </transition>
         <div class="wx-card p-5 grid gap-3">
           <label class="text-sm"><span class="wx-field-label">{{ t('name') }}<span class="wx-help" tabindex="0" :data-tip="t('hint_name')">?</span></span><input class="wx-input mt-1" v-model="formStartup.name" /></label>
           <label class="text-sm"><span class="wx-field-label">{{ t('slug') }}<span class="wx-help" tabindex="0" :data-tip="t('hint_slug')">?</span></span><input class="wx-input mt-1" v-model="formStartup.slug" /></label>
@@ -1542,15 +1550,23 @@
       <!-- ROLE / ORDER FORM -->
       <section v-else-if="route.name==='role-form'" class="max-w-2xl mx-auto w-full">
         <h1 class="text-2xl font-semibold mb-4">{{ formRole._id ? t('edit_role') : t('create_order') }}</h1>
-        <div class="wx-card wx-agent-connect p-5 mb-4">
-          <h2 class="wx-agent-form-title text-base font-semibold mb-1">
-            <emoji id="5796185041717433060" class="wx-inline-emoji"></emoji>
-            <span>{{ t('agent_form_title') }}</span>
-          </h2>
-          <p class="wx-muted text-sm mb-3">{{ t('agent_form_hint') }}</p>
-          <pre class="wx-agent-cmd" tabindex="0">{{ agentPrompt }}</pre>
-          <button class="wx-btn wx-btn-ghost mt-3 w-full sm:w-auto" type="button" @click="copyAgentPrompt">{{ t('agent_connect_copy') }}</button>
-        </div>
+        <transition name="wx-collapse">
+          <div v-if="!agentBlockHidden" class="wx-card wx-agent-connect p-5 mb-4">
+            <h2 class="wx-agent-form-title text-base font-semibold mb-1">
+              <emoji id="5796185041717433060" class="wx-inline-emoji"></emoji>
+              <span>{{ t('agent_form_title') }}</span>
+            </h2>
+            <p class="wx-muted text-sm mb-3">{{ t('agent_form_hint') }}</p>
+            <pre class="wx-agent-cmd" tabindex="0">{{ agentPrompt }}</pre>
+            <div class="wx-agent-actions mt-3">
+              <button class="wx-btn wx-btn-ghost w-full sm:w-auto" type="button" @click="copyAgentPrompt">{{ t('agent_connect_copy') }}</button>
+              <button class="wx-agent-hide" type="button" @click="hideAgentBlock" :title="t('agent_block_hide_hint')">
+                <svg class="wx-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M3 3l18 18M10.6 10.7a2 2 0 002.7 2.8M9.4 5.2A9.6 9.6 0 0112 5c5 0 8.5 3.5 10 7-.5 1.2-1.3 2.4-2.3 3.4M6.1 6.2C4.2 7.5 2.8 9.2 2 12c1.5 3.5 5 7 10 7 1.4 0 2.7-.3 3.9-.8"/></svg>
+                <span>{{ t('agent_block_hide') }}</span>
+              </button>
+            </div>
+          </div>
+        </transition>
         <div class="wx-card p-5 grid gap-3">
           <label class="text-sm" v-if="!formRole._id">
             <span class="wx-field-label">{{ t('task_attach') }}<span class="wx-help" tabindex="0" :data-tip="t('hint_task_attach')">?</span></span>
@@ -1615,15 +1631,23 @@
       <!-- PROFILE -->
       <section v-else-if="route.name==='profile'" class="max-w-2xl mx-auto w-full">
         <h1 class="text-2xl font-semibold mb-4">{{ t('profile_title') }}</h1>
-        <div class="wx-card wx-agent-connect p-5 mb-4">
-          <h2 class="wx-agent-form-title text-base font-semibold mb-1">
-            <emoji id="5796185041717433060" class="wx-inline-emoji"></emoji>
-            <span>{{ t('agent_form_title') }}</span>
-          </h2>
-          <p class="wx-muted text-sm mb-3">{{ t('agent_form_hint') }}</p>
-          <pre class="wx-agent-cmd" tabindex="0">{{ agentPrompt }}</pre>
-          <button class="wx-btn wx-btn-ghost mt-3 w-full sm:w-auto" type="button" @click="copyAgentPrompt">{{ t('agent_connect_copy') }}</button>
-        </div>
+        <transition name="wx-collapse">
+          <div v-if="!agentBlockHidden" class="wx-card wx-agent-connect p-5 mb-4">
+            <h2 class="wx-agent-form-title text-base font-semibold mb-1">
+              <emoji id="5796185041717433060" class="wx-inline-emoji"></emoji>
+              <span>{{ t('agent_form_title') }}</span>
+            </h2>
+            <p class="wx-muted text-sm mb-3">{{ t('agent_form_hint') }}</p>
+            <pre class="wx-agent-cmd" tabindex="0">{{ agentPrompt }}</pre>
+            <div class="wx-agent-actions mt-3">
+              <button class="wx-btn wx-btn-ghost w-full sm:w-auto" type="button" @click="copyAgentPrompt">{{ t('agent_connect_copy') }}</button>
+              <button class="wx-agent-hide" type="button" @click="hideAgentBlock" :title="t('agent_block_hide_hint')">
+                <svg class="wx-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M3 3l18 18M10.6 10.7a2 2 0 002.7 2.8M9.4 5.2A9.6 9.6 0 0112 5c5 0 8.5 3.5 10 7-.5 1.2-1.3 2.4-2.3 3.4M6.1 6.2C4.2 7.5 2.8 9.2 2 12c1.5 3.5 5 7 10 7 1.4 0 2.7-.3 3.9-.8"/></svg>
+                <span>{{ t('agent_block_hide') }}</span>
+              </button>
+            </div>
+          </div>
+        </transition>
         <div v-if="!me" class="wx-card p-5"><a href="#/auth" class="wx-btn wx-btn-primary">{{ t('nav_auth') }}</a></div>
         <div v-else class="wx-card p-5 grid gap-3 mb-4">
           <div class="font-semibold">{{ t('profile_agent_key_title') }}</div>
@@ -1696,7 +1720,37 @@
               <option v-for="c in payCurrencies" :key="'dc-' + c" :value="c">{{ c }}</option>
             </select>
           </label>
-          <button class="wx-btn wx-btn-primary" @click="saveProfile">{{ t('save') }}</button>
+          <label class="text-sm">
+            <span class="wx-field-label">{{ t('profile_visibility') }}<span class="wx-help" tabindex="0" :data-tip="t('hint_profile_visibility')">?</span></span>
+            <select class="wx-select mt-1" :value="profile.hidden ? 'hidden' : 'public'" @change="profile.hidden = ($event.target.value === 'hidden')">
+              <option value="public">{{ t('visibility_public') }}</option>
+              <option value="hidden">{{ t('visibility_hidden') }}</option>
+            </select>
+          </label>
+          <div v-if="profile.collab" class="wx-collab grid gap-3">
+            <div>
+              <span class="wx-field-label">{{ t('collab_title') }}<span class="wx-help" tabindex="0" :data-tip="t('hint_collab')">?</span></span>
+              <p class="wx-muted text-xs mt-1">{{ t('collab_hint') }}</p>
+            </div>
+            <label v-for="cq in collabQuestions" :key="cq.key" class="text-sm">
+              <span class="wx-field-label">{{ t(cq.label) }}<span class="wx-help" tabindex="0" :data-tip="t(cq.hint)">?</span></span>
+              <select class="wx-select mt-1" v-model="profile.collab[cq.key]">
+                <option value="">{{ t('collab_unset') }}</option>
+                <option v-for="opt in collabOptions" :key="cq.key + '-' + opt.value" :value="opt.value">{{ t(opt.label) }}</option>
+              </select>
+            </label>
+            <label class="text-sm">
+              <span class="wx-field-label">{{ t('collab_note') }}<span class="wx-help" tabindex="0" :data-tip="t('hint_collab_note')">?</span></span>
+              <textarea class="wx-textarea mt-1" rows="2" v-model="profile.collab.note" :placeholder="t('collab_note_ph')"></textarea>
+            </label>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button class="wx-btn wx-btn-primary" @click="saveProfile">{{ t('save') }}</button>
+            <button class="wx-btn wx-btn-ghost" type="button" :disabled="bumping" @click="bumpProfile" :title="t('hint_profile_bump')">
+              <svg class="wx-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
+              <span>{{ t('profile_bump') }}</span>
+            </button>
+          </div>
           <hr class="border-slate-800 my-2" />
           <wx-notify-prefs :prefs="prefs" :t="t" @save="savePrefs" @updated="onPrefsUpdated" @toast="showToast" />
           <hr class="border-slate-800 my-2" />

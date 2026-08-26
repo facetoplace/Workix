@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-17",
+  "updated": "2026-08-24",
   "note": "Canonical shared catalog for Workix MCP. Copy to local telegram-channels.json (gitignored) for personal overrides. PRs: edit THIS file — see TELEGRAM-CHANNELS.md / CONTRIBUTING.md. Do not commit private invites or personal lists. Login: TELEGRAM.md.",
   "channels": [
     {
@@ -46,8 +46,8 @@
       "title": "Runello — Fullstack / Web",
       "url": "https://t.me/runello_rus_webdevelopment",
       "kind": "jobs_feed",
-      "priority": "medium",
-      "note": "Часто Flutter/mobile fullstack; @RunelloBot"
+      "priority": "high",
+      "note": "Часто пересекается с Flutter/mobile fullstack; @RunelloBot"
     },
     {
       "id": "dartlang_jobs",
@@ -55,7 +55,7 @@
       "url": "https://t.me/dartlang_jobs",
       "kind": "jobs_feed",
       "priority": "high",
-      "note": "Узкий Flutter/Dart feed"
+      "note": "Узкий Flutter/Dart feed; свежие посты"
     },
     {
       "id": "mobjobskz",
@@ -63,14 +63,15 @@
       "url": "https://t.me/mobjobskz",
       "kind": "jobs_feed",
       "priority": "high",
-      "note": "iOS/Android/Flutter/RN"
+      "note": "iOS/Android/Flutter/RN; вакансии + резюме"
     },
     {
       "id": "fintech_vacancy",
       "title": "Вакансии в Финтех",
       "url": "https://t.me/fintech_vacancy",
       "kind": "jobs_feed",
-      "priority": "high"
+      "priority": "high",
+      "note": "Финтех; часто mobile/iOS lead"
     },
     {
       "id": "it_vakansii_jobs",
@@ -94,7 +95,7 @@
       "url": "https://t.me/theyseeku_it",
       "kind": "jobs_feed",
       "priority": "high",
-      "note": "IT-ветка Finder"
+      "note": "IT-ветка Finder; общий @theyseeku шумнее"
     },
     {
       "id": "jobs_in_it_remoute",
@@ -102,28 +103,31 @@
       "url": "https://t.me/jobs_in_it_remoute",
       "kind": "jobs_feed",
       "priority": "high",
-      "note": "Username с typo remoute"
+      "note": "Агрегатор IT remote; username с typo remoute"
     },
     {
       "id": "digital_hr",
       "title": "DigitalHR",
       "url": "https://t.me/digital_hr",
       "kind": "jobs_feed",
-      "priority": "high"
+      "priority": "high",
+      "note": "Агентство: IT/product/digital"
     },
     {
       "id": "getitrussia",
       "title": "Get IT",
       "url": "https://t.me/getitrussia",
       "kind": "jobs_feed",
-      "priority": "high"
+      "priority": "high",
+      "note": "RU IT remote-friendly"
     },
     {
       "id": "choicy_work",
-      "title": "CHOICY.WORK",
+      "title": "CHOICY.WORK (remote/relocate)",
       "url": "https://t.me/choicy_work",
       "kind": "jobs_feed",
-      "priority": "medium"
+      "priority": "medium",
+      "note": "Удалёнка/релокация; связан с DigitalHR"
     },
     {
       "id": "workayte",
@@ -137,28 +141,32 @@
       "title": "fordev",
       "url": "https://t.me/fordev",
       "kind": "jobs_feed",
-      "priority": "medium"
+      "priority": "medium",
+      "note": "Классические #vacancy подборки"
     },
     {
       "id": "hireproproduct",
       "title": "hireproproduct",
       "url": "https://t.me/hireproproduct",
       "kind": "roles",
-      "priority": "medium"
+      "priority": "medium",
+      "note": "Product/growth вакансии (No Flame No Game)"
     },
     {
       "id": "mnogovakansiy",
       "title": "Многовакансий | Design, IT",
       "url": "https://t.me/mnogovakansiy",
       "kind": "jobs_feed",
-      "priority": "medium"
+      "priority": "medium",
+      "note": "Дизайн + продукт + IT"
     },
     {
       "id": "flutter_react_native_job",
       "title": "Вакансии Flutter / React Native",
       "url": "https://t.me/flutter_react_native_job",
       "kind": "jobs_feed",
-      "priority": "medium"
+      "priority": "medium",
+      "note": "Узкий стек; реже посты"
     },
     {
       "id": "python_jobs",
@@ -173,28 +181,31 @@
       "url": "https://t.me/javascript_jobs",
       "kind": "jobs_feed",
       "priority": "medium",
-      "note": "Вакансии + резюме"
+      "note": "Вакансии + резюме соискателей"
     },
     {
       "id": "web3hiring",
       "title": "Web3 Jobs",
       "url": "https://t.me/web3hiring",
       "kind": "jobs_feed",
-      "priority": "medium"
+      "priority": "medium",
+      "note": "EN web3; рядом с agent gigs"
     },
     {
       "id": "young_june",
       "title": "Young & Junior — IT",
       "url": "https://t.me/young_june",
       "kind": "jobs_feed",
-      "priority": "low"
+      "priority": "low",
+      "note": "Junior/стажировки; много рекламы"
     },
     {
       "id": "NLP_jobs",
       "title": "NLP jobs",
       "url": "https://t.me/NLP_jobs",
       "kind": "jobs_feed",
-      "priority": "low"
+      "priority": "low",
+      "note": "Ниша ML/NLP; смесь #job и #candidate"
     },
     {
       "id": "FreelancerDesk",
@@ -210,9 +221,8 @@
       "title": "BlockHire | Web3 Вакансии",
       "url": "https://t.me/BlockHire",
       "kind": "jobs_feed",
-      "priority": "medium",
-      "note": "RU fintech/web3/crypto + широкий стек (Go, Node, .NET, QA, DevOps); remote/hybrid RU/EU/Cyprus",
-      "verified_at": "2026-08-11"
+      "priority": "high",
+      "note": "RU fintech/web3/crypto + широкий стек (Go, Node, .NET, QA, DevOps); remote/hybrid RU/EU/Cyprus. high — чтобы попадать в окно дайджеста"
     },
     {
       "id": "runello_rus_frontend",
@@ -220,8 +230,7 @@
       "url": "https://t.me/runello_rus_frontend",
       "kind": "jobs_feed",
       "priority": "medium",
-      "note": "Runello агрегатор; отклик через @RunelloBot / source ATS",
-      "verified_at": "2026-08-11"
+      "note": "PWA/TS-смежные; @RunelloBot"
     },
     {
       "id": "runello_rus_typescript",
@@ -229,8 +238,7 @@
       "url": "https://t.me/runello_rus_typescript",
       "kind": "jobs_feed",
       "priority": "medium",
-      "note": "Часто fullstack TS; @RunelloBot",
-      "verified_at": "2026-08-11"
+      "note": "@RunelloBot"
     },
     {
       "id": "runello_rus_javascript",
@@ -238,8 +246,7 @@
       "url": "https://t.me/runello_rus_javascript",
       "kind": "jobs_feed",
       "priority": "medium",
-      "note": "JS/TS, в т.ч. automation; @RunelloBot",
-      "verified_at": "2026-08-11"
+      "note": "@RunelloBot"
     },
     {
       "id": "runello_rus_backend",
@@ -247,8 +254,7 @@
       "url": "https://t.me/runello_rus_backend",
       "kind": "jobs_feed",
       "priority": "medium",
-      "note": "Python/Go/Java; рядом tech lead и fullstack; @RunelloBot",
-      "verified_at": "2026-08-11"
+      "note": "Tech lead / fullstack соседство; @RunelloBot"
     },
     {
       "id": "runello_rus_prompt",
@@ -256,8 +262,7 @@
       "url": "https://t.me/runello_rus_prompt",
       "kind": "jobs_feed",
       "priority": "low",
-      "note": "Data Science / LLM; иногда AI+mobile; @RunelloBot",
-      "verified_at": "2026-08-11"
+      "note": "Ниша; иногда mobile+AI; @RunelloBot"
     },
     {
       "id": "remotejobss",
@@ -265,17 +270,15 @@
       "url": "https://t.me/remotejobss",
       "kind": "jobs_feed",
       "priority": "low",
-      "note": "Крупный EN remote feed; высокий шум — фильтруй keywords",
-      "verified_at": "2026-08-11"
+      "note": "Крупный EN remote; высокий шум"
     },
     {
       "id": "productradar_chat",
       "title": "Product Radar Chat",
       "url": "https://t.me/productradar_chat",
-      "kind": "community",
-      "priority": "low",
-      "note": "Обсуждения, не лента вакансий; «набираю команду» ловится точечным поиском. Не спамить",
-      "verified_at": "2026-08-11"
+      "kind": "startups",
+      "priority": "medium",
+      "note": "Стартап-чат Product Radar; точечно co-founder/техпартнёр/«набираю команду» — фильтруется локально"
     },
     {
       "id": "forallmobile",
@@ -533,8 +536,7 @@
       "url": "https://t.me/nodejsjobsfeed",
       "kind": "jobs_feed",
       "priority": "medium",
-      "note": "добавлено из списка пользователя 2026-08-17",
-      "verified_at": "2026-08-17"
+      "note": "добавлено из списка пользователя 2026-08-17"
     },
     {
       "id": "ITjobsFeed",
@@ -542,8 +544,7 @@
       "url": "https://t.me/ITjobsFeed",
       "kind": "jobs_feed",
       "priority": "medium",
-      "note": "добавлено из списка пользователя 2026-08-17",
-      "verified_at": "2026-08-17"
+      "note": "добавлено из списка пользователя 2026-08-17"
     },
     {
       "id": "DevOpsSRE_Jobs",
@@ -551,8 +552,7 @@
       "url": "https://t.me/DevOpsSRE_Jobs",
       "kind": "jobs_feed",
       "priority": "medium",
-      "note": "добавлено из списка пользователя 2026-08-17",
-      "verified_at": "2026-08-17"
+      "note": "добавлено из списка пользователя 2026-08-17"
     },
     {
       "id": "sre_devops_jobs_rss",
@@ -560,8 +560,7 @@
       "url": "https://t.me/sre_devops_jobs_rss",
       "kind": "jobs_feed",
       "priority": "medium",
-      "note": "добавлено из списка пользователя 2026-08-17",
-      "verified_at": "2026-08-17"
+      "note": "добавлено из списка пользователя 2026-08-17"
     },
     {
       "id": "devops_jobs_feed",
@@ -569,8 +568,7 @@
       "url": "https://t.me/devops_jobs_feed",
       "kind": "jobs_feed",
       "priority": "medium",
-      "note": "добавлено из списка пользователя 2026-08-17",
-      "verified_at": "2026-08-17"
+      "note": "добавлено из списка пользователя 2026-08-17"
     },
     {
       "id": "program_job",
@@ -578,8 +576,7 @@
       "url": "https://t.me/program_job",
       "kind": "jobs_feed",
       "priority": "medium",
-      "note": "добавлено из списка пользователя 2026-08-17",
-      "verified_at": "2026-08-17"
+      "note": "добавлено из списка пользователя 2026-08-17"
     },
     {
       "id": "middle_job_it",
@@ -587,8 +584,7 @@
       "url": "https://t.me/middle_job_it",
       "kind": "jobs_feed",
       "priority": "medium",
-      "note": "добавлено из списка пользователя 2026-08-17",
-      "verified_at": "2026-08-17"
+      "note": "добавлено из списка пользователя 2026-08-17"
     },
     {
       "id": "backend_frontend_jobs",
@@ -596,8 +592,7 @@
       "url": "https://t.me/backend_frontend_jobs",
       "kind": "jobs_feed",
       "priority": "medium",
-      "note": "добавлено из списка пользователя 2026-08-17",
-      "verified_at": "2026-08-17"
+      "note": "добавлено из списка пользователя 2026-08-17"
     },
     {
       "id": "Python_Jbs",
@@ -605,8 +600,7 @@
       "url": "https://t.me/Python_Jbs",
       "kind": "jobs_feed",
       "priority": "medium",
-      "note": "добавлено из списка пользователя 2026-08-17",
-      "verified_at": "2026-08-17"
+      "note": "добавлено из списка пользователя 2026-08-17"
     },
     {
       "id": "mobile_jobs",
@@ -614,17 +608,15 @@
       "url": "https://t.me/mobile_jobs",
       "kind": "jobs_feed",
       "priority": "medium",
-      "note": "добавлено из списка пользователя 2026-08-17",
-      "verified_at": "2026-08-17"
+      "note": "добавлено из списка пользователя 2026-08-17"
     },
     {
       "id": "devops_jobs",
       "title": "DevOps Jobs",
       "url": "https://t.me/devops_jobs",
-      "kind": "jobs_feed",
-      "priority": "medium",
-      "note": "добавлено из списка пользователя 2026-08-17",
-      "verified_at": "2026-08-17"
+      "kind": "community",
+      "priority": "low",
+      "note": "Peek 2026-08-11: чат-болталка, вакансий в ленте нет"
     },
     {
       "id": "qa_jobs",
@@ -632,8 +624,7 @@
       "url": "https://t.me/qa_jobs",
       "kind": "jobs_feed",
       "priority": "medium",
-      "note": "добавлено из списка пользователя 2026-08-17",
-      "verified_at": "2026-08-17"
+      "note": "добавлено из списка пользователя 2026-08-17"
     },
     {
       "id": "agile_jobs",
@@ -641,8 +632,7 @@
       "url": "https://t.me/agile_jobs",
       "kind": "jobs_feed",
       "priority": "medium",
-      "note": "добавлено из списка пользователя 2026-08-17",
-      "verified_at": "2026-08-17"
+      "note": "добавлено из списка пользователя 2026-08-17"
     },
     {
       "id": "uiux_jobs",
@@ -650,8 +640,7 @@
       "url": "https://t.me/uiux_jobs",
       "kind": "jobs_feed",
       "priority": "medium",
-      "note": "добавлено из списка пользователя 2026-08-17",
-      "verified_at": "2026-08-17"
+      "note": "добавлено из списка пользователя 2026-08-17"
     },
     {
       "id": "projects_jobs",
@@ -659,8 +648,7 @@
       "url": "https://t.me/projects_jobs",
       "kind": "jobs_feed",
       "priority": "medium",
-      "note": "добавлено из списка пользователя 2026-08-17",
-      "verified_at": "2026-08-17"
+      "note": "добавлено из списка пользователя 2026-08-17"
     },
     {
       "id": "cccoding",
@@ -668,8 +656,7 @@
       "url": "https://t.me/cccoding",
       "kind": "jobs_feed",
       "priority": "high",
-      "note": "Added by user 2026-08-21",
-      "verified_at": "2026-08-21"
+      "note": "Added by user 2026-08-21"
     },
     {
       "id": "needdev",
@@ -677,8 +664,7 @@
       "url": "https://t.me/needdev",
       "kind": "jobs_feed",
       "priority": "high",
-      "note": "Added by user 2026-08-21",
-      "verified_at": "2026-08-21"
+      "note": "Added by user 2026-08-21"
     },
     {
       "id": "pixeltechspec",
@@ -686,8 +672,7 @@
       "url": "https://t.me/pixeltechspec",
       "kind": "jobs_feed",
       "priority": "high",
-      "note": "Added by user 2026-08-21",
-      "verified_at": "2026-08-21"
+      "note": "Added by user 2026-08-21"
     },
     {
       "id": "remote",
@@ -695,17 +680,15 @@
       "url": "https://t.me/remote",
       "kind": "jobs_feed",
       "priority": "high",
-      "note": "Added by user 2026-08-21",
-      "verified_at": "2026-08-21"
+      "note": "Added by user 2026-08-21"
     },
     {
-      "id": "mordor_escape",
-      "title": "Mordor Escape",
-      "url": "https://t.me/mordor_escape",
-      "kind": "jobs_feed",
-      "priority": "high",
-      "note": "Added by user 2026-08-21",
-      "verified_at": "2026-08-21"
+      "id": "habr_career",
+      "title": "Habr Career (TG)",
+      "url": "https://t.me/habr_career",
+      "kind": "community",
+      "priority": "low",
+      "note": "Сверено 2026-08-11: официальный контент-канал — статьи и дайджесты-ссылки; вакансии берём из Habr RSS"
     }
   ],
   "removed_dead": [
@@ -728,7 +711,8 @@
     {
       "id": "backend__jobs",
       "reason": "entity not found"
-    }
+    },
+    "mordor_escape"
   ],
   "checked_skip": [
     {

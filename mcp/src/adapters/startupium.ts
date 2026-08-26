@@ -61,7 +61,7 @@ export async function fetchStartupiumLeads(opts?: {
       id: jobId("startupium", link),
       platform: "startupium",
       kind: "lead",
-      title: `${isProject ? "Проект" : "Исполнитель"}: ${name}`.slice(0, 200),
+      title: `${isProject ? "Проект" : "Участник"}: ${name}`.slice(0, 200),
       description: desc,
       link,
       date: now,

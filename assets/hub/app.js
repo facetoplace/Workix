@@ -925,7 +925,6 @@
       })();
       const footerYear = new Date().getFullYear();
       const apiMeta = computed(() => WorkixAPI.getState());
-      const authStore = computed(() => WorkixAuth.get());
 
       const filters = reactive({
         types: {
@@ -1039,6 +1038,17 @@
       const proposalCurrencies = ['USDT', 'USD', 'TON', 'ETH'];
       const payCurrencies = ['USDT', 'USD', 'RUB', 'CNY', 'GBP', 'UAH', 'EUR', 'TON'];
       const taskKinds = ['task', 'project', 'time_job', 'full_job', 'fixes'];
+      const collabQuestions = [
+        { key: 'networking', label: 'collab_networking', hint: 'hint_collab_networking' },
+        { key: 'startups', label: 'collab_startups', hint: 'hint_collab_startups' },
+        { key: 'opensource', label: 'collab_opensource', hint: 'hint_collab_opensource' },
+        { key: 'equity', label: 'collab_equity', hint: 'hint_collab_equity' },
+      ];
+      const collabOptions = [
+        { value: 'yes', label: 'collab_yes' },
+        { value: 'unknown', label: 'collab_unknown' },
+        { value: 'no', label: 'collab_no' },
+      ];
 
       async function applySiteBrand() {
         const sync = detectSiteBrandSync();
@@ -2200,6 +2210,12 @@
           setDisplayCurrency(p.displayCurrency);
         }
         if (!p.availability) p.availability = 'open';
+        if (typeof p.hidden !== 'boolean') p.hidden = false;
+        if (!p.collab || typeof p.collab !== 'object') {
+          p.collab = { networking: '', startups: '', opensource: '', equity: '', note: '' };
+        } else {
+          p.collab = Object.assign({ networking: '', startups: '', opensource: '', equity: '', note: '' }, p.collab);
+        }
         profile.value = p;
         profileLinksText.value = linksToText(p.links);
       }
@@ -2577,11 +2593,7 @@
           }
           if (r.name === 'profile') {
             await refreshMe();
-            const storedKey = WorkixAuth.get().agentApiKey || '';
-            if (storedKey) {
-              onceKey.value = storedKey;
-              keyDraft.value = storedKey;
-            }
+            // Do NOT reveal the stored key here — it is shown once at create/rotate only.
             await loadProfile();
             if (me.value) await loadPrefs();
           }
@@ -2629,6 +2641,27 @@
       }
 
       const agentPrompt = computed(() => t('agent_prompt'));
+
+      const AGENT_BLOCK_COOKIE = 'wx_hide_agent_block';
+      function readCookie(name) {
+        const target = name + '=';
+        const parts = String(document.cookie || '').split('; ');
+        for (const part of parts) {
+          if (part.indexOf(target) === 0) return decodeURIComponent(part.slice(target.length));
+        }
+        return '';
+      }
+      function writeCookie(name, value, days) {
+        const d = new Date();
+        d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000);
+        document.cookie = `${name}=${encodeURIComponent(value)};expires=${d.toUTCString()};path=/;SameSite=Lax`;
+      }
+      // Cookie only exists while the dismissal is live; it auto-expires after 3 days.
+      const agentBlockHidden = ref(readCookie(AGENT_BLOCK_COOKIE) === '1');
+      function hideAgentBlock() {
+        writeCookie(AGENT_BLOCK_COOKIE, '1', 3);
+        agentBlockHidden.value = true;
+      }
 
       async function chooseSegment(segment) {
         localStorage.setItem('workix_segment', segment);
@@ -2685,12 +2718,9 @@
         if (!flushed && route.value.name !== 'profile') navigate('profile');
       }
 
-      const displayedAgentKey = computed(() => {
-        const fromOnce = String(onceKey.value || '').trim();
-        if (fromOnce) return fromOnce;
-        const fromAuth = String((authStore.value && authStore.value.agentApiKey) || '').trim();
-        return fromAuth || '';
-      });
+      // Full key is shown ONCE — only right after create/rotate this session (onceKey).
+      // On reload / re-login it stays hidden; the user can only rotate to reveal a new one.
+      const displayedAgentKey = computed(() => String(onceKey.value || '').trim());
 
       async function doRotate() {
         if (!me.value) {
@@ -2780,16 +2810,11 @@
             mvseUserId: p.mvseUserId,
           });
           if (res.agentApiKey) {
+            // Fresh plaintext key from the server (first registration): show it once.
             onceKey.value = res.agentApiKey;
             keyDraft.value = res.agentApiKey;
-          } else {
-            // Returning MVSE user: plaintext key is not re-sent — show profile key block
-            const existing = WorkixAuth.get().agentApiKey;
-            if (existing) {
-              onceKey.value = existing;
-              keyDraft.value = existing;
-            }
           }
+          // Returning MVSE user: do NOT re-reveal the stored key — rotate to get a new one.
           await refreshMe();
           showToast(t('auth_mvse_ok'));
           const flushed = await flushPendingFormAfterAuth();
@@ -2945,6 +2970,21 @@
             return;
           }
           showToast((e && e.message) || t('error'));
+        }
+      }
+
+      const bumping = ref(false);
+      async function bumpProfile() {
+        if (bumping.value) return;
+        bumping.value = true;
+        try {
+          const p = await WorkixAPI.bumpProfile();
+          if (p) profile.value = Object.assign({}, profile.value, p);
+          showToast(t('profile_bumped'));
+        } catch (e) {
+          showToast((e && e.message) || t('error'));
+        } finally {
+          bumping.value = false;
         }
       }
 
@@ -3425,7 +3465,8 @@
             /* keep previous mock preference */
           }
         }
-        keyDraft.value = WorkixAuth.get().agentApiKey || '';
+        // Never pre-fill the paste box with the stored key — the key is shown once at create/rotate only.
+        keyDraft.value = '';
         if (WorkixAPI.setContentLang) WorkixAPI.setContentLang(locale.value);
         if (WorkixAPI.setFeatureHost) {
           const params = new URLSearchParams(location.search);
@@ -3519,7 +3560,7 @@
         currentStartup, currentRole, currentPerformer, currentOrder, routeError, carousel, profile, prefs, q, onceKey, keyDraft,
         performerProjects, performerOrders, performerRoles,
         keyRotating, displayedAgentKey,
-        importText, apiMeta, authStore, formStartup, formRole, formApply, formSupport, formProposal,
+        importText, apiMeta, formStartup, formRole, formApply, formSupport, formProposal,
         proposalSaving, applySaving, supportSending, walletChains, proposalCurrencies,
         myApplication, applicationForm, applicationSaving, applicationStatuses,
         appliedLabel, applicationStatusLabel, saveMyApplication, deleteMyApplication,
@@ -3532,12 +3573,12 @@
         hubCases, hubPartners,
         languages, langOpen, accountOpen, notifyOpen, notifications, notifyUnread,
         localeLoading, flagClass, pickLang,
-        payCurrencies, taskKinds, profileLinksText,
+        payCurrencies, taskKinds, collabQuestions, collabOptions, profileLinksText,
         availabilityOptions, listingStageOptions, projectStageOptions, availabilityLabel, contactLabel, performerContacts, openAccountMenu,
         stageLabel,
         isHubAdmin, canManageStartup, canManageRole,
-        t, projectLogo, projectLogoStyle, linkIcon, statusClass, statusLabel, isExternalApplyUrl, setLang, navigate, goHome, chooseSegment, agentPrompt, copyAgentPrompt,
-        doRegister, doRotate, doLogout, setAgentKey, loginMvse, saveStartup, saveStartupKeep, saveRole, saveRoleKeep, saveProfile,
+        t, projectLogo, projectLogoStyle, linkIcon, statusClass, statusLabel, isExternalApplyUrl, setLang, navigate, goHome, chooseSegment, agentPrompt, copyAgentPrompt, agentBlockHidden, hideAgentBlock,
+        doRegister, doRotate, doLogout, setAgentKey, loginMvse, saveStartup, saveStartupKeep, saveRole, saveRoleKeep, saveProfile, bumpProfile, bumping,
         doImportProfile, savePrefs, onPrefsUpdated, sendApply, sendSupport, sendOrderProposal, shareLink, sharePage, shareOrder, sharePerformer, savePerformerPdf, pdfSaving, shareStartup,
         openOrderCard, openFeedOrder, openPerformerCard, openStartupCard, openPerformerRole, copyText, splitTagList,
         bodyKey, bodyNeedsExpand, isBodyExpanded, toggleBodyExpand, renderMarkdown,

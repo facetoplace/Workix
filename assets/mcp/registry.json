@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-21",
+  "updated": "2026-08-25",
   "baseUrl": "https://workix.co",
   "modules": [
     {
@@ -8,7 +8,7 @@
       "platforms": [
         "kwork"
       ],
-      "sha256": "ead7c601bcb55502cdf07c1ef53d176255ac77af8a850bb8d6ed46256d968f97",
+      "sha256": "c6e1175828101b3659e2da4b3badf990fef31a10fea89fc8f52e85f58483f9d6",
       "url": "/mcp/adapters/kwork-1.0.0.tgz",
       "envKeys": [
         "KWORK_LOGIN",
@@ -24,7 +24,7 @@
       "platforms": [
         "freelancehunt"
       ],
-      "sha256": "0d6082e8096f264f9d03e0d90bb0a4a0f2066eccae2409b889b188c8c7474fac",
+      "sha256": "69dadbca5a3fe2091e6391bf134fc2b1036ba0a43b994eff161bc299309ff7ff",
       "url": "/mcp/adapters/freelancehunt-1.0.0.tgz",
       "envKeys": [
         "FREELANCEHUNT_TOKEN"
@@ -37,7 +37,7 @@
       "platforms": [
         "hh"
       ],
-      "sha256": "556069c712a61e838a04a2a15e5d91819deae02bd90da09890dc1839af4ccc58",
+      "sha256": "34a76799881d63d60f4d56347c0be94786b577505572e29c6195282db8c17031",
       "url": "/mcp/adapters/hh-1.0.0.tgz",
       "envKeys": [
         "HH_USER_AGENT",
@@ -51,7 +51,7 @@
       "platforms": [
         "remoteok"
       ],
-      "sha256": "36892e986c93e921969d60948d69e4feccdf39f29a0e7349dd0328024a9d8ac5",
+      "sha256": "3ca75a46e7808abfa3c0dff57254e527854962022c1ba4d2c86bd70df242133f",
       "url": "/mcp/adapters/remoteok-1.0.0.tgz",
       "envKeys": [],
       "minCore": "0.3.0"
@@ -62,7 +62,7 @@
       "platforms": [
         "remotive"
       ],
-      "sha256": "e47b4e2c7e149795ef8a8051db0c6c3ff25ae14204034e32286ea574fb5b477e",
+      "sha256": "d6ea0bbf10137a37a042df161f7096ff4bf49c4d885aced1b112c1cfa47923c9",
       "url": "/mcp/adapters/remotive-1.0.0.tgz",
       "envKeys": [],
       "minCore": "0.3.0"
@@ -73,8 +73,41 @@
       "platforms": [
         "arbeitnow"
       ],
-      "sha256": "c67f6a6dc2751378ad5bb6fcddb788275daf61f5719ce9bd73091600cc3b3049",
+      "sha256": "6e1ddaab3f2b059858c4159a20137d4c3762058c367c42ca93e8179ae6d49772",
       "url": "/mcp/adapters/arbeitnow-1.0.0.tgz",
+      "envKeys": [],
+      "minCore": "0.3.0"
+    },
+    {
+      "id": "web3career",
+      "version": "1.0.0",
+      "platforms": [
+        "web3career"
+      ],
+      "sha256": "c90ab2548c5f0ddf8e924d76e2970e27f88fb05a9aaeba1eb10dade1cd771273",
+      "url": "/mcp/adapters/web3career-1.0.0.tgz",
+      "envKeys": [],
+      "minCore": "0.3.0"
+    },
+    {
+      "id": "reactjobs",
+      "version": "1.0.0",
+      "platforms": [
+        "reactjobs"
+      ],
+      "sha256": "ae6eb0c0e769fac233edce9d99b955b48557915201b97495d0d055f0c2d336a1",
+      "url": "/mcp/adapters/reactjobs-1.0.0.tgz",
+      "envKeys": [],
+      "minCore": "0.3.0"
+    },
+    {
+      "id": "aijobs",
+      "version": "1.0.0",
+      "platforms": [
+        "aijobs"
+      ],
+      "sha256": "049b8860bd67c1d98297a59bb4d9d60269a25e7105ddb4de60376e12929da968",
+      "url": "/mcp/adapters/aijobs-1.0.0.tgz",
       "envKeys": [],
       "minCore": "0.3.0"
     },
@@ -84,7 +117,7 @@
       "platforms": [
         "adzuna"
       ],
-      "sha256": "7e2555421b3cc74a483bd411953f890f90a1a339a4ec267bd2ad01e4ea87a0c1",
+      "sha256": "0b43e0a8d1e11f389a5c4bdc7da92738c2322e3187391d67095fd63fd364dd89",
       "url": "/mcp/adapters/adzuna-1.0.0.tgz",
       "envKeys": [
         "ADZUNA_APP_ID",
@@ -98,7 +131,7 @@
       "platforms": [
         "himalayas"
       ],
-      "sha256": "ed8a8cc35272d3ee1abb276835d79f7492cbd266b03391678f1e2518f9a7ccb7",
+      "sha256": "f56b16783008cdb785f9ed900be1f24f804306c251218f2e1072ffa078d2f33c",
       "url": "/mcp/adapters/himalayas-1.0.0.tgz",
       "envKeys": [],
       "minCore": "0.3.0"
@@ -109,7 +142,7 @@
       "platforms": [
         "weworkremotely"
       ],
-      "sha256": "61dc46b45b188b29d8ac5804dfce3912ad2086dc8b9b4b9cd3bdd88da5be9667",
+      "sha256": "1550aae69338b16bd99179ef2648bf448465cb421d4372150d09ed495607e23e",
       "url": "/mcp/adapters/weworkremotely-1.0.0.tgz",
       "envKeys": [],
       "minCore": "0.3.0"
@@ -120,7 +153,7 @@
       "platforms": [
         "jobicy"
       ],
-      "sha256": "a009f913b2198d52d2c91abaec2705b1598700fb7b8752b3e90eaf0f0b69dab1",
+      "sha256": "76cc1f9ee663c536ace728d5ef4ebd465b69f39be0a84e93f8fc7a9f63f5f51b",
       "url": "/mcp/adapters/jobicy-1.0.0.tgz",
       "envKeys": [],
       "minCore": "0.3.0"
@@ -131,7 +164,7 @@
       "platforms": [
         "dreamoffer"
       ],
-      "sha256": "c4da968a5cfb94d17de95cf660f7877e2ceb9ac4be9ba2bce167e86dd85d6afb",
+      "sha256": "6f3733801a9f68a0d93cc08cdc66ed57f1e580f0e240f9a763548c9bafd78b18",
       "url": "/mcp/adapters/dreamoffer-1.0.0.tgz",
       "envKeys": [],
       "minCore": "0.3.0"
@@ -142,7 +175,7 @@
       "platforms": [
         "working_nomads"
       ],
-      "sha256": "0585256261b75e243cceb3e428ebd2484dbd5ae03016d5a196456bf245daea0d",
+      "sha256": "a14f2531e7e380de1959845beb75a6cfb4fcd3519d81637ca97d25bfdbb34ae2",
       "url": "/mcp/adapters/working_nomads-1.0.0.tgz",
       "envKeys": [],
       "minCore": "0.3.0"
@@ -153,7 +186,7 @@
       "platforms": [
         "themuse"
       ],
-      "sha256": "839d5c0e966cae29a8425aafa6b192c07f7dcfec04541f2c459543787e813583",
+      "sha256": "b843997008691cd82a9a172d18a840c4664381ac0fc4ad237a8d6cb0d8a94770",
       "url": "/mcp/adapters/themuse-1.0.0.tgz",
       "envKeys": [],
       "minCore": "0.3.0"
@@ -164,7 +197,7 @@
       "platforms": [
         "four_day_week"
       ],
-      "sha256": "10999b2e49c9d1ffd9896de6f46580725df4a133469ada533788ffd6b498cb93",
+      "sha256": "a08208fd092fdd33d49148f23bc996bade651e551116d3ecf731d281d5ecddaa",
       "url": "/mcp/adapters/four_day_week-1.0.0.tgz",
       "envKeys": [],
       "minCore": "0.3.0"
@@ -175,7 +208,7 @@
       "platforms": [
         "aidevboard"
       ],
-      "sha256": "21c8306fc23099f4e1ffb11328be99277900590cd0b9bb13ea773ddb9243a1cd",
+      "sha256": "42dd3cca8cc025a90bd44c4d5d56e3c5b32e7452e0fe7ccda13546848ea4cd7b",
       "url": "/mcp/adapters/aidevboard-1.0.0.tgz",
       "envKeys": [
         "AIDEV_API_KEY",
@@ -191,7 +224,7 @@
       "platforms": [
         "aquent"
       ],
-      "sha256": "1ef8b620e2185fd9ef40178a3fb95c96b96323ffbae4cf81bca5f99db0d0fe64",
+      "sha256": "506a43070dc67e79473a990b178743a278099d1cc8ece54b756a4d104904798d",
       "url": "/mcp/adapters/aquent-1.0.0.tgz",
       "envKeys": [
         "AQUENT_REMOTE_ONLY"
@@ -204,7 +237,7 @@
       "platforms": [
         "trudvsem"
       ],
-      "sha256": "08aa69d90190dce66cd808c773c3b7a5a53a3567e898c7dc4e5e1a88320a1b4f",
+      "sha256": "7f952f051811234e28972e4d4ced5dc9857e8bab6f31a2af534fb86a1d59b377",
       "url": "/mcp/adapters/trudvsem-1.0.0.tgz",
       "envKeys": [
         "TRUDVSEM_TEXT",
@@ -218,7 +251,7 @@
       "platforms": [
         "nofluff"
       ],
-      "sha256": "e06819a1deba3f49849babdd06d38ad6b6b543965e8207759c636152d1655091",
+      "sha256": "b6ea3975d595431672b2dd5a662e2823d4121a89eae1097ed8fadd7010ba4e17",
       "url": "/mcp/adapters/nofluff-1.0.0.tgz",
       "envKeys": [
         "NOFLUFF_CATEGORY",
@@ -233,7 +266,7 @@
       "platforms": [
         "landing_jobs"
       ],
-      "sha256": "397e39a65da4cb866f022a00ab4b5eede580b1aa08c355f8f93dbc7bd563dc47",
+      "sha256": "1d20367906059626785f2df895ff18149cb7dc0d3347780e9631843049bce199",
       "url": "/mcp/adapters/landing_jobs-1.0.0.tgz",
       "envKeys": [
         "LANDING_JOBS_REMOTE_ONLY"
@@ -246,7 +279,7 @@
       "platforms": [
         "getonbrd"
       ],
-      "sha256": "4b8823b95e1a201b58febd22b83569bce2a85b246e2233ee56221b3347a4cc49",
+      "sha256": "c8008fc14e2cc6b88eabe3b67ef9f2b01f3ee53228f0047c0619dcf197d05d46",
       "url": "/mcp/adapters/getonbrd-1.0.0.tgz",
       "envKeys": [
         "GETONBRD_QUERY",
@@ -260,7 +293,7 @@
       "platforms": [
         "getmatch"
       ],
-      "sha256": "7fbf30a04470be30ee28bfa52ab528e5dd98cfd474047bc53d6a31cece522470",
+      "sha256": "0afc964d001813c1041f101eff031c3a8d1af0003726eab202abdf461b7f90bf",
       "url": "/mcp/adapters/getmatch-1.0.0.tgz",
       "envKeys": [
         "GETMATCH_LIMIT"
@@ -273,7 +306,7 @@
       "platforms": [
         "hn_hiring"
       ],
-      "sha256": "d55d6cd08d9ab0402104406096b15156e21d54954e1e01b20293fa4a1dcece5e",
+      "sha256": "20916071c93455463b79965307314d31dc3d183d5c9758b5aa8cc02b7fe4623e",
       "url": "/mcp/adapters/hn_hiring-1.0.0.tgz",
       "envKeys": [
         "HN_HIRING_STORY"
@@ -286,7 +319,7 @@
       "platforms": [
         "dice"
       ],
-      "sha256": "6fa850425318575c787929520ed69310cddd6c23d969983c517da6b6bd02c4c1",
+      "sha256": "9c3bc0b6e42800d97183173b7020b180ebf5641fb42deda4c1ae683af08e35c7",
       "url": "/mcp/adapters/dice-1.0.0.tgz",
       "envKeys": [
         "DICE_KEYWORD",
@@ -301,7 +334,7 @@
       "platforms": [
         "workopia"
       ],
-      "sha256": "f6a07d45980e0154534b46f122b9c2225b99740b9a652576ee196a7a2b61ab8e",
+      "sha256": "400e15337aa5203b2908a384aa51a139a523811899c6e000a0664c98d5724fc3",
       "url": "/mcp/adapters/workopia-1.0.0.tgz",
       "envKeys": [
         "WORKOPIA_TOKEN",
@@ -316,7 +349,7 @@
       "platforms": [
         "jobspipe"
       ],
-      "sha256": "3e992b8610b3aa9b26a34f30b31a8e893fc6add0c3e7019b0ea9679578e1534a",
+      "sha256": "d59fa391cf07beb3843feb37904713692dee19bddabcf3d55dd40f57597635bb",
       "url": "/mcp/adapters/jobspipe-1.1.0.tgz",
       "envKeys": [
         "JOBSPIPE_API_KEY",
@@ -345,7 +378,7 @@
       "platforms": [
         "usajobs"
       ],
-      "sha256": "00606c010a55f7ab1fd7c8fd24435b4657a4b43f9de0f1175ee93f016a0298f4",
+      "sha256": "c7666b5be7c0324b8e297b6a9907610647a14dfab8aee8baf278b0990aebfe73",
       "url": "/mcp/adapters/usajobs-1.0.0.tgz",
       "envKeys": [
         "USAJOBS_API_KEY",
@@ -361,7 +394,7 @@
       "platforms": [
         "superjob"
       ],
-      "sha256": "ae82d0c7fedcdfd536860a54f0c2354851715a0db2b303d7abcbde8c05632442",
+      "sha256": "dbeade994e22cd5c6111be6a91c00f21773f3aa5303ade749a0b355c1c168c0e",
       "url": "/mcp/adapters/superjob-1.0.0.tgz",
       "envKeys": [
         "SUPERJOB_APP_ID",
@@ -377,7 +410,7 @@
       "platforms": [
         "careerjet"
       ],
-      "sha256": "8ac3e9494e3df63fce5d536c729ba1a9c21fb82fadabcfca7a81dc8e24a8f7fb",
+      "sha256": "b2ff76bdc9299f196f01da1d18705ed9b8fc0052949982c6d364771fcc211758",
       "url": "/mcp/adapters/careerjet-1.0.0.tgz",
       "envKeys": [
         "CAREERJET_AFFID",
@@ -394,7 +427,7 @@
       "platforms": [
         "jooble"
       ],
-      "sha256": "fe419e56dacfe6619af487eb70b9235f0ec19b809d26ac08b72fe0a7d66ff065",
+      "sha256": "d7220bb4540c28d53ba477a3bc3caa5631a0bcc181074fc86ebb42ee3b4fd44b",
       "url": "/mcp/adapters/jooble-1.0.0.tgz",
       "envKeys": [
         "JOOBLE_API_KEY",
@@ -409,7 +442,7 @@
       "platforms": [
         "growth_talent"
       ],
-      "sha256": "f08c609ac6655a585a71293bc8a0b820fcbe099f94b994798dfa6339c28cf32b",
+      "sha256": "6c8085c3c51580c8c56f86c4dfb43fc38515939077f7b52ec7ab1434873c4f0e",
       "url": "/mcp/adapters/growth_talent-1.0.0.tgz",
       "envKeys": [],
       "minCore": "0.3.0"
@@ -420,7 +453,7 @@
       "platforms": [
         "claw_earn"
       ],
-      "sha256": "8721287d74690f635a65c70d2c33e7ccc3e97dffe73e5eb704b77c77a5f0bd5b",
+      "sha256": "e53bbba526395ae53773a0abb20e5d0171fa69c0e79c065bc76a1cb59eb623bc",
       "url": "/mcp/adapters/claw_earn-1.0.0.tgz",
       "envKeys": [],
       "minCore": "0.3.0"
@@ -431,7 +464,7 @@
       "platforms": [
         "seekclaw"
       ],
-      "sha256": "4ecef3a0a22d14367240e4278410d95a6d0e79406d64bd0db45f6d26d619cdb8",
+      "sha256": "c8e045aa93617fc40495d495625d1faebb97ac65fa9b3906f9a5a05d04026dfe",
       "url": "/mcp/adapters/seekclaw-1.0.0.tgz",
       "envKeys": [],
       "minCore": "0.3.0"
@@ -442,7 +475,7 @@
       "platforms": [
         "superteam_earn"
       ],
-      "sha256": "804c6d1857d89911c5ae939c2f478b89d99a6d5a7add110db4f955b9c58e461f",
+      "sha256": "9c90d900c33bcfd2519902797173c5280886217bdbd7cef5aedd7c5d919bc8a7",
       "url": "/mcp/adapters/superteam_earn-1.0.0.tgz",
       "envKeys": [
         "SUPERTEAM_EARN_API_KEY"
@@ -455,7 +488,7 @@
       "platforms": [
         "rentahuman"
       ],
-      "sha256": "38d3e9f2d56f6de49129c9248b2c047a55d01ad1f40937aa39a37c12f57112df",
+      "sha256": "313ebca5e5e9a6c7899ffd97e713b927e54bf0ffb76ee2c4021545bd89e9b49c",
       "url": "/mcp/adapters/rentahuman-1.0.0.tgz",
       "envKeys": [],
       "minCore": "0.3.0"
@@ -466,7 +499,7 @@
       "platforms": [
         "openwork"
       ],
-      "sha256": "0d127a312fc5c108a745ed768d48a32c9e617c171f8d6b84671578407923738d",
+      "sha256": "2cc1e5f1673b5516eddcf14c8384b05a9f990436c18d8c2d898f4f4fb8a5f3da",
       "url": "/mcp/adapters/openwork-1.0.0.tgz",
       "envKeys": [],
       "minCore": "0.3.0"
@@ -477,7 +510,7 @@
       "platforms": [
         "upwork"
       ],
-      "sha256": "71f71486098c9451cedda7e6528e843ce32465020221446f0cfac298d37b1641",
+      "sha256": "e2cddd183a22444e5ce2e5c0ab4718155806305cd93273ec1203dbd3964d1c52",
       "url": "/mcp/adapters/upwork-1.0.0.tgz",
       "envKeys": [
         "UPWORK_CLIENT_ID",
@@ -494,7 +527,7 @@
       "platforms": [
         "freelancer_com"
       ],
-      "sha256": "e6e03042581d0ef7f895d726f78e2670cd6d3927975978d25a1d054c461d8702",
+      "sha256": "d28cf87352124f641fac86cee4bf92ebde2d2c54fd7a3e71320e84637f2db63f",
       "url": "/mcp/adapters/freelancer-1.0.0.tgz",
       "envKeys": [
         "FREELANCER_TOKEN",
@@ -508,7 +541,7 @@
       "platforms": [
         "dstore"
       ],
-      "sha256": "2d384f5ca63f4475bdc8b6f42c7b5d257c52214ccc852d33f01fabdb2c62f088",
+      "sha256": "6f04733c116fbc2cf0959ff2a7e9882de8c8594f8f2d05136e51e5769464fd99",
       "url": "/mcp/adapters/dstore-1.1.0.tgz",
       "envKeys": [
         "DSTORE_API_KEY",
@@ -522,7 +555,7 @@
       "platforms": [
         "telegram"
       ],
-      "sha256": "a29a499a64d865dc6c09a97adce21ba9242fed3f0580b596d07a31da14d6e732",
+      "sha256": "0890489a74356c216e72fbafc3e2a7ab26e1e9f62839eac94a4cd70b618f9d2b",
       "url": "/mcp/adapters/telegram-1.0.0.tgz",
       "envKeys": [
         "TELEGRAM_API_ID",
@@ -545,7 +578,7 @@
         "bayt",
         "linkedin"
       ],
-      "sha256": "f7a04a263af2f78979127aa038e5f01e4ff7d5c92c3d3f23452fa9a4330ed69c",
+      "sha256": "4440401bd02d6b9eece39258f6d100f591a19318392d2708aea9492d8d35322a",
       "url": "/mcp/adapters/jobspy-1.1.0.tgz",
       "envKeys": [
         "PYTHON_BIN",

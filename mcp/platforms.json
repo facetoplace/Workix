@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-11",
+  "updated": "2026-08-25",
   "platforms": [
     {
       "id": "startupium",
@@ -12,7 +12,7 @@
       "apply": "browser",
       "status": "include_leads",
       "url": "https://startupium.ru",
-      "note": "Публичный read-only поиск проектов и профилей исполнителей; карточки идут как lead, отклик — вручную через сайт."
+      "note": "Публичный read-only поиск проектов и профилей участников; карточки идут как lead, отклик — вручную через сайт."
     },
     {
       "id": "startup_jobs",
@@ -26,7 +26,10 @@
       "status": "include_jobs",
       "rss": "https://startup.jobs/feeds/jobs",
       "url": "https://startup.jobs",
-      "refs": ["https://startup.jobs/api", "https://api.startup.jobs/mcp"],
+      "refs": [
+        "https://startup.jobs/api",
+        "https://api.startup.jobs/mcp"
+      ],
       "note": "Официальный публичный RSS/API startup.jobs; RSS без ключа, API-ключ не требуется для базовой ленты."
     },
     {
@@ -62,24 +65,24 @@
       "kind": "job_board",
       "region": "global",
       "audience": "company",
-      "access": "public_html",
+      "access": "browser_session",
       "apply": "browser",
-      "status": "watch_pending",
+      "status": "include_jobs",
       "url": "https://www.workatastartup.com/jobs",
-      "note": "YC startup jobs; read-only public cards, manual browser apply."
+      "note": "YC startup jobs (founding/CTO/agent-systems). Login-gated SPA blocks plain HTTP → read via persistent yc browser profile (headless with saved session). Login once: scripts/board-open.mjs yc + board-save.mjs yc."
     },
     {
       "id": "wellfound",
       "name": "Wellfound",
-      "tier": "watch",
+      "tier": "v2",
       "kind": "startup_jobs",
       "region": "global",
       "audience": "company",
-      "access": "browser",
+      "access": "browser_session",
       "apply": "browser",
-      "status": "watch_browser",
+      "status": "include_jobs",
       "url": "https://wellfound.com",
-      "note": "Watch only: login + browser on /jobs. No confirmed public API; use browser capture and prepare_browser_apply."
+      "note": "Startup + co-founder/CTO roles. Cloudflare-gated SPA: headless is challenged → adapter launches a real (minimized) Chrome on the wellfound profile. Login once: scripts/board-open.mjs wellfound + board-save.mjs wellfound. Role pages /role/r/<slug> (e.g. cofounder, mobile-developer) give volume."
     },
     {
       "id": "lennys_jobs",
@@ -103,8 +106,9 @@
       "audience": "company",
       "access": "public_html",
       "apply": "browser",
-      "status": "watch_pending",
-      "url": "https://jobs.accel.com/jobs"
+      "status": "include_jobs",
+      "url": "https://jobs.accel.com/jobs",
+      "note": " [active by default 1.2.0; generic HTML/JSON-LD parse — getro/consider SPA cards may be partial]"
     },
     {
       "id": "sequoia_jobs",
@@ -115,8 +119,9 @@
       "audience": "company",
       "access": "public_html",
       "apply": "browser",
-      "status": "watch_pending",
-      "url": "https://jobs.sequoiacap.com/jobs"
+      "status": "include_jobs",
+      "url": "https://jobs.sequoiacap.com/jobs",
+      "note": " [active by default 1.2.0; generic HTML/JSON-LD parse — getro/consider SPA cards may be partial]"
     },
     {
       "id": "capitalg_jobs",
@@ -127,8 +132,9 @@
       "audience": "company",
       "access": "public_html",
       "apply": "browser",
-      "status": "watch_pending",
-      "url": "https://careers.capitalg.com/jobs"
+      "status": "include_jobs",
+      "url": "https://careers.capitalg.com/jobs",
+      "note": " [active by default 1.2.0; generic HTML/JSON-LD parse — getro/consider SPA cards may be partial]"
     },
     {
       "id": "index_startup_jobs",
@@ -139,8 +145,9 @@
       "audience": "company",
       "access": "public_html",
       "apply": "browser",
-      "status": "watch_pending",
-      "url": "https://www.indexventures.com/startup-jobs"
+      "status": "include_jobs",
+      "url": "https://www.indexventures.com/startup-jobs",
+      "note": " [active by default 1.2.0; generic HTML/JSON-LD parse — getro/consider SPA cards may be partial]"
     },
     {
       "id": "generalcatalyst_jobs",
@@ -151,8 +158,9 @@
       "audience": "company",
       "access": "public_html",
       "apply": "browser",
-      "status": "watch_pending",
-      "url": "https://jobs.generalcatalyst.com/jobs"
+      "status": "include_jobs",
+      "url": "https://jobs.generalcatalyst.com/jobs",
+      "note": " [active by default 1.2.0; generic HTML/JSON-LD parse — getro/consider SPA cards may be partial]"
     },
     {
       "id": "remocate",
@@ -665,7 +673,9 @@
       "status": "include_jobs",
       "rss": "https://jobscollider.com/remote-jobs.rss",
       "url": "https://jobscollider.com",
-      "refs": ["https://remotefirstjobs.com/rss/jobs.rss"],
+      "refs": [
+        "https://remotefirstjobs.com/rss/jobs.rss"
+      ],
       "note": "Public RSS; current feed redirects to Remote First Jobs. Read-only ingest, manual browser apply."
     },
     {
@@ -1750,6 +1760,48 @@
       "rss": "https://dribbble.com/jobs.rss",
       "url": "https://dribbble.com/jobs",
       "note": "Дизайнерские вакансии. Единственная находка зонда 2026-08-11: публичный RSS без ключа, отдаёт живые карточки («Peak Health is hiring for a position of Head of Marketing Design»). Отклик — на сайте работодателя. Постинг вакансии у них платный, чтение бесплатное."
+    },
+    {
+      "id": "web3career",
+      "name": "web3.career",
+      "tier": "v2",
+      "kind": "job_board",
+      "region": "global",
+      "audience": "company",
+      "access": "public_html",
+      "apply": "browser",
+      "status": "include_jobs",
+      "module": "web3career",
+      "url": "https://web3.career",
+      "note": "Web3/crypto/TON/mobile/AI board, server-rendered HTML. Adapter walks /remote-jobs pages (title/company/salary/date/tags). No key."
+    },
+    {
+      "id": "reactjobs",
+      "name": "reactjobs.io",
+      "tier": "v2",
+      "kind": "job_board",
+      "region": "global",
+      "audience": "company",
+      "access": "public_html",
+      "apply": "browser",
+      "status": "include_jobs",
+      "module": "reactjobs",
+      "url": "https://reactjobs.io",
+      "note": "React/React Native/Flutter/mobile board. Server-rendered; title+company from descriptive slug /react-jobs/<company>/<id>-<slug>. No key."
+    },
+    {
+      "id": "aijobs",
+      "name": "aijobs.net",
+      "tier": "v2",
+      "kind": "job_board",
+      "region": "global",
+      "audience": "company",
+      "access": "public_html",
+      "apply": "browser",
+      "status": "include_jobs",
+      "module": "aijobs",
+      "url": "https://aijobs.net",
+      "note": "AI/ML/data board. Server-rendered; anchor .stretched-link /job/<slug>-<id>/ + salary badge. No key."
     }
   ]
 }

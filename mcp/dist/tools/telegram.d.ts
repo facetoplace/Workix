@@ -23,6 +23,8 @@ export declare function runTgSearch(args: {
     save?: boolean;
     max_chats?: number;
     since?: string;
+    mode?: "search" | "dump";
+    days?: number;
 }): Promise<unknown>;
 /**
  * Send ONE Telegram message from the logged-in account (face2place / Alice).

@@ -52,6 +52,55 @@ function watchOrder(channels: TgChannel[]): TgChannel[] {
     );
 }
 
+/**
+ * Sweep recent history of every (non-community) channel with ONE empty search
+ * each — the collect-phase Telegram ingest. No keyword filtering here: the raw
+ * postings land in the store and searchCorpus ranks them later. Guarded per
+ * channel so a slow/flood-limited chat can't wedge the sweep.
+ */
+export async function sweepTelegramChannels(opts?: {
+  days?: number;
+  perChannel?: number;
+}): Promise<{ jobs: Job[]; channels: number; ok: number; failed: number; errors: string[] }> {
+  const auth = await getAuthState();
+  if (auth.state !== "ready") {
+    return { jobs: [], channels: 0, ok: 0, failed: 0, errors: [`telegram: session ${auth.state}`] };
+  }
+  const { channels } = loadTgChannels();
+  const list = watchOrder(channels);
+  const days = Math.min(Math.max(Number(opts?.days) || 30, 1), 120);
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+  const per = Math.min(Math.max(Number(opts?.perChannel) || 40, 1), 50);
+  const jobs: Job[] = [];
+  const errors: string[] = [];
+  let ok = 0;
+  let failed = 0;
+  const withTimeout = <T>(p: Promise<T>, ms: number) =>
+    Promise.race([p, new Promise<never>((_, rej) => setTimeout(() => rej(new Error("timeout")), ms))]);
+  for (const ch of list) {
+    try {
+      const hits = await withTimeout(searchChat(ch.url, "", per, since), 25_000);
+      for (const h of hits) {
+        jobs.push({
+          id: h.id,
+          platform: "telegram",
+          kind: h.kind,
+          title: h.title,
+          description: h.description,
+          link: h.link,
+          date: h.date,
+          fetchedAt: new Date().toISOString(),
+        });
+      }
+      ok++;
+    } catch (e) {
+      failed++;
+      if (errors.length < 8) errors.push(`${ch.id}: ${(e as Error)?.message || e}`);
+    }
+  }
+  return { jobs, channels: list.length, ok, failed, errors };
+}
+
 export async function fetchTelegramJobs(opts?: {
   keywords?: string[];
   limit?: number;

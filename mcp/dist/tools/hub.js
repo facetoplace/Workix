@@ -237,6 +237,8 @@ export async function hubListPerformers(args = {}) {
         qs.set("q", args.q);
     if (args.tags?.length)
         qs.set("tags", args.tags.join(","));
+    if (args.collab?.length)
+        qs.set("collab", args.collab.join(","));
     if (args.limit != null)
         qs.set("limit", String(args.limit));
     if (args.offset != null)
@@ -309,9 +311,9 @@ export async function hubGetOrder(args) {
             note: data.external
                 ? "external board mirror — see external.platform/url/contributedBy; no personal publisher card"
                 : scraped
-                    ? "scraped/aggregator order — no publisher performer card"
+                    ? "scraped/aggregator order — no publisher participant card"
                     : publisher
-                        ? "publisher is a platform performer — workix_get_performer"
+                        ? "publisher is a platform participant — workix_get_performer"
                         : "no publisher on this order",
         },
     };
@@ -418,6 +420,12 @@ export async function hubUpdateProfile(args) {
         }
         return res;
     }
+    return { ...res, data: withProfileUrls((res.data || {})) };
+}
+export async function hubBumpProfile() {
+    const res = await hubFetch("/api/v1/profile/bump", { method: "POST", body: {} });
+    if (!res.ok)
+        return res;
     return { ...res, data: withProfileUrls((res.data || {})) };
 }
 export async function hubApply(args) {

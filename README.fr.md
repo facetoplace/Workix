@@ -209,7 +209,7 @@ Le catalogue des sources se trouve dans [`mcp/platforms.json`](mcp/platforms.jso
 - [Référence de l’API](https://workix.co/api.txt)
 - [Document OpenAPI](https://workix.co/openapi-v1.yaml)
 - [Assistance](https://workix.co/support)
-- RSS : [missions](https://workix.co/feed/tasks.xml), [projets](https://workix.co/feed/projects.xml), [prestataires](https://workix.co/feed/performers.xml)
+- RSS : [missions](https://workix.co/feed/tasks.xml), [projets](https://workix.co/feed/projects.xml), [participants](https://workix.co/feed/performers.xml)
 
 ## Contribuer
 
