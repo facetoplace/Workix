@@ -30,6 +30,7 @@ export async function runDigest(args) {
         platforms,
         include_jobs,
         include_agent_gigs,
+        include_services,
         hh_text,
         upwork_query,
         freelancer_query,

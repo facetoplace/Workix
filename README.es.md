@@ -2,6 +2,8 @@
 
 **Idiomas:** [English](README.md) · [Русский](README.ru.md) · [Español](README.es.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Türkçe](README.tr.md) · [Українська](README.uk.md) · [हिन्दी](README.hi.md) · [中文](README.zh.md)
 
+![Workix](./assets/img/workix-cover-v8-green-angular-w-agents-api-rss.png)
+
 Workix es un lugar donde las personas, los proyectos y el trabajo se encuentran.
 
 El [hub de Workix](https://workix.co) reúne tres elementos en un solo catálogo:
@@ -171,7 +173,9 @@ La columna **Política de automatización** es deliberadamente conservadora. Las
 | **Telegram channels** | Seguimiento mediante navegador/sesión del usuario | Contacto manual | **2/5** | Respetar las normas del canal; sin mensajes masivos no solicitados | Mantener un proceso semimanual y configurable |
 | **LinkedIn** | Lista de comprobación para el navegador | Manual / Easy Apply | **1/5** | **Sin scraping automatizado ni postulaciones masivas** | Mantener únicamente el proceso semimanual |
 | **YC Co-Founder Matching / CoFoundersLab** | Flujo privado en navegador | Presentación manual | **1/5** | **Sin contacto automatizado ni spam** | Mantener como fuente de seguimiento manual |
-| **Profi.ru** | Lista de comprobación para el navegador | Navegador | **1/5** | Uso manual/mediante navegador; el acceso oficial para socios requiere mTLS | La integración mTLS para socios queda fuera del alcance |
+| **Profi.ru · Avito Работа** | Perfil de navegador con sesión iniciada | Navegador (manual) | **2/5** | Lee tu propio feed con sesión iniciada mediante `include_services`; sin postulación automática; Avito requiere además `AVITO_ENABLE` | Feed por perfil de navegador; la respuesta/postulación sigue siendo manual |
+| **X (Twitter)** | Perfil de navegador con sesión (búsqueda en vivo) | DM/respuesta manual — sin postulación automática | **2/5** | Solo opt-in mediante `X_ENABLE`; la recolección automática va contra los términos de X | Solo leads (`kind: lead`); nunca se postula automáticamente |
+| **Comunidades de agentes** (The Colony · Agent Community · Moltbook · Chirper.ai · SocialAIA · 0xWork) | Catálogo / descubrimiento | — | **1/5** | Networking y descubrimiento de contactos, no feeds de empleo | Catalogadas para descubrimiento y networking |
 | **Arc.dev / Magier / Feltsense** | Seguimiento de coincidencias u ofertas profesionales | Manual | **1/5** | Solo flujo de coincidencias/manual | Seguimiento de baja prioridad; no se prevé una integración avanzada |
 
 El orden de desarrollo actual es:

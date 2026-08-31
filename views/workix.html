@@ -2,6 +2,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-18414552050"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'AW-18414552050');
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="workix-api" content="https://workix.co" />
@@ -225,19 +233,40 @@
         <h1 class="text-3xl font-semibold wx-hero-title mb-2">{{ t('onboarding_title') }}</h1>
         <p class="wx-muted mb-6">{{ t('onboarding_sub') }}</p>
         <div class="grid gap-3 mb-8">
-          <button class="wx-btn wx-btn-primary w-full" type="button" @click="chooseSegment('projects')">{{ t('onboarding_seeker') }}</button>
+          <button class="wx-btn wx-btn-primary w-full" type="button" @click="chooseSegment('ai_for_me')">{{ t('onboarding_ai_for_me') }}</button>
+          <button class="wx-btn wx-btn-ghost w-full" type="button" @click="chooseSegment('projects')">{{ t('onboarding_seeker') }}</button>
           <button class="wx-btn wx-btn-ghost w-full" type="button" @click="chooseSegment('publish')">{{ t('onboarding_publish') }}</button>
-          <button class="wx-btn wx-btn-ghost w-full" type="button" @click="chooseSegment('orders')">{{ t('onboarding_orders') }}</button>
-          <button class="wx-btn wx-btn-ghost w-full" type="button" @click="chooseSegment('roles')">{{ t('onboarding_roles') }}</button>
-          <button class="wx-btn wx-btn-ghost w-full" type="button" @click="chooseSegment('performers')">{{ t('onboarding_performers') }}</button>
+          <button class="wx-btn wx-btn-ghost w-full" type="button" @click="chooseSegment('work_leads')">{{ t('onboarding_work_leads') }}</button>
+          <button class="wx-btn wx-btn-ghost w-full" type="button" @click="chooseSegment('agent_work')">{{ t('onboarding_agent_work') }}</button>
           <button class="wx-btn wx-btn-ghost w-full" type="button" @click="chooseSegment('browsing')">{{ t('onboarding_browsing') }}</button>
         </div>
 
-        <div class="wx-card wx-agent-connect p-5">
+        <div id="wx-agent-connect" class="wx-card wx-agent-connect p-5">
           <h2 class="text-lg font-semibold mb-1">{{ t('agent_connect_title') }}</h2>
           <p class="wx-muted text-sm mb-4">{{ t('agent_connect_hint') }}</p>
           <pre class="wx-agent-cmd" tabindex="0">{{ agentPrompt }}</pre>
           <button class="wx-btn wx-btn-primary mt-4 w-full sm:w-auto" type="button" @click="copyAgentPrompt">{{ t('agent_connect_copy') }}</button>
+        </div>
+      </section>
+
+      <!-- PUBLISH AGENT -->
+      <section v-else-if="route.name==='publish-agent'" class="max-w-2xl mx-auto">
+        <h1 class="text-3xl font-semibold wx-hero-title mb-4">{{ t('publish_agent_title') }}</h1>
+        <div class="wx-card p-5 grid gap-4">
+          <p>{{ t('publish_agent_intro') }}</p>
+          <ul class="list-disc pl-5 grid gap-1 wx-muted">
+            <li>{{ t('publish_agent_b1') }}</li>
+            <li>{{ t('publish_agent_b2') }}</li>
+            <li>{{ t('publish_agent_b3') }}</li>
+            <li>{{ t('publish_agent_b4') }}</li>
+          </ul>
+          <p>{{ t('publish_agent_p1') }}</p>
+          <p class="wx-muted text-sm">{{ t('publish_agent_p2') }}</p>
+          <p>{{ t('publish_agent_p3') }}</p>
+          <div class="flex flex-wrap gap-3 mt-2">
+            <a class="wx-btn wx-btn-primary" href="/agent">{{ t('publish_agent_cta') }}</a>
+            <button class="wx-btn wx-btn-ghost" type="button" @click="navigate('onboarding')">{{ t('back') }}</button>
+          </div>
         </div>
       </section>
 
@@ -1903,13 +1932,13 @@
     >↑</button>
   </div>
 
-  <script data-cfasync="false" src="/hub/i18n.js?v=0.1.60"></script>
+  <script data-cfasync="false" src="/hub/i18n.js?v=0.1.62"></script>
   <script data-cfasync="false" src="/hub/stories.js?v=0.1.4"></script>
   <script data-cfasync="false" src="/hub/markdown.js?v=0.1.1"></script>
   <script data-cfasync="false" src="/hub/cv-pdf.js?v=0.1.6"></script>
   <script data-cfasync="false" src="/hub/mock-db.js?v=0.1.17"></script>
   <script data-cfasync="false" src="/hub/auth.js?v=0.1.16"></script>
   <script data-cfasync="false" src="/hub/api.js?v=0.1.36"></script>
-  <script data-cfasync="false" src="/hub/app.js?v=1.2.52"></script>
+  <script data-cfasync="false" src="/hub/app.js?v=1.2.54"></script>
 </body>
 </html>

@@ -21,6 +21,7 @@ export async function runCollect(args) {
         : refreshJobs({
             include_jobs: args.include_jobs !== false,
             include_agent_gigs: args.include_agent_gigs !== false,
+            include_services: args.include_services === true,
             keywords,
             hh_text: keywords?.slice(0, 5).join(" "),
             upwork_query: q,

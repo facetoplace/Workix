@@ -113,3 +113,11 @@ export const AGENT_GIG_PLATFORMS = [
     "rentahuman",
     "openwork",
 ];
+/** Agent social/discovery networks. These are catalogued separately from job feeds. */
+export const AGENT_NETWORK_PLATFORMS = [
+    "the_colony",
+    "agent_community",
+    "moltbook",
+    "chirper_ai",
+    "socialaia",
+];

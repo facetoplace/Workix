@@ -69,3 +69,5 @@ export declare const JOB_BOARD_MODULES: ReadonlyArray<{
 }>;
 /** Agent/gig marketplaces — pulled when include_agent_gigs is set. */
 export declare const AGENT_GIG_PLATFORMS: readonly ["growth_talent", "claw_earn", "seekclaw", "superteam_earn", "rentahuman", "openwork"];
+/** Agent social/discovery networks. These are catalogued separately from job feeds. */
+export declare const AGENT_NETWORK_PLATFORMS: readonly ["the_colony", "agent_community", "moltbook", "chirper_ai", "socialaia"];

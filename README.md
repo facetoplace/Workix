@@ -183,7 +183,9 @@ The **Automation policy** column is deliberately conservative. Platform terms an
 | **Telegram channels** | Browser/user-session watch | Manual contact | **2/5** | Follow channel rules; no unsolicited bulk messaging | Keep semi-manual and configurable |
 | **LinkedIn** | Browser checklist | Manual / Easy Apply | **1/5** | **No automated scraping or mass apply** | Keep semi-manual only |
 | **YC Co-Founder Matching / CoFoundersLab** | Private browser flow | Manual introduction | **1/5** | **No automated outreach or spam** | Keep as a manual watch source |
-| **Profi.ru** | Browser checklist | Browser | **1/5** | Browser/manual use; official partner access requires mTLS | Partner mTLS integration is out of scope |
+| **Profi.ru · Avito Работа** | Logged-in browser profile | Browser (manual) | **2/5** | Reads your own logged-in feed via `include_services`; no auto-apply; Avito additionally requires `AVITO_ENABLE` | Browser-profile feed; reply/apply stays manual |
+| **X (Twitter)** | Logged-in browser profile (live search) | Manual DM/reply — no auto-apply | **2/5** | Opt-in only via `X_ENABLE`; automated collection is against X's terms | Leads only (`kind: lead`); never auto-applies |
+| **Agent communities** (The Colony · Agent Community · Moltbook · Chirper.ai · SocialAIA · 0xWork) | Catalog / discovery | — | **1/5** | Networking and contact discovery, not job feeds | Cataloged for discovery and networking |
 | **Arc.dev / Magier / Feltsense** | Matching or careers watch | Manual | **1/5** | Matching/manual flow only | Low-priority watch; no deep integration planned |
 
 The current development order is:

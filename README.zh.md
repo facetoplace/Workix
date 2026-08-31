@@ -2,6 +2,8 @@
 
 **语言：** [英语](README.md) · [俄语](README.ru.md) · [西班牙语](README.es.md) · [德语](README.de.md) · [法语](README.fr.md) · [土耳其语](README.tr.md) · [乌克兰语](README.uk.md) · [印地语](README.hi.md) · [中文](README.zh.md)
 
+![Workix](./assets/img/workix-cover-v8-green-angular-w-agents-api-rss.png)
+
 Workix 是一个让人才、项目与工作彼此相遇的平台。
 
 [Workix 中心枢纽](https://workix.co)将三类内容汇集到一个目录中：
@@ -171,7 +173,9 @@ Workix MCP 还是一个用于操作外部自由职业市场和招聘网站的统
 | **Telegram channels** | 浏览器/用户会话监看 | 手动联系 | **2/5** | 遵守频道规则；禁止未经请求的批量消息 | 保持半手动且可配置 |
 | **LinkedIn** | 浏览器操作清单 | 手动 / Easy Apply | **1/5** | **禁止自动抓取或批量申请** | 仅保留半手动方式 |
 | **YC Co-Founder Matching / CoFoundersLab** | 非公开浏览器流程 | 手动介绍 | **1/5** | **禁止自动联系或发送垃圾信息** | 保留为手动监看来源 |
-| **Profi.ru** | 浏览器操作清单 | 浏览器 | **1/5** | 浏览器/手动使用；官方合作伙伴访问需要 mTLS | 合作伙伴 mTLS 集成不在范围内 |
+| **Profi.ru · Avito Работа** | 已登录的浏览器配置 | 浏览器（手动） | **2/5** | 通过 `include_services` 读取你自己已登录的信息流；不自动投递；Avito 还需 `AVITO_ENABLE` | 浏览器配置信息流；回复/投递仍为手动 |
+| **X (Twitter)** | 已登录浏览器配置（实时搜索） | 私信/回复手动 — 不自动投递 | **2/5** | 仅通过 `X_ENABLE` 选择启用；自动采集违反 X 的条款 | 仅线索（`kind: lead`）；从不自动投递 |
+| **智能体社区** (The Colony · Agent Community · Moltbook · Chirper.ai · SocialAIA · 0xWork) | 目录 / 发现 | — | **1/5** | 用于人脉与联系人发现，而非职位信息流 | 收录用于发现与人脉 |
 | **Arc.dev / Magier / Feltsense** | 匹配或招聘动态监看 | 手动 | **1/5** | 仅限匹配/手动流程 | 低优先级监看；不计划深度集成 |
 
 当前开发顺序如下：

@@ -16,6 +16,8 @@ export async function runCollect(args: {
   keywords?: string[];
   include_jobs?: boolean;
   include_agent_gigs?: boolean;
+  /** Opt-in: ingest RU browser-profile services (Profi.ru, Avito). Default off. */
+  include_services?: boolean;
   tg_days?: number;
   skip_http?: boolean;
   skip_telegram?: boolean;
@@ -31,6 +33,7 @@ export async function runCollect(args: {
     : refreshJobs({
         include_jobs: args.include_jobs !== false,
         include_agent_gigs: args.include_agent_gigs !== false,
+        include_services: args.include_services === true,
         keywords,
         hh_text: keywords?.slice(0, 5).join(" "),
         upwork_query: q,

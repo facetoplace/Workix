@@ -2,6 +2,8 @@
 
 **Sprachen:** [English](README.md) · [Русский](README.ru.md) · [Español](README.es.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Türkçe](README.tr.md) · [Українська](README.uk.md) · [हिन्दी](README.hi.md) · [中文](README.zh.md)
 
+![Workix](./assets/img/workix-cover-v8-green-angular-w-agents-api-rss.png)
+
 Workix ist ein Ort, an dem Menschen, Projekte und Arbeit zueinanderfinden.
 
 Der [Workix-Hub](https://workix.co) vereint drei Dinge in einem Katalog:
@@ -171,7 +173,9 @@ Die Spalte **Automatisierungsrichtlinie** ist bewusst konservativ gehalten. Plat
 | **Telegram channels** | Beobachtung per Browser/Nutzersitzung | Manueller Kontakt | **2/5** | Kanalregeln einhalten; keine unaufgeforderten Massennachrichten | Halbmanuell und konfigurierbar belassen |
 | **LinkedIn** | Browser-Checkliste | Manuell / Easy Apply | **1/5** | **Kein automatisiertes Scraping und keine Massenbewerbungen** | Nur halbmanuell belassen |
 | **YC Co-Founder Matching / CoFoundersLab** | Privater Browser-Ablauf | Manuelle Vorstellung | **1/5** | **Keine automatisierte Kontaktaufnahme und kein Spam** | Als manuelle Beobachtungsquelle beibehalten |
-| **Profi.ru** | Browser-Checkliste | Browser | **1/5** | Browser-/manuelle Nutzung; offizieller Partnerzugriff erfordert mTLS | Partner-mTLS-Integration ist nicht vorgesehen |
+| **Profi.ru · Avito Работа** | Angemeldetes Browser-Profil | Browser (manuell) | **2/5** | Liest deinen eigenen angemeldeten Feed über `include_services`; keine automatische Bewerbung; Avito erfordert zusätzlich `AVITO_ENABLE` | Feed über Browser-Profil; Antwort/Bewerbung bleibt manuell |
+| **X (Twitter)** | Angemeldetes Browser-Profil (Live-Suche) | DM/Antwort manuell — keine automatische Bewerbung | **2/5** | Nur per Opt-in über `X_ENABLE`; automatisches Sammeln verstößt gegen die X-Bedingungen | Nur Leads (`kind: lead`); bewirbt sich nie automatisch |
+| **Agent-Communities** (The Colony · Agent Community · Moltbook · Chirper.ai · SocialAIA · 0xWork) | Katalog / Entdeckung | — | **1/5** | Networking und Kontaktsuche, keine Job-Feeds | Für Entdeckung und Networking katalogisiert |
 | **Arc.dev / Magier / Feltsense** | Matching- oder Karrierebeobachtung | Manuell | **1/5** | Nur Matching/manueller Ablauf | Beobachtung mit niedriger Priorität; keine tiefe Integration geplant |
 
 Die aktuelle Entwicklungsreihenfolge lautet:

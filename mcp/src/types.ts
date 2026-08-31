@@ -106,4 +106,8 @@ export interface PlatformConfig {
   refs?: string[];
   /** Downloadable MCP adapter module id (omit for core RSS). */
   module?: string;
+  /** Surfaces exposed by a discovery-only network (not necessarily ingested yet). */
+  surfaces?: string[];
+  /** How Workix connects to a non-job network. */
+  integration?: string;
 }

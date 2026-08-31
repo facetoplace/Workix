@@ -10,6 +10,7 @@ import { fetchFundingLeads } from "./adapters/funding.js";
 import { fetchProductHuntLeads } from "./adapters/producthunt.js";
 import { fetchProductRadarJobs } from "./adapters/product_radar.js";
 import { fetchStartupRankingLeads } from "./adapters/startupranking.js";
+import { fetchXLeads } from "./adapters/x.js";
 import { fetchStartupiumLeads } from "./adapters/startupium.js";
 import { fetchTheHubJobs } from "./adapters/thehub.js";
 import { fetchStartupJobsMcp } from "./adapters/startup_jobs_mcp.js";
@@ -253,6 +254,42 @@ export async function refreshJobs(opts) {
         collected.push(...r.jobs);
         note("startupranking", r);
         if (r.error)
+            errors.push(r.error);
+    }
+    // X (Twitter): hiring tweets + founder posts as leads, browser-profile ingest.
+    // Opt-in by name only, and double-gated behind X_ENABLE inside the adapter (ToS
+    // forbids automated collection) — never rides along on a bare include_jobs.
+    if (platforms?.includes("x")) {
+        const r = await cached("x", { keywords: opts?.keywords }, force, () => fetchXLeads({ keywords: opts?.keywords }));
+        collected.push(...r.jobs);
+        note("x", r);
+        // Named outright, so even the soft "not enabled" answer is what they asked
+        // about — surface it rather than swallowing it.
+        if (r.error)
+            errors.push(r.error);
+    }
+    // RU browser-profile sources — Profi.ru (услуги, kind=service) + Avito Работа
+    // (вакансии, kind=job). Opt-in: named
+    // in `platforms`, or via include_services (which also drives the manual watch
+    // list). They read the logged-in cabinet, emit kind:"service", and never
+    // apply. Avito is additionally ToS-gated behind AVITO_ENABLE inside its
+    // adapter. Never part of a bare include_jobs — a private-client order next to
+    // a remote vacancy is noise unless the caller asked for it.
+    const servicesDefault = Boolean(opts?.include_services) && !platforms?.length;
+    if (platforms?.includes("profi") || servicesDefault) {
+        const { fetchProfiJobs } = await import("./adapters/profi.js");
+        const r = await cached("profi", { keywords: opts?.keywords }, force, () => fetchProfiJobs({ keywords: opts?.keywords }));
+        collected.push(...r.jobs);
+        note("profi", r);
+        if (r.error && !softError(r.error))
+            errors.push(r.error);
+    }
+    if (platforms?.includes("avito") || servicesDefault) {
+        const { fetchAvitoJobs } = await import("./adapters/avito.js");
+        const r = await cached("avito", { keywords: opts?.keywords }, force, () => fetchAvitoJobs({ keywords: opts?.keywords }));
+        collected.push(...r.jobs);
+        note("avito", r);
+        if (r.error && !softError(r.error))
             errors.push(r.error);
     }
     const modulesWanted = [];

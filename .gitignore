@@ -23,6 +23,14 @@ mcp/registry.local.json
 mcp/.adapter-pack/
 mcp/.mcp-publisher/
 mcp/mcp-publisher.exe
+mcp/scripts/_log.mjs
+mcp/scripts/collect-only.mjs
+mcp/scripts/extract-contacts.mjs
+mcp/scripts/fl-relevant.mjs
+mcp/scripts/invite-pool.mjs
+mcp/scripts/juicy.mjs
+mcp/scripts/report-sweep.mjs
+mcp/scripts/run-sweep.mjs
 assets/users/
 assets/og/
 *.pem

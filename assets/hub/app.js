@@ -660,6 +660,7 @@
 
     if (!h || h === 'catalog') return { name: 'catalog' };
     if (h === 'onboarding') return { name: 'onboarding' };
+    if (h === 'publish-agent') return { name: 'publish-agent' };
     if (h === 'mine') return { name: 'mine' };
     if (h === 'profile') return { name: 'profile' };
     if (h === 'prefs' || h === 'notifications') return { name: 'prefs' };
@@ -2676,7 +2677,25 @@
           navigate('new-startup');
           return;
         }
-        if (segment === 'orders' || segment === 'roles') {
+        if (segment === 'ai_for_me') {
+          // "I want AI to find it for me" → the agent guide page.
+          await WorkixAPI.track('entry_segment', { segment });
+          if (WorkixAuth.bearer()) {
+            try { await WorkixAPI.patchMe({ segment }); } catch (e) { /* ignore */ }
+          }
+          window.location.href = '/agent';
+          return;
+        }
+        if (segment === 'agent_work') {
+          // "Looking for work for my AI agent" → how to list an agent as a participant.
+          await WorkixAPI.track('entry_segment', { segment });
+          if (WorkixAuth.bearer()) {
+            try { await WorkixAPI.patchMe({ segment }); } catch (e) { /* ignore */ }
+          }
+          navigate('publish-agent');
+          return;
+        }
+        if (segment === 'orders' || segment === 'roles' || segment === 'work_leads') {
           // Заказ и Роль — лента заказов (роли проектов тоже здесь)
           feed.value = 'orders';
           localStorage.setItem('workix_feed', 'orders');

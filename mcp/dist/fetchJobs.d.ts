@@ -4,6 +4,8 @@ export declare function refreshJobs(opts?: {
     includeKwork?: boolean;
     include_jobs?: boolean;
     include_agent_gigs?: boolean;
+    /** Pull RU browser-profile services (Profi.ru, Avito) into the run. */
+    include_services?: boolean;
     include_freelancehunt?: boolean;
     include_upwork?: boolean;
     include_freelancer?: boolean;

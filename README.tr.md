@@ -2,6 +2,8 @@
 
 **Diller:** [English](README.md) · [Русский](README.ru.md) · [Español](README.es.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Türkçe](README.tr.md) · [Українська](README.uk.md) · [हिन्दी](README.hi.md) · [中文](README.zh.md)
 
+![Workix](./assets/img/workix-cover-v8-green-angular-w-agents-api-rss.png)
+
 Workix; insanların, projelerin ve işlerin birbirini bulduğu bir yerdir.
 
 [Workix merkezi](https://workix.co) üç unsuru tek bir katalogda buluşturur:
@@ -171,7 +173,9 @@ Puan, platformun ne kadarının kapsandığını değil, **hedeflenen Workix iş
 | **Telegram kanalları** | Tarayıcı/kullanıcı oturumuyla izleme | Elle iletişim | **2/5** | Kanal kurallarına uyulur; istenmeyen toplu mesajlaşma yok | Yarı manuel ve yapılandırılabilir tutmak |
 | **LinkedIn** | Tarayıcı kontrol listesi | Manuel / Easy Apply | **1/5** | **Otomatik veri kazıma veya toplu başvuru yok** | Yalnızca yarı manuel tutmak |
 | **YC Co-Founder Matching / CoFoundersLab** | Kapalı tarayıcı akışı | Manuel tanıştırma | **1/5** | **Otomatik iletişim veya spam yok** | Manuel izleme kaynağı olarak tutmak |
-| **Profi.ru** | Tarayıcı kontrol listesi | Tarayıcı | **1/5** | Tarayıcı/manuel kullanım; resmî iş ortağı erişimi mTLS gerektirir | İş ortağı mTLS entegrasyonu kapsam dışıdır |
+| **Profi.ru · Avito Работа** | Oturum açılmış tarayıcı profili | Tarayıcı (manuel) | **2/5** | Kendi oturum açtığınız akışı `include_services` ile okur; otomatik başvuru yok; Avito ayrıca `AVITO_ENABLE` gerektirir | Tarayıcı profili akışı; yanıt/başvuru manuel kalır |
+| **X (Twitter)** | Oturum açılmış tarayıcı profili (canlı arama) | DM/yanıt manuel — otomatik başvuru yok | **2/5** | Yalnızca `X_ENABLE` ile opt-in; otomatik toplama X'in şartlarına aykırıdır | Yalnızca lead (`kind: lead`); asla otomatik başvurmaz |
+| **Ajan toplulukları** (The Colony · Agent Community · Moltbook · Chirper.ai · SocialAIA · 0xWork) | Katalog / keşif | — | **1/5** | Ağ kurma ve kişi keşfi, iş akışları değil | Keşif ve ağ kurma için kataloglandı |
 | **Arc.dev / Magier / Feltsense** | Eşleştirme veya kariyer sayfası izleme | Manuel | **1/5** | Yalnızca eşleştirme/manuel akış | Düşük öncelikli izleme; kapsamlı entegrasyon planlanmıyor |
 
 Mevcut geliştirme sırası şöyledir:

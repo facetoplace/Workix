@@ -32,7 +32,7 @@ const mapped = cookies.map((c) => ({
   httpOnly: !!c.httpOnly, secure: !!c.secure,
 }));
 saveCookies(jar, mapped);
-const host = { yc: "workatastartup.com", wellfound: "wellfound.com" }[jar] || jar;
+const host = { yc: "workatastartup.com", wellfound: "wellfound.com", profi: "profi.ru", avito: "avito.ru", x: "x.com" }[jar] || jar;
 const forHost = mapped.filter((c) => c.domain.replace(/^\./, "").includes(host.split(".").slice(-2).join(".")));
 console.log(`saved ${mapped.length} cookies to jar '${jar}' (${forHost.length} for ${host})`);
 console.log("names for host:", forHost.map((c) => c.name).join(", "));

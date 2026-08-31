@@ -1,8 +1,13 @@
 # Workix MCP
 
-**Runtime source catalog:** the current platform list is [`platforms.json`](./platforms.json). The older platform research matrices are historical evidence, not an active integration list. `include_jobs` is active; `watch_pending` is explicit-test only; `watch_browser` is manual browser-only.
+**Runtime source catalog:** the current platform list is [`platforms.json`](./platforms.json). The older platform research matrices are historical evidence, not an active integration list. `include_jobs` is active; `include_agent_gigs` is active for structured agent task sources; `discovery_only` records external agent APIs/MCPs for networking and contact discovery without pretending they are job feeds; `watch_pending` is explicit-test only; `watch_browser` is manual browser-only.
 
 Local MCP server for AI agents ([Cursor](https://cursor.com), Claude, etc.) that work with the [Workix hub](https://workix.co) and freelance boards.
+
+### What's new in 1.2.6
+
+- **First public release since 1.2.2** — bundles session-flow guidance (1.2.3), the RU browser-profile adapters **Profi.ru** (услуги) and **Avito Работа** (вакансии) (1.2.4), and **X (Twitter)** hiring/founder leads (1.2.5). Browser-profile sources read a logged-in profile and never apply — отклик остаётся ручным; Avito and X are double-gated (`AVITO_ENABLE=1` / `X_ENABLE=1`) and opt-in only.
+- **Agent-community catalog.** The Colony, Agent Community, Moltbook, Chirper.ai, SocialAIA and 0xWork added to [`platforms.json`](./platforms.json) for networking and contact discovery.
 
 ### What's new in 1.2.2
 
@@ -342,7 +347,7 @@ Write tools echo a short **who can publish** guide: early stage welcome; moderat
 | `workix_upwork_auth_url` / `workix_upwork_exchange_code` | Upwork OAuth |
 | `workix_tg_status` / `workix_tg_auth` / `workix_tg_search` | Optional Telegram (GramJS; TDLib where native works). `workix_tg_search` takes `mode: search` (server-side per-term) or `mode: dump` (sweep recent history → match locally, with `applied`/`cross_posts`/`hide_applied`). Install: `npm install telegram`. Env: `TG_APP_API_ID` + `TG_APP_API_HASH`. Login: `npm run tg:login`. |
 
-### Gated boards via a logged-in browser profile (YC, Wellfound)
+### Gated boards via a logged-in browser profile (YC, Wellfound, Profi.ru, Avito, X)
 
 Some boards are login-gated SPAs that block plain HTTP. They read through a
 persistent Chrome profile you log in to **once** — no credential ever reaches the
@@ -355,11 +360,42 @@ node scripts/board-open.mjs yc        https://www.workatastartup.com/
 node scripts/board-save.mjs yc
 node scripts/board-open.mjs wellfound https://wellfound.com/login
 node scripts/board-save.mjs wellfound
+node scripts/board-open.mjs profi     https://profi.ru/backoffice/
+node scripts/board-save.mjs profi
+node scripts/board-open.mjs avito     https://www.avito.ru/profile
+node scripts/board-save.mjs avito
+node scripts/board-open.mjs x         https://x.com/home
+node scripts/board-save.mjs x
 ```
 
 After that the `yc_work_at_startup` and `wellfound` adapters reuse the session:
 YC runs headless on the saved profile; Wellfound is Cloudflare-gated, so its
 adapter launches a real (minimized) Chrome. Both are opt-in (name the platform).
+
+**RU browser-profile sources** — **Profi.ru** (заказы услуг, `kind: "service"`)
+and **Avito Работа** (вакансии, `kind: "job"`) — read the logged-in feed the same
+way and **never apply** — отклик/чат остаётся ручным (`workix_get_job` → draft →
+browser). Pull them by naming the platform, or with `include_services: true` on
+`workix_collect` / `workix_digest` (which also shows the semi-manual watch
+checklist). Never on a bare `include_jobs`.
+
+- `PROFI_URL` — override the Profi feed page (default `https://profi.ru/backoffice/`).
+- `AVITO_ENABLE=1` — **required** for Avito ingest (its ToS restrict automated
+  collection, so it stays off until you opt in explicitly). Runs headful.
+- `AVITO_URL` — override the Avito feed (default `https://www.avito.ru/all/vakansii`);
+  point it at a saved region/remote/query vacancy search for relevance.
+
+**X (Twitter)** reads the live-search timeline the same way, emits `kind: "lead"`
+(hiring tweets + founder/cofounder posts), and **never applies** — DM/ответ
+остаётся ручным. Opt-in by naming `x` in `platforms`, and — like Avito — behind a
+second gate for its ToS. Two default lanes (hiring + founder); never on a bare
+`include_jobs`.
+
+- `X_ENABLE=1` — **required** for X ingest (automated collection is against X's
+  ToS, so it stays off until you opt in). Runs headful.
+- `X_QUERIES` — override the lane set, `'<label>::<query>'` entries separated by
+  `;` (e.g. `hiring::#hiring react remote; founder::"technical cofounder" AI`).
+- `X_QUERY` — single-lane shorthand; `X_URL` — pin one search page verbatim.
 
 ### hh.ru session
 

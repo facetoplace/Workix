@@ -7,14 +7,16 @@
       "title": "Silicon Pravda Chat",
       "url": "https://t.me/siliconpravdachat",
       "kind": "startups",
+      "roles": "co-founder / tech-partner / startup teams (not dev-only)",
       "priority": "high",
-      "note": "Стартапы/инвестиции; антиспам"
+      "note": "Startups/investment; anti-spam"
     },
     {
       "id": "productradar_official",
       "title": "Product Radar",
       "url": "https://t.me/productradar_official",
       "kind": "startups",
+      "roles": "co-founder / startup teams (product, dev, growth)",
       "priority": "high"
     },
     {
@@ -22,118 +24,133 @@
       "title": "Startup Fellows",
       "url": "https://t.me/startupfellows",
       "kind": "startups",
+      "roles": "co-founder / startup teams",
       "priority": "high",
-      "note": "Также startupfellows.ru"
+      "note": "Also startupfellows.ru"
     },
     {
       "id": "startup_job_russia",
       "title": "Startup Job Russia",
       "url": "https://t.me/startup_job_russia",
       "kind": "roles",
+      "roles": "startup jobs: product / dev / growth / ops",
       "priority": "high",
-      "note": "Outreach в личку, не спам в канал"
+      "note": "Outreach via DM, no channel spam"
     },
     {
       "id": "runello_rus_mobileappdevelopment",
       "title": "Runello — Mobile (iOS / Android / Flutter)",
       "url": "https://t.me/runello_rus_mobileappdevelopment",
       "kind": "jobs_feed",
+      "roles": "mobile dev: iOS / Android / Flutter",
       "priority": "high",
-      "note": "Runello агрегатор; отклик через @RunelloBot / source ATS"
+      "note": "Runello aggregator; apply via @RunelloBot / source ATS"
     },
     {
       "id": "runello_rus_webdevelopment",
       "title": "Runello — Fullstack / Web",
       "url": "https://t.me/runello_rus_webdevelopment",
       "kind": "jobs_feed",
+      "roles": "fullstack / web dev",
       "priority": "high",
-      "note": "Часто пересекается с Flutter/mobile fullstack; @RunelloBot"
+      "note": "Often overlaps Flutter/mobile fullstack; @RunelloBot"
     },
     {
       "id": "dartlang_jobs",
       "title": "Dart Jobs (Flutter)",
       "url": "https://t.me/dartlang_jobs",
       "kind": "jobs_feed",
+      "roles": "Flutter / Dart (dev)",
       "priority": "high",
-      "note": "Узкий Flutter/Dart feed; свежие посты"
+      "note": "Narrow Flutter/Dart feed; fresh posts"
     },
     {
       "id": "mobjobskz",
       "title": "Mobile Dev Jobs",
       "url": "https://t.me/mobjobskz",
       "kind": "jobs_feed",
+      "roles": "mobile dev: iOS / Android / Flutter / RN",
       "priority": "high",
-      "note": "iOS/Android/Flutter/RN; вакансии + резюме"
+      "note": "iOS/Android/Flutter/RN; jobs + resumes"
     },
     {
       "id": "fintech_vacancy",
       "title": "Вакансии в Финтех",
       "url": "https://t.me/fintech_vacancy",
       "kind": "jobs_feed",
+      "roles": "fintech: mobile / backend + product / analytics",
       "priority": "high",
-      "note": "Финтех; часто mobile/iOS lead"
+      "note": "Fintech; often mobile/iOS lead"
     },
     {
       "id": "it_vakansii_jobs",
       "title": "СЕТИ — IT & Digital вакансии",
       "url": "https://t.me/it_vakansii_jobs",
       "kind": "jobs_feed",
+      "roles": "IT / digital, broad: dev + product / design / QA / analytics",
       "priority": "high",
-      "note": "Крупный RU IT/Digital feed; vseti.app"
+      "note": "Large RU IT/Digital feed; vseti.app"
     },
     {
       "id": "remocate",
       "title": "Remocate",
       "url": "https://t.me/remocate",
       "kind": "jobs_feed",
+      "roles": "remote, broad: IT / product / design / marketing / support",
       "priority": "high",
-      "note": "Remote/релокация; зеркало @evacuatejobs"
+      "note": "Remote/relocation; mirror of @evacuatejobs"
     },
     {
       "id": "theyseeku_it",
       "title": "Удаленка — IT и Digital (Finder.work)",
       "url": "https://t.me/theyseeku_it",
       "kind": "jobs_feed",
+      "roles": "IT / digital: dev + product / design / QA",
       "priority": "high",
-      "note": "IT-ветка Finder; общий @theyseeku шумнее"
+      "note": "Finder IT branch; general @theyseeku is noisier"
     },
     {
       "id": "jobs_in_it_remoute",
       "title": "Job in IT / Remote",
       "url": "https://t.me/jobs_in_it_remoute",
       "kind": "jobs_feed",
+      "roles": "IT remote: dev + product / QA / analytics",
       "priority": "high",
-      "note": "Агрегатор IT remote; username с typo remoute"
+      "note": "IT remote aggregator; username has typo 'remoute'"
     },
     {
       "id": "digital_hr",
       "title": "DigitalHR",
       "url": "https://t.me/digital_hr",
       "kind": "jobs_feed",
+      "roles": "IT / product / digital (dev and non-dev)",
       "priority": "high",
-      "note": "Агентство: IT/product/digital"
+      "note": "Agency: IT/product/digital"
     },
     {
       "id": "getitrussia",
       "title": "Get IT",
       "url": "https://t.me/getitrussia",
       "kind": "jobs_feed",
+      "roles": "IT, broad: dev + product / design / QA",
       "priority": "high",
-      "note": "RU IT remote-friendly"
+      "note": "RU IT, remote-friendly"
     },
     {
       "id": "choicy_work",
       "title": "CHOICY.WORK (remote/relocate)",
       "url": "https://t.me/choicy_work",
       "kind": "jobs_feed",
+      "roles": "IT remote / relocation (dev + product)",
       "priority": "medium",
-      "note": "Удалёнка/релокация; связан с DigitalHR"
+      "note": "Remote/relocation; linked to DigitalHR"
     },
     {
       "id": "workayte",
       "title": "Работа в ИТ",
       "url": "https://t.me/workayte",
       "kind": "jobs_feed",
+      "roles": "IT, broad: dev + product / QA / design",
       "priority": "medium"
     },
     {
@@ -141,38 +158,43 @@
       "title": "fordev",
       "url": "https://t.me/fordev",
       "kind": "jobs_feed",
+      "roles": "dev + adjacent IT roles",
       "priority": "medium",
-      "note": "Классические #vacancy подборки"
+      "note": "Classic #vacancy roundups"
     },
     {
       "id": "hireproproduct",
       "title": "hireproproduct",
       "url": "https://t.me/hireproproduct",
       "kind": "roles",
+      "roles": "product / growth / project (non-dev)",
       "priority": "medium",
-      "note": "Product/growth вакансии (No Flame No Game)"
+      "note": "Product/growth jobs (No Flame No Game)"
     },
     {
       "id": "mnogovakansiy",
       "title": "Многовакансий | Design, IT",
       "url": "https://t.me/mnogovakansiy",
       "kind": "jobs_feed",
+      "roles": "design / product / IT",
       "priority": "medium",
-      "note": "Дизайн + продукт + IT"
+      "note": "Design + product + IT"
     },
     {
       "id": "flutter_react_native_job",
       "title": "Вакансии Flutter / React Native",
       "url": "https://t.me/flutter_react_native_job",
       "kind": "jobs_feed",
+      "roles": "Flutter / React Native (dev)",
       "priority": "medium",
-      "note": "Узкий стек; реже посты"
+      "note": "Narrow stack; posts less often"
     },
     {
       "id": "python_jobs",
       "title": "Python Jobs",
       "url": "https://t.me/python_jobs",
       "kind": "jobs_feed",
+      "roles": "Python (dev)",
       "priority": "medium"
     },
     {
@@ -180,38 +202,43 @@
       "title": "JavaScript Jobs",
       "url": "https://t.me/javascript_jobs",
       "kind": "jobs_feed",
+      "roles": "JavaScript dev (+ resumes)",
       "priority": "medium",
-      "note": "Вакансии + резюме соискателей"
+      "note": "Jobs + candidate resumes"
     },
     {
       "id": "web3hiring",
       "title": "Web3 Jobs",
       "url": "https://t.me/web3hiring",
       "kind": "jobs_feed",
+      "roles": "web3 / crypto: dev + product / BD / marketing (EN)",
       "priority": "medium",
-      "note": "EN web3; рядом с agent gigs"
+      "note": "EN web3; near agent gigs"
     },
     {
       "id": "young_june",
       "title": "Young & Junior — IT",
       "url": "https://t.me/young_june",
       "kind": "jobs_feed",
+      "roles": "junior / internships (IT + adjacent)",
       "priority": "low",
-      "note": "Junior/стажировки; много рекламы"
+      "note": "Junior/internships; lots of ads"
     },
     {
       "id": "NLP_jobs",
       "title": "NLP jobs",
       "url": "https://t.me/NLP_jobs",
       "kind": "jobs_feed",
+      "roles": "ML / NLP (dev + research)",
       "priority": "low",
-      "note": "Ниша ML/NLP; смесь #job и #candidate"
+      "note": "ML/NLP niche; mix of #job and #candidate"
     },
     {
       "id": "FreelancerDesk",
       "title": "Freelance Desk",
       "url": "https://t.me/FreelancerDesk",
       "kind": "gigs",
+      "roles": "freelance / remote: dev, design, content, marketing",
       "priority": "high",
       "note": "RU freelance gigs + remote jobs; ads via @StetsMedia",
       "verified_at": "2026-08-06"
@@ -221,22 +248,25 @@
       "title": "BlockHire | Web3 Вакансии",
       "url": "https://t.me/BlockHire",
       "kind": "jobs_feed",
+      "roles": "web3 / fintech: dev (Go/Node/.NET) + QA / DevOps",
       "priority": "high",
-      "note": "RU fintech/web3/crypto + широкий стек (Go, Node, .NET, QA, DevOps); remote/hybrid RU/EU/Cyprus. high — чтобы попадать в окно дайджеста"
+      "note": "RU fintech/web3/crypto + broad stack (Go, Node, .NET, QA, DevOps); remote/hybrid RU/EU/Cyprus. 'high' to land inside the digest window"
     },
     {
       "id": "runello_rus_frontend",
       "title": "Runello — Front-end",
       "url": "https://t.me/runello_rus_frontend",
       "kind": "jobs_feed",
+      "roles": "frontend dev (PWA / TS)",
       "priority": "medium",
-      "note": "PWA/TS-смежные; @RunelloBot"
+      "note": "PWA/TS-adjacent; @RunelloBot"
     },
     {
       "id": "runello_rus_typescript",
       "title": "Runello — TypeScript",
       "url": "https://t.me/runello_rus_typescript",
       "kind": "jobs_feed",
+      "roles": "TypeScript dev",
       "priority": "medium",
       "note": "@RunelloBot"
     },
@@ -245,6 +275,7 @@
       "title": "Runello — JavaScript",
       "url": "https://t.me/runello_rus_javascript",
       "kind": "jobs_feed",
+      "roles": "JavaScript dev",
       "priority": "medium",
       "note": "@RunelloBot"
     },
@@ -253,41 +284,46 @@
       "title": "Runello — Backend",
       "url": "https://t.me/runello_rus_backend",
       "kind": "jobs_feed",
+      "roles": "backend / fullstack / tech lead",
       "priority": "medium",
-      "note": "Tech lead / fullstack соседство; @RunelloBot"
+      "note": "Tech lead / fullstack adjacency; @RunelloBot"
     },
     {
       "id": "runello_rus_prompt",
       "title": "Runello — AI / ML / LLM",
       "url": "https://t.me/runello_rus_prompt",
       "kind": "jobs_feed",
+      "roles": "AI / ML / LLM",
       "priority": "low",
-      "note": "Ниша; иногда mobile+AI; @RunelloBot"
+      "note": "Niche; sometimes mobile+AI; @RunelloBot"
     },
     {
       "id": "remotejobss",
       "title": "Remote Jobs (EN)",
       "url": "https://t.me/remotejobss",
       "kind": "jobs_feed",
+      "roles": "remote, broad: IT + non-tech (EN)",
       "priority": "low",
-      "note": "Крупный EN remote; высокий шум"
+      "note": "Large EN remote; high noise"
     },
     {
       "id": "productradar_chat",
       "title": "Product Radar Chat",
       "url": "https://t.me/productradar_chat",
       "kind": "startups",
+      "roles": "co-founder / tech-partner / startup teams",
       "priority": "medium",
-      "note": "Стартап-чат Product Radar; точечно co-founder/техпартнёр/«набираю команду» — фильтруется локально"
+      "note": "Product Radar startup chat; occasional co-founder/tech-partner/'building a team' — filtered locally"
     },
     {
       "id": "forallmobile",
       "title": "Job for Mobile: iOS, Android, React Native",
       "url": "https://t.me/forallmobile",
       "kind": "jobs_feed",
+      "roles": "mobile dev: iOS / Android / RN / Flutter",
       "priority": "high",
       "lang": "ru",
-      "note": "Мобильная разработка: iOS/Android/RN/Flutter. Сеть «Job for …», живая лента",
+      "note": "Mobile dev: iOS/Android/RN/Flutter. 'Job for …' network, active feed",
       "verified_at": "2026-08-11"
     },
     {
@@ -295,9 +331,10 @@
       "title": "Remote IT (Inflow)",
       "url": "https://t.me/Remoteit",
       "kind": "jobs_feed",
+      "roles": "IT remote, broad: dev + product / QA / design",
       "priority": "high",
       "lang": "ru",
-      "note": "Удалёнка по IT, ежедневные посты",
+      "note": "Remote IT, daily posts",
       "verified_at": "2026-08-11"
     },
     {
@@ -305,9 +342,10 @@
       "title": "Mobile jobs",
       "url": "https://t.me/mobiledevjob",
       "kind": "jobs_feed",
+      "roles": "mobile dev",
       "priority": "medium",
       "lang": "ru",
-      "note": "Вакансии мобильных разработчиков",
+      "note": "Mobile developer jobs",
       "verified_at": "2026-08-11"
     },
     {
@@ -315,9 +353,10 @@
       "title": "Job for Frontend (JavaScript + Node.js)",
       "url": "https://t.me/forfrontend",
       "kind": "jobs_feed",
+      "roles": "frontend / Node.js (dev)",
       "priority": "medium",
       "lang": "ru",
-      "note": "Фронтенд и Node.js",
+      "note": "Frontend and Node.js",
       "verified_at": "2026-08-11"
     },
     {
@@ -325,9 +364,10 @@
       "title": "Работа — вёрстка и фронтенд",
       "url": "https://t.me/job_webdev",
       "kind": "jobs_feed",
+      "roles": "markup / frontend (dev)",
       "priority": "medium",
       "lang": "ru",
-      "note": "Вёрстка/фронтенд, часто разовые проекты",
+      "note": "Markup/frontend, often one-off projects",
       "verified_at": "2026-08-11"
     },
     {
@@ -335,9 +375,10 @@
       "title": "JavaScript Jobs — вакансии и резюме",
       "url": "https://t.me/javascript_jobs_feed",
       "kind": "jobs_feed",
+      "roles": "JavaScript / React (+ resumes)",
       "priority": "medium",
       "lang": "ru",
-      "note": "Лента JS/React; резюме вперемешку с вакансиями",
+      "note": "JS/React feed; resumes mixed with jobs",
       "verified_at": "2026-08-11"
     },
     {
@@ -345,9 +386,10 @@
       "title": "Job for Go, Rust Developers",
       "url": "https://t.me/forgoandrust",
       "kind": "jobs_feed",
+      "roles": "Go / Rust (dev, senior)",
       "priority": "medium",
       "lang": "ru",
-      "note": "Go/Rust, преимущественно senior",
+      "note": "Go/Rust, mostly senior",
       "verified_at": "2026-08-11"
     },
     {
@@ -355,9 +397,10 @@
       "title": "Вакансии .NET, Java, C#, C++, Golang",
       "url": "https://t.me/java_c_net_golang_jobs",
       "kind": "jobs_feed",
+      "roles": ".NET / Java / C# / C++ / Go (dev)",
       "priority": "medium",
       "lang": "ru",
-      "note": "Бэкенд на JVM/.NET/C++/Go",
+      "note": "Backend on JVM/.NET/C++/Go",
       "verified_at": "2026-08-11"
     },
     {
@@ -365,6 +408,7 @@
       "title": "JVM Jobs",
       "url": "https://t.me/alljvmjobs",
       "kind": "jobs_feed",
+      "roles": "Java / Kotlin / Scala / Clojure (dev)",
       "priority": "medium",
       "lang": "ru",
       "note": "Java/Kotlin/Scala/Clojure",
@@ -375,9 +419,10 @@
       "title": "Job for PHP",
       "url": "https://t.me/jobforphp",
       "kind": "jobs_feed",
+      "roles": "PHP (dev)",
       "priority": "medium",
       "lang": "ru",
-      "note": "PHP-разработка",
+      "note": "PHP development",
       "verified_at": "2026-08-11"
     },
     {
@@ -385,6 +430,7 @@
       "title": "Job for Ruby & Elixir",
       "url": "https://t.me/forruby",
       "kind": "jobs_feed",
+      "roles": "Ruby / Elixir (dev)",
       "priority": "medium",
       "lang": "ru",
       "note": "Ruby/Elixir",
@@ -395,9 +441,10 @@
       "title": "Job for QA",
       "url": "https://t.me/forallqa",
       "kind": "jobs_feed",
+      "roles": "QA / test automation",
       "priority": "medium",
       "lang": "ru",
-      "note": "QA / автотесты",
+      "note": "QA / test automation",
       "verified_at": "2026-08-11"
     },
     {
@@ -405,9 +452,10 @@
       "title": "Data Science Jobs",
       "url": "https://t.me/datasciencejobs",
       "kind": "jobs_feed",
+      "roles": "Data Science / ML (EN)",
       "priority": "medium",
       "lang": "en",
-      "note": "DS/ML; дополняет NLP_jobs",
+      "note": "DS/ML; complements NLP_jobs",
       "verified_at": "2026-08-11"
     },
     {
@@ -415,9 +463,10 @@
       "title": "Job for Analysts & Data Scientists",
       "url": "https://t.me/foranalysts",
       "kind": "jobs_feed",
+      "roles": "analytics / data science",
       "priority": "medium",
       "lang": "ru",
-      "note": "Аналитика и data science",
+      "note": "Analytics and data science",
       "verified_at": "2026-08-11"
     },
     {
@@ -425,9 +474,10 @@
       "title": "Job for Products and Projects",
       "url": "https://t.me/forproducts",
       "kind": "jobs_feed",
+      "roles": "product / project (non-dev)",
       "priority": "medium",
       "lang": "ru",
-      "note": "Продакт/проджект-роли",
+      "note": "Product/project roles",
       "verified_at": "2026-08-11"
     },
     {
@@ -435,9 +485,10 @@
       "title": "Вакансии для продактов и проджектов",
       "url": "https://t.me/product_jobs",
       "kind": "jobs_feed",
+      "roles": "product / project (non-dev)",
       "priority": "medium",
       "lang": "ru",
-      "note": "Продакт/проджект, отдельная лента",
+      "note": "Product/project, separate feed",
       "verified_at": "2026-08-11"
     },
     {
@@ -445,9 +496,10 @@
       "title": "IT Relocation (Inflow)",
       "url": "https://t.me/Relocats",
       "kind": "jobs_feed",
+      "roles": "IT relocation: dev + product / design / QA",
       "priority": "medium",
       "lang": "ru",
-      "note": "Релокация за рубеж; сестринский канал Remoteit",
+      "note": "Relocation abroad; sister channel of Remoteit",
       "verified_at": "2026-08-11"
     },
     {
@@ -455,9 +507,10 @@
       "title": "Jobs Code | In full",
       "url": "https://t.me/jobscode_infull",
       "kind": "jobs_feed",
+      "roles": "IT, broad: dev + product / QA / analytics",
       "priority": "medium",
       "lang": "ru",
-      "note": "Широкая IT-лента, ежедневно",
+      "note": "Broad IT feed, daily",
       "verified_at": "2026-08-11"
     },
     {
@@ -465,9 +518,10 @@
       "title": "Job in IT & Digital",
       "url": "https://t.me/geekjobs",
       "kind": "jobs_feed",
+      "roles": "IT / digital: dev + product / design (large companies)",
       "priority": "medium",
       "lang": "ru",
-      "note": "IT и digital, крупные компании",
+      "note": "IT and digital, large companies",
       "verified_at": "2026-08-11"
     },
     {
@@ -475,9 +529,10 @@
       "title": "IT вакансии для всех",
       "url": "https://t.me/zizu_IT_RU",
       "kind": "jobs_feed",
+      "roles": "IT, broad: QA / frontend / backend / UI-UX",
       "priority": "medium",
       "lang": "ru",
-      "note": "Широкая лента: QA, фронт, бэк, UI/UX",
+      "note": "Broad feed: QA, frontend, backend, UI/UX",
       "verified_at": "2026-08-11"
     },
     {
@@ -485,9 +540,10 @@
       "title": "Job for Junior",
       "url": "https://t.me/jobforjunior",
       "kind": "jobs_feed",
+      "roles": "junior / internships (IT + adjacent)",
       "priority": "low",
       "lang": "ru",
-      "note": "Джуниор-позиции и стажировки",
+      "note": "Junior positions and internships",
       "verified_at": "2026-08-11"
     },
     {
@@ -495,9 +551,10 @@
       "title": "БУДУ",
       "url": "https://t.me/budujobs",
       "kind": "jobs_feed",
+      "roles": "IT / digital (dev + product / design, curated)",
       "priority": "low",
       "lang": "ru",
-      "note": "Курируемая подборка IT/digital, посты редкие",
+      "note": "Curated IT/digital selection, infrequent posts",
       "verified_at": "2026-08-11"
     },
     {
@@ -505,9 +562,10 @@
       "title": "CryptoJobsList | Web3 Jobs",
       "url": "https://t.me/cryptojobslist",
       "kind": "jobs_feed",
+      "roles": "web3 / crypto: dev + product / BD (EN)",
       "priority": "low",
       "lang": "en",
-      "note": "Web3/крипто; англоязычная лента",
+      "note": "Web3/crypto; English feed",
       "verified_at": "2026-08-11"
     },
     {
@@ -515,9 +573,10 @@
       "title": "Web 3.0 Job | Крипто вакансии",
       "url": "https://t.me/job_web3",
       "kind": "jobs_feed",
+      "roles": "web3 / crypto: dev + product / BD (RU)",
       "priority": "low",
       "lang": "ru",
-      "note": "Web3/крипто на русском",
+      "note": "Web3/crypto in Russian",
       "verified_at": "2026-08-11"
     },
     {
@@ -525,9 +584,10 @@
       "title": "Юзтех.Карьера",
       "url": "https://t.me/usetechcareer",
       "kind": "jobs_feed",
+      "roles": "enterprise: mobile / SRE / PM / BA / GenAI",
       "priority": "medium",
       "lang": "ru",
-      "note": "Карьерный канал ГК Юзтех (single-employer корпорат). Банк/финтех-энтерпрайз: GenAI, SRE, PM, BA + мобильная разработка (лид Анна Жаркова). Под стоп-правило корпоратов РФ — брать точечно mobile.",
+      "note": "Career channel of Usetech group (single-employer corporate). Bank/fintech enterprise: GenAI, SRE, PM, BA + mobile dev (lead Anna Zharkova). Under the RU-corporate stop-rule — take mobile selectively.",
       "verified_at": "2026-08-14"
     },
     {
@@ -535,160 +595,206 @@
       "title": "Node.js Jobs Feed",
       "url": "https://t.me/nodejsjobsfeed",
       "kind": "jobs_feed",
+      "roles": "Node.js (dev)",
       "priority": "medium",
-      "note": "добавлено из списка пользователя 2026-08-17"
+      "note": "added from user's list 2026-08-17"
     },
     {
       "id": "ITjobsFeed",
       "title": "IT Jobs Feed",
       "url": "https://t.me/ITjobsFeed",
       "kind": "jobs_feed",
+      "roles": "IT, broad: dev + product / QA / design",
       "priority": "medium",
-      "note": "добавлено из списка пользователя 2026-08-17"
+      "note": "added from user's list 2026-08-17"
     },
     {
       "id": "DevOpsSRE_Jobs",
       "title": "DevOps / SRE Jobs",
       "url": "https://t.me/DevOpsSRE_Jobs",
       "kind": "jobs_feed",
+      "roles": "DevOps / SRE",
       "priority": "medium",
-      "note": "добавлено из списка пользователя 2026-08-17"
+      "note": "added from user's list 2026-08-17"
     },
     {
       "id": "sre_devops_jobs_rss",
       "title": "SRE / DevOps Jobs (RSS)",
       "url": "https://t.me/sre_devops_jobs_rss",
       "kind": "jobs_feed",
+      "roles": "DevOps / SRE",
       "priority": "medium",
-      "note": "добавлено из списка пользователя 2026-08-17"
+      "note": "added from user's list 2026-08-17"
     },
     {
       "id": "devops_jobs_feed",
       "title": "DevOps Jobs Feed",
       "url": "https://t.me/devops_jobs_feed",
       "kind": "jobs_feed",
+      "roles": "DevOps",
       "priority": "medium",
-      "note": "добавлено из списка пользователя 2026-08-17"
+      "note": "added from user's list 2026-08-17"
     },
     {
       "id": "program_job",
       "title": "Программист — вакансии",
       "url": "https://t.me/program_job",
       "kind": "jobs_feed",
+      "roles": "development + adjacent IT",
       "priority": "medium",
-      "note": "добавлено из списка пользователя 2026-08-17"
+      "note": "added from user's list 2026-08-17"
     },
     {
       "id": "middle_job_it",
       "title": "Middle IT Jobs",
       "url": "https://t.me/middle_job_it",
       "kind": "jobs_feed",
+      "roles": "IT middle: dev + product / QA",
       "priority": "medium",
-      "note": "добавлено из списка пользователя 2026-08-17"
+      "note": "added from user's list 2026-08-17"
     },
     {
       "id": "backend_frontend_jobs",
       "title": "Backend / Frontend Jobs",
       "url": "https://t.me/backend_frontend_jobs",
       "kind": "jobs_feed",
+      "roles": "backend / frontend (dev)",
       "priority": "medium",
-      "note": "добавлено из списка пользователя 2026-08-17"
+      "note": "added from user's list 2026-08-17"
     },
     {
       "id": "Python_Jbs",
       "title": "Python Jobs",
       "url": "https://t.me/Python_Jbs",
       "kind": "jobs_feed",
+      "roles": "Python (dev)",
       "priority": "medium",
-      "note": "добавлено из списка пользователя 2026-08-17"
+      "note": "added from user's list 2026-08-17"
     },
     {
       "id": "mobile_jobs",
       "title": "Mobile Jobs",
       "url": "https://t.me/mobile_jobs",
       "kind": "jobs_feed",
+      "roles": "mobile dev",
       "priority": "medium",
-      "note": "добавлено из списка пользователя 2026-08-17"
+      "note": "added from user's list 2026-08-17"
     },
     {
       "id": "devops_jobs",
       "title": "DevOps Jobs",
       "url": "https://t.me/devops_jobs",
       "kind": "community",
+      "roles": "chat (banter, no jobs feed)",
       "priority": "low",
-      "note": "Peek 2026-08-11: чат-болталка, вакансий в ленте нет"
+      "note": "Peek 2026-08-11: chat/banter, no jobs in the feed"
     },
     {
       "id": "qa_jobs",
       "title": "QA Jobs",
       "url": "https://t.me/qa_jobs",
       "kind": "jobs_feed",
+      "roles": "QA",
       "priority": "medium",
-      "note": "добавлено из списка пользователя 2026-08-17"
+      "note": "added from user's list 2026-08-17"
     },
     {
       "id": "agile_jobs",
       "title": "Agile / PM Jobs",
       "url": "https://t.me/agile_jobs",
       "kind": "jobs_feed",
+      "roles": "Agile / PM (non-dev)",
       "priority": "medium",
-      "note": "добавлено из списка пользователя 2026-08-17"
+      "note": "added from user's list 2026-08-17"
     },
     {
       "id": "uiux_jobs",
       "title": "UI/UX Jobs",
       "url": "https://t.me/uiux_jobs",
       "kind": "jobs_feed",
+      "roles": "UI / UX (non-dev)",
       "priority": "medium",
-      "note": "добавлено из списка пользователя 2026-08-17"
+      "note": "added from user's list 2026-08-17"
     },
     {
       "id": "projects_jobs",
       "title": "Projects Jobs",
       "url": "https://t.me/projects_jobs",
       "kind": "jobs_feed",
+      "roles": "project / product (non-dev)",
       "priority": "medium",
-      "note": "добавлено из списка пользователя 2026-08-17"
+      "note": "added from user's list 2026-08-17"
     },
     {
       "id": "cccoding",
       "title": "CC Coding",
       "url": "https://t.me/cccoding",
       "kind": "jobs_feed",
+      "roles": "development + analytics / product / AI (broad); articles + internships",
       "priority": "high",
-      "note": "Added by user 2026-08-21"
+      "note": "Peek 2026-08-31: alive (posts through Aug 2026) — dev articles + broad jobs (prompt engineer, business analyst), internships. Added by user 2026-08-21",
+      "verified_at": "2026-08-31"
     },
     {
       "id": "needdev",
       "title": "Need Dev",
       "url": "https://t.me/needdev",
       "kind": "jobs_feed",
+      "roles": "outstaff / freelance: dev (Flutter, senior) + design",
       "priority": "high",
-      "note": "Added by user 2026-08-21"
+      "note": "Peek 2026-08-31: very active (daily posts) — outstaff/whitelabel from direct clients (Flutter Senior/TechLead) + freelance design. @it_outsource / @freedevelopers network. Added by user 2026-08-21",
+      "verified_at": "2026-08-31"
     },
     {
       "id": "pixeltechspec",
       "title": "Pixel Tech Spec",
       "url": "https://t.me/pixeltechspec",
       "kind": "jobs_feed",
+      "roles": "freelance orders for tech specialists (post feed hidden in web preview)",
       "priority": "high",
-      "note": "Added by user 2026-08-21"
+      "note": "Peek 2026-08-31: 'Pixel | Заказы для Тех-спецов', ~1.9K subscribers — daily freelance orders; post feed not available in web preview, manager @managerpixeI. Added by user 2026-08-21",
+      "verified_at": "2026-08-31"
     },
     {
       "id": "remote",
       "title": "Remote",
       "url": "https://t.me/remote",
       "kind": "jobs_feed",
+      "roles": "remote / relocation: IT dev + adjacent (DevKG, USD pay)",
       "priority": "high",
-      "note": "Added by user 2026-08-21"
+      "note": "Peek 2026-08-31: 'Remote / Projects / Relocate | DevKG' — active, remote/projects/relocation in IT (salaries in USD), dev + adjacent (SEO etc.). Post via devkg.com. Added by user 2026-08-21",
+      "verified_at": "2026-08-31"
+    },
+    {
+      "id": "cryptoheadhunter",
+      "title": "Крипто HeadHunter | WEB 3 Jobs",
+      "url": "https://t.me/cryptoheadhunter",
+      "kind": "jobs_feed",
+      "roles": "web3: dev (fullstack TS/React/Node) + product / BD",
+      "priority": "medium",
+      "lang": "ru",
+      "note": "Dev-focused channel of a crypto-recruiting network (Blockchain Hunter / Careers Crypto / Crypto Job / WEB 3.0 JOB / Crypto Jobs): real Full-Stack TS/React/Node roles, remote. Verified 2026-08-31",
+      "verified_at": "2026-08-31"
+    },
+    {
+      "id": "opento_crypto",
+      "title": "Crypto Jobs — Fintech, Web3",
+      "url": "https://t.me/opento_crypto",
+      "kind": "jobs_feed",
+      "roles": "web3 / fintech: dev + payments / BD / sales",
+      "priority": "medium",
+      "lang": "ru",
+      "note": "Same crypto-recruiting network as cryptoheadhunter; kept as a source of dev roles (backend/Web3 engineering), content mixed with payments/fintech. Verified 2026-08-31",
+      "verified_at": "2026-08-31"
     },
     {
       "id": "habr_career",
       "title": "Habr Career (TG)",
       "url": "https://t.me/habr_career",
       "kind": "community",
+      "roles": "content / digests (not individual jobs)",
       "priority": "low",
-      "note": "Сверено 2026-08-11: официальный контент-канал — статьи и дайджесты-ссылки; вакансии берём из Habr RSS"
+      "note": "Verified 2026-08-11: official content channel — articles and digest links; jobs come from Habr RSS"
     }
   ],
   "removed_dead": [
