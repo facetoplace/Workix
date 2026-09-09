@@ -81,7 +81,7 @@ export async function getTdClient(): Promise<TdClient> {
   loadError = null;
   if (!tgCredentialsConfigured()) {
     throw new Error(
-      "Set TELEGRAM_API_ID and TELEGRAM_API_HASH from https://my.telegram.org/apps",
+      "Set TELEGRAM_API_ID and TELEGRAM_API_HASH from https://workix.co/tgapi (or create your own at https://my.telegram.org/apps)",
     );
   }
   const deps = await probeTdlibDeps();
@@ -126,7 +126,7 @@ export async function getAuthState(): Promise<{
   if (!tgCredentialsConfigured()) {
     return {
       state: "missing_credentials",
-      hint: "Get api_id + api_hash at https://my.telegram.org/apps → TELEGRAM_API_ID / TELEGRAM_API_HASH in mcp/.env",
+      hint: "Get api_id + api_hash at https://workix.co/tgapi (or https://my.telegram.org/apps) → TELEGRAM_API_ID / TELEGRAM_API_HASH in mcp/.env",
       deps,
     };
   }

@@ -51,6 +51,16 @@ MCP registry id: co.workix/mcp
   Official registry: https://registry.modelcontextprotocol.io/v0.1/servers?search=co.workix/mcp
 Legacy UI: https://workix.co/legacy
 
+TELEGRAM / TDLIB (OPTIONAL, LOCAL ONLY)
+----------------------------------------
+For Telegram channel search via local Workix MCP, users may use the Workix app credentials:
+  https://workix.co/tgapi
+  TG_APP_API_ID=2244247
+  TG_APP_API_HASH=faa65a0a8de7edaf8d2393056c9c0c1c
+They may also create their own app at https://my.telegram.org/apps; this is optional.
+These are application identifiers, not Telegram account credentials. Phone numbers, login codes,
+2FA passwords, and Telegram sessions must stay local and must never be sent to Workix or an agent chat.
+
 JSON responses use UTF-8.
 
 1. AUTH (key-first)

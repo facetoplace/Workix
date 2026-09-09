@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Workix — Telegram API credentials</title>
+  <meta name="description" content="API ID и API hash для Telegram TDLib в Workix MCP." />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+  <meta name="theme-color" content="#0b0f14" />
+  <link rel="stylesheet" href="/hub/styles.css?v=0.1.33" />
+  <style>
+    .wx-tg-page { max-width: 48rem; margin: 0 auto; padding: 1.25rem 1.25rem 4rem; }
+    .wx-tg-top { display:flex; align-items:center; gap:.55rem; padding:.85rem 0; border-bottom:1px solid var(--wx-border); }
+    .wx-tg-top a { display:inline-flex; align-items:center; gap:.55rem; color:#e2e8f0; text-decoration:none; font-weight:600; }
+    .wx-tg-top img { width:32px; height:32px; border-radius:.5rem; }
+    .wx-tg-hero { padding:2.6rem 0 1.5rem; }
+    .wx-tg-kicker { color:var(--wx-accent); font-size:.82rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+    .wx-tg-hero h1 { margin:.6rem 0 .85rem; font-size:clamp(2rem,6vw,3.25rem); line-height:1.05; letter-spacing:-.03em; }
+    .wx-tg-hero p { max-width:38rem; margin:0; color:var(--wx-muted); font-size:1.08rem; line-height:1.55; }
+    .wx-tg-section { margin-top:1.5rem; }
+    .wx-tg-section h2 { margin:0 0 .7rem; font-size:1.3rem; }
+    .wx-tg-card { padding:1.25rem; }
+    .wx-tg-credential { display:grid; gap:.35rem; padding:1rem 0; border-bottom:1px solid var(--wx-border); }
+    .wx-tg-credential:last-of-type { border-bottom:0; }
+    .wx-tg-label { color:var(--wx-muted); font-size:.85rem; }
+    .wx-tg-value { display:flex; align-items:center; gap:.75rem; justify-content:space-between; }
+    .wx-tg-value code { color:#a7f3d0; font-size:clamp(.85rem,2.7vw,1rem); overflow-wrap:anywhere; }
+    .wx-tg-copy { flex:0 0 auto; border:1px solid var(--wx-border); border-radius:.5rem; background:transparent; color:#cbd5e1; padding:.42rem .65rem; cursor:pointer; }
+    .wx-tg-copy:hover { border-color:var(--wx-accent); color:var(--wx-accent); }
+    .wx-tg-code { margin:1rem 0 0; padding:1rem; overflow:auto; border:1px solid var(--wx-border); border-radius:.65rem; background:#0b0f14; color:#d1fae5; font-size:.88rem; line-height:1.55; }
+    .wx-tg-note { margin:1rem 0 0; color:var(--wx-muted); font-size:.92rem; line-height:1.5; }
+    .wx-tg-safe { border-color:rgba(110,231,183,.4); background:linear-gradient(135deg,rgba(16,185,129,.1),rgba(18,24,33,.8)); }
+    .wx-tg-safe strong { color:#a7f3d0; }
+    .wx-tg-links { display:flex; flex-wrap:wrap; gap:.75rem 1rem; margin-top:1rem; font-size:.92rem; }
+    .wx-tg-links a { color:#7dd3fc; text-decoration:none; }
+    .wx-tg-links a:hover { text-decoration:underline; }
+    .wx-tg-lang { margin-left:auto; display:flex; gap:.35rem; }
+    .wx-tg-lang button { border:1px solid var(--wx-border); border-radius:.45rem; background:transparent; color:var(--wx-muted); padding:.25rem .5rem; cursor:pointer; font-size:.78rem; }
+    .wx-tg-lang button.is-on { background:var(--wx-accent); border-color:var(--wx-accent); color:#042f2e; }
+  </style>
+</head>
+<body>
+  <main class="wx-shell">
+    <div class="wx-tg-page">
+      <nav class="wx-tg-top">
+        <a href="/"><img src="/img/logo-pwa.png" width="32" height="32" alt="" /><span>Workix</span></a>
+        <div class="wx-tg-lang" role="group" aria-label="Language">
+          <button type="button" data-lang="ru" class="is-on">RU</button>
+          <button type="button" data-lang="en">EN</button>
+        </div>
+      </nav>
+      <header class="wx-tg-hero">
+        <div class="wx-tg-kicker" data-i="kicker">Workix MCP · Telegram TDLib</div>
+        <h1 data-i="title">Данные для Telegram API</h1>
+        <p data-i="lede">Для Telegram-поиска в локальном Workix MCP можно использовать приложение Workix. Пользователю не нужно регистрировать своё приложение.</p>
+      </header>
+      <section class="wx-card wx-tg-card">
+        <h2 data-i="provided">Credentials Workix</h2>
+        <div class="wx-tg-credential"><span class="wx-tg-label">App api_id</span><div class="wx-tg-value"><code>2244247</code><button class="wx-tg-copy" type="button" data-copy="2244247" data-i="copy">Копировать</button></div></div>
+        <div class="wx-tg-credential"><span class="wx-tg-label">App api_hash</span><div class="wx-tg-value"><code>faa65a0a8de7edaf8d2393056c9c0c1c</code><button class="wx-tg-copy" type="button" data-copy="faa65a0a8de7edaf8d2393056c9c0c1c" data-i="copy">Копировать</button></div></div>
+        <pre class="wx-tg-code"><code>TG_APP_API_ID=2244247
+TG_APP_API_HASH=faa65a0a8de7edaf8d2393056c9c0c1c</code></pre>
+        <p class="wx-tg-note" data-i="env">Сохраните эти строки в `mcp/.env` или в переменные окружения MCP. Имена `TELEGRAM_API_ID` / `TELEGRAM_API_HASH` тоже поддерживаются.</p>
+      </section>
+      <section class="wx-card wx-tg-card wx-tg-safe wx-tg-section">
+        <h2 data-i="safeTitle">Что здесь безопасно</h2>
+        <p class="wx-tg-note" style="margin-top:0" data-i="safeText"><strong>Это идентификаторы приложения, а не доступ к Telegram-аккаунту.</strong> Они сами по себе не дают войти в аккаунт. Для входа TDLib запросит номер телефона, код Telegram и пароль 2FA, если он включён. Workix MCP работает локально: телефон, коды, пароль и сессия не отправляются на workix.co.</p>
+        <p class="wx-tg-note" data-i="warning">Не отправляйте коды и пароль 2FA в чат с агентом. Вводите их только в локальном терминале входа.</p>
+      </section>
+      <section class="wx-tg-section">
+        <h2 data-i="ownTitle">Можно создать свои данные</h2>
+        <p class="wx-tg-note" style="margin-top:0" data-i="ownText">Если Telegram позволяет зарегистрировать приложение в вашей стране, можно получить собственные `api_id` и `api_hash` на my.telegram.org. Это необязательно: для Workix MCP подходят credentials Workix выше.</p>
+        <div class="wx-tg-links"><a href="https://my.telegram.org/apps" target="_blank" rel="noopener" data-i="myTelegram">Создать своё приложение на my.telegram.org</a><a href="/agent" data-i="agent">Инструкция для агентов</a><a href="https://github.com/facetoplace/Workix/blob/main/mcp/TELEGRAM.md" target="_blank" rel="noopener" data-i="guide">Полная инструкция MCP</a></div>
+      </section>
+    </div>
+  </main>
+  <script>
+    (() => {
+      const I18N = {
+        ru: { kicker:'Workix MCP · Telegram TDLib', title:'Данные для Telegram API', lede:'Для Telegram-поиска в локальном Workix MCP можно использовать приложение Workix. Пользователю не нужно регистрировать своё приложение.', provided:'Credentials Workix', copy:'Копировать', copied:'Скопировано', env:'Сохраните эти строки в `mcp/.env` или в переменные окружения MCP. Имена `TELEGRAM_API_ID` / `TELEGRAM_API_HASH` тоже поддерживаются.', safeTitle:'Что здесь безопасно', safeText:'Это идентификаторы приложения, а не доступ к Telegram-аккаунту. Они сами по себе не дают войти в аккаунт. Для входа TDLib запросит номер телефона, код Telegram и пароль 2FA, если он включён. Workix MCP работает локально: телефон, коды, пароль и сессия не отправляются на workix.co.', warning:'Не отправляйте коды и пароль 2FA в чат с агентом. Вводите их только в локальном терминале входа.', ownTitle:'Можно создать свои данные', ownText:'Если Telegram позволяет зарегистрировать приложение в вашей стране, можно получить собственные `api_id` и `api_hash` на my.telegram.org. Это необязательно: для Workix MCP подходят credentials Workix выше.', myTelegram:'Создать своё приложение на my.telegram.org', agent:'Инструкция для агентов', guide:'Полная инструкция MCP' },
+        en: { kicker:'Workix MCP · Telegram TDLib', title:'Telegram API credentials', lede:'For Telegram search in the local Workix MCP, you can use the Workix application. Users do not need to register their own application.', provided:'Workix credentials', copy:'Copy', copied:'Copied', env:'Save these lines in `mcp/.env` or your MCP environment. The `TELEGRAM_API_ID` / `TELEGRAM_API_HASH` names are also supported.', safeTitle:'What is safe here', safeText:'These are application identifiers, not access to a Telegram account. They cannot sign in to an account by themselves. TDLib still asks for the phone number, Telegram code, and 2FA password if enabled. Workix MCP runs locally: the phone, codes, password, and session are not sent to workix.co.', warning:'Never send codes or your 2FA password in the agent chat. Enter them only in the local login terminal.', ownTitle:'You can create your own', ownText:'If Telegram allows app registration in your country, you can get your own `api_id` and `api_hash` at my.telegram.org. This is optional: the Workix credentials above work with Workix MCP.', myTelegram:'Create your own app at my.telegram.org', agent:'Agent instructions', guide:'Full MCP guide' }
+      };
+      let lang = localStorage.getItem('workix_lang') === 'en' ? 'en' : 'ru';
+      function apply() { const t=I18N[lang]; document.documentElement.lang=lang; document.querySelectorAll('[data-i]').forEach((el)=>{if(t[el.dataset.i])el.textContent=t[el.dataset.i]}); document.querySelectorAll('.wx-tg-lang button').forEach((b)=>b.classList.toggle('is-on',b.dataset.lang===lang)); }
+      async function copy(btn) { try { await navigator.clipboard.writeText(btn.dataset.copy); const old=btn.textContent; btn.textContent=I18N[lang].copied; setTimeout(()=>{btn.textContent=old},1400); } catch (_) {} }
+      document.querySelectorAll('.wx-tg-copy').forEach((b)=>b.addEventListener('click',()=>copy(b)));
+      document.querySelectorAll('.wx-tg-lang button').forEach((b)=>b.addEventListener('click',()=>{lang=b.dataset.lang;localStorage.setItem('workix_lang',lang);apply()}));
+      apply();
+    })();
+  </script>
+</body>
+</html>

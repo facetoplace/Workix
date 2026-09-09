@@ -25,7 +25,7 @@
 
 | Данные | Куда | В чат Cursor? |
 |--------|------|----------------|
-| `TG_APP_API_ID` / `TG_APP_API_HASH` (или `TELEGRAM_API_*`) | repo `.env` или `mcp/.env` | api_id можно; hash лучше не светить |
+| `TG_APP_API_ID` / `TG_APP_API_HASH` (или `TELEGRAM_API_*`) | repo `.env` или `mcp/.env` | Workix credentials: https://workix.co/tgapi; можно также создать свои |
 | Телефон / код SMS / 2FA | **только терминал** `npm run tg:login` | **нет** |
 | Сессия | `mcp/data/telegram/gramjs.session` | нет |
 
@@ -36,7 +36,7 @@
 ```bash
 cd mcp
 npm install telegram
-# TG_APP_API_ID + TG_APP_API_HASH уже в .env
+# TG_APP_API_ID + TG_APP_API_HASH: возьмите https://workix.co/tgapi
 cp telegram-channels.example.json telegram-channels.json   # если ещё нет
 npm run tg:login
 ```
@@ -73,7 +73,7 @@ TELEGRAM_2FA_PASSWORD=your_cloud_password
 |---------|-------------|
 | `win32-arm64 is not supported` | это старый TDLib — ставь `telegram` (GramJS), не `prebuilt-tdlib` |
 | `missing_deps` | `cd mcp && npm install telegram` |
-| `missing_credentials` | `TG_APP_API_*` в `.env` |
+| `missing_credentials` | Возьмите credentials на https://workix.co/tgapi или создайте свои на https://my.telegram.org/apps; затем задайте `TG_APP_API_*` в `.env` |
 | `wait_phone` | снова `npm run tg:login` |
 | Бан / flood | не спамь; правила чатов |
 | `total: 0` по всем чатам | поиск Telegram — подстрока, `OR` он не понимает. `workix_tg_search` теперь сам режет `a OR b` (и списки через запятую) на отдельные поиски: смотри `terms_searched` в ответе — если там 1, а слов было несколько, запрос ушёл как есть |

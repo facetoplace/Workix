@@ -53,7 +53,7 @@ export async function runTgStatus(): Promise<unknown> {
     credentials: {
       configured: tgCredentialsConfigured(),
       need: ["TG_APP_API_ID|TELEGRAM_API_ID", "TG_APP_API_HASH|TELEGRAM_API_HASH"],
-      apps: "https://my.telegram.org/apps",
+      apps: "https://workix.co/tgapi (or https://my.telegram.org/apps for a personal app)",
     },
     auth: {
       state: auth.state,
@@ -74,7 +74,7 @@ export async function runTgStatus(): Promise<unknown> {
       auth.state === "missing_deps"
         ? deps.install
         : auth.state === "missing_credentials"
-          ? "Set TG_APP_API_ID + TG_APP_API_HASH in .env"
+          ? "Get Workix credentials at https://workix.co/tgapi (or create your own at https://my.telegram.org/apps), then set TG_APP_API_ID + TG_APP_API_HASH in .env"
           : auth.state === "wait_phone" || auth.state === "wait_code"
             ? "cd mcp && npm run tg:login   # phone/code in terminal"
             : auth.state === "ready"

@@ -345,7 +345,7 @@ Write tools echo a short **who can publish** guide: early stage welcome; moderat
 | `workix_sources_status` / `workix_list_platforms` / `workix_open_watch_source` | Status & watch |
 | `workix_ensure_platforms` / `workix_install_platform` / `workix_remove_platform` | Adapter cache |
 | `workix_upwork_auth_url` / `workix_upwork_exchange_code` | Upwork OAuth |
-| `workix_tg_status` / `workix_tg_auth` / `workix_tg_search` | Optional Telegram (GramJS; TDLib where native works). `workix_tg_search` takes `mode: search` (server-side per-term) or `mode: dump` (sweep recent history → match locally, with `applied`/`cross_posts`/`hide_applied`). Install: `npm install telegram`. Env: `TG_APP_API_ID` + `TG_APP_API_HASH`. Login: `npm run tg:login`. |
+| `workix_tg_status` / `workix_tg_auth` / `workix_tg_search` | Optional Telegram (GramJS; TDLib where native works). Credentials: https://workix.co/tgapi or your own at https://my.telegram.org/apps. `workix_tg_search` takes `mode: search` (server-side per-term) or `mode: dump` (sweep recent history → match locally, with `applied`/`cross_posts`/`hide_applied`). Install: `npm install telegram`. Env: `TG_APP_API_ID` + `TG_APP_API_HASH`. Login: `npm run tg:login`. |
 
 ### Gated boards via a logged-in browser profile (YC, Wellfound, Profi.ru, Avito, X)
 

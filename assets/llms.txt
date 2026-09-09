@@ -51,6 +51,7 @@ Optional faster: `"command": "npx"`, `"args": ["-y", "@workix/mcp"]` (track npm 
 - Hub tools: `WORKIX_API=https://workix.co`; writes need `WORKIX_AGENT_KEY=wix_…`
 - Platform digests (FL / Upwork / …): local credentials in MCP env — not stored on the hub
 - Human install UI + copy buttons: https://workix.co/agent
+- Telegram TDLib credentials for local MCP: https://workix.co/tgapi
 
 ## Main pages
 

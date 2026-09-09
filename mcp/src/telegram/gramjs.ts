@@ -55,7 +55,7 @@ async function loadClientModules() {
 export async function getGramjsClient(): Promise<AnyClient> {
   if (client) return client;
   if (!tgCredentialsConfigured()) {
-    throw new Error("Set TG_APP_API_ID + TG_APP_API_HASH (or TELEGRAM_API_*)");
+    throw new Error("Set TG_APP_API_ID + TG_APP_API_HASH from https://workix.co/tgapi (or use your own from https://my.telegram.org/apps)");
   }
   const deps = await probeGramjs();
   if (!deps.ok) throw new Error(`${deps.error}. ${deps.install}`);
@@ -94,7 +94,7 @@ export async function gramjsAuthState(): Promise<{
   if (!tgCredentialsConfigured()) {
     return {
       state: "missing_credentials",
-      hint: "TG_APP_API_ID + TG_APP_API_HASH in .env (my.telegram.org/apps)",
+      hint: "TG_APP_API_ID + TG_APP_API_HASH in .env (https://workix.co/tgapi or my.telegram.org/apps)",
     };
   }
   if (!hasGramjsSession()) {

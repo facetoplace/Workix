@@ -217,7 +217,7 @@ async function main() {
     console.error(`
 Missing TG_APP_API_ID / TG_APP_API_HASH.
 
-1) https://my.telegram.org/apps
+1) https://workix.co/tgapi (or create your own at https://my.telegram.org/apps)
 2) Put into repo .env
 3) npm install telegram
 4) npm run tg:login
