@@ -300,19 +300,6 @@
       </section>
 
       <section class="wx-agent-section">
-        <h2 data-i="h_tgapi">Telegram / TDLib</h2>
-        <p data-i="p_tgapi">Для локального Telegram-поиска пользователи могут взять готовые Workix `api_id/api_hash` на <a href="/tgapi" style="color:#7dd3fc">workix.co/tgapi</a> или создать собственные на my.telegram.org. Свои данные создавать необязательно; в некоторых странах регистрация приложения недоступна.</p>
-        <div class="wx-card p-5">
-          <pre class="wx-agent-cmd" id="tgApiEnvBox" tabindex="0"></pre>
-          <p class="wx-muted text-sm" style="margin:1rem 0 0" data-i="p_tgapi_safe">Это credentials приложения, не пароль от аккаунта. MCP запускается локально; телефон, код, 2FA и Telegram-сессия на Workix не отправляются. Коды и пароль вводятся только в локальном терминале.</p>
-          <div class="wx-agent-actions" style="margin-top:1rem">
-            <a class="wx-btn wx-btn-primary" href="/tgapi" data-i="cta_tgapi">Открыть данные Telegram API</a>
-            <a class="wx-btn wx-btn-ghost" href="https://github.com/facetoplace/Workix/blob/main/mcp/TELEGRAM.md" target="_blank" rel="noopener" data-i="cta_tgguide">Полная инструкция</a>
-          </div>
-        </div>
-      </section>
-
-      <section class="wx-agent-section">
         <h2 data-i="h_contrib">Grow the source catalog</h2>
         <p data-i="p_contrib">Know a job board website or a Telegram channel with regular IT / freelance / startup vacancies? Propose it on GitHub — even a short Issue helps us expand digests and coverage. Public links only; no need to write a full adapter.</p>
         <div class="wx-agent-actions">
@@ -342,11 +329,6 @@ MCP (prefer source, then npx if you need speed — watch npm versions):
   Optional npm: https://www.npmjs.com/package/@workix/mcp — npx -y @workix/mcp
   Official registry id: co.workix/mcp
   env WORKIX_API=https://workix.co  WORKIX_AGENT_KEY=wix_…
-
-Telegram / TDLib (optional, local MCP only):
-  Credentials: https://workix.co/tgapi (or create your own at https://my.telegram.org/apps)
-  env TG_APP_API_ID=2244247 TG_APP_API_HASH=faa65a0a8de7edaf8d2393056c9c0c1c
-  Never send phone codes, 2FA passwords, or Telegram sessions to the hub or agent chat.
 
 Prefer GET /api/v1/search then open specific entities.
 Never submit proposals/applies without explicit human approval.
@@ -391,13 +373,8 @@ Never submit proposals/applies without explicit human approval.
       p_contrib: 'Know a job board website or a Telegram channel with regular IT / freelance / startup vacancies? Propose it on GitHub — even a short Issue helps us expand digests and coverage. Public links only; no need to write a full adapter.',
       cta_issue: 'Suggest a source on GitHub',
       cta_tg_guide: 'Telegram channel PRs',
-      h_tgapi: 'Telegram / TDLib',
-      p_tgapi: 'For local Telegram search, users can get ready-to-use Workix `api_id/api_hash` at workix.co/tgapi or create their own at my.telegram.org. Creating your own is optional; app registration is unavailable in some countries.',
-      p_tgapi_safe: 'These are application credentials, not an account password. MCP runs locally; the phone, code, 2FA, and Telegram session are not sent to Workix. Enter codes and the password only in the local terminal.',
-      cta_tgapi: 'Open Telegram API credentials',
-      cta_tgguide: 'Full instructions',
       machine_sum: 'Machine-readable summary (for agents scraping this page)',
-      prompt: 'Open https://workix.co/agent , https://workix.co/llms.txt and https://workix.co/api.txt. Explain what Workix is, how I can use the hub myself, and how my AI agent can search the catalog, manage projects/roles/profile, and apply with my approval. For optional local Telegram/TDLib search, read https://workix.co/tgapi: Workix api_id/api_hash can be used, or the user can create their own at my.telegram.org. Never ask for phone codes or 2FA passwords in chat; the user enters them in the local terminal. Prefer connecting MCP from GitHub source (clone facetoplace/Workix → mcp/ → npm install && npm run build → node …/dist/index.js). npx -y @workix/mcp is OK for a quick start, but track npm versions — they may lag behind git (registry id co.workix/mcp).',
+      prompt: 'Open https://workix.co/agent , https://workix.co/llms.txt and https://workix.co/api.txt. Explain what Workix is, how I can use the hub myself, and how my AI agent can search the catalog, manage projects/roles/profile, and apply with my approval. Prefer connecting MCP from GitHub source (clone facetoplace/Workix → mcp/ → npm install && npm run build → node …/dist/index.js). npx -y @workix/mcp is OK for a quick start, but track npm versions — they may lag behind git (registry id co.workix/mcp).',
       copied: 'Copied',
     },
     ru: {
@@ -433,13 +410,8 @@ Never submit proposals/applies without explicit human approval.
       p_contrib: 'Знаете сайт с вакансиями или Telegram-канал, где регулярно публикуют IT / фриланс / стартап-найм? Предложите на GitHub — даже короткий Issue помогает расширить дайджесты и охват. Только публичные ссылки; полный адаптер писать не обязательно.',
       cta_issue: 'Предложить источник на GitHub',
       cta_tg_guide: 'PR с Telegram-каналами',
-      h_tgapi: 'Telegram / TDLib',
-      p_tgapi: 'Для локального Telegram-поиска можно взять готовые Workix `api_id/api_hash` на workix.co/tgapi или создать свои на my.telegram.org. Создавать свои необязательно; в некоторых странах регистрация приложения недоступна.',
-      p_tgapi_safe: 'Это credentials приложения, а не пароль от аккаунта. MCP работает локально; телефон, код, 2FA и Telegram-сессия на Workix не отправляются. Коды и пароль вводятся только в локальном терминале.',
-      cta_tgapi: 'Открыть данные Telegram API',
-      cta_tgguide: 'Полная инструкция',
       machine_sum: 'Машиночитаемое резюме (для агентов, которые читают эту страницу)',
-      prompt: 'Открой https://workix.co/agent , https://workix.co/llms.txt и https://workix.co/api.txt. Объясни, что такое Workix, как я могу пользоваться хабом сам, и как мой ИИ-агент может искать каталог, вести проекты/роли/профиль и откликаться с моего согласия. Для необязательного локального Telegram/TDLib-поиска прочитай https://workix.co/tgapi: можно использовать api_id/api_hash Workix или создать свои на my.telegram.org. Никогда не проси коды телефона и пароль 2FA в чате — пользователь вводит их в локальном терминале. Адаптируй под мой контекст и текущую работу. MCP лучше подключать из исходников GitHub (clone facetoplace/Workix → mcp/ → npm install && npm run build → node …/dist/index.js). npx -y @workix/mcp — если нужен быстрый старт, но следи за версиями npm: они могут отставать от git (registry id co.workix/mcp).',
+      prompt: 'Открой https://workix.co/agent , https://workix.co/llms.txt и https://workix.co/api.txt. Объясни, что такое Workix, как я могу пользоваться хабом сам, и как мой ИИ-агент может искать каталог, вести проекты/роли/профиль и откликаться с моего согласия. Адаптируй под мой контекст и текущую работу. MCP лучше подключать из исходников GitHub (clone facetoplace/Workix → mcp/ → npm install && npm run build → node …/dist/index.js). npx -y @workix/mcp — если нужен быстрый старт, но следи за версиями npm: они могут отставать от git (registry id co.workix/mcp).',
       copied: 'Скопировано',
     },
   };
@@ -497,7 +469,6 @@ npm run build`;
     document.getElementById('mcpBuildBox').textContent = MCP_BUILD;
     document.getElementById('mcpJsonBox').textContent = MCP_JSON;
     document.getElementById('mcpNpxBox').textContent = MCP_JSON_NPX;
-    document.getElementById('tgApiEnvBox').textContent = 'TG_APP_API_ID=2244247\nTG_APP_API_HASH=faa65a0a8de7edaf8d2393056c9c0c1c';
     document.querySelectorAll('.wx-lang-mini button').forEach((b) => {
       b.classList.toggle('is-on', b.getAttribute('data-lang') === lang);
     });
