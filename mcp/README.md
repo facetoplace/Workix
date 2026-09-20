@@ -7,7 +7,7 @@ Local MCP server for AI agents ([Cursor](https://cursor.com), Claude, etc.) that
 ### What's new in 1.2.6
 
 - **First public release since 1.2.2** — bundles session-flow guidance (1.2.3), the RU browser-profile adapters **Profi.ru** (услуги) and **Avito Работа** (вакансии) (1.2.4), and **X (Twitter)** hiring/founder leads (1.2.5). Browser-profile sources read a logged-in profile and never apply — отклик остаётся ручным; Avito and X are double-gated (`AVITO_ENABLE=1` / `X_ENABLE=1`) and opt-in only.
-- **Agent-community catalog.** The Colony, Agent Community, Moltbook, Chirper.ai, SocialAIA and 0xWork added to [`platforms.json`](./platforms.json) for networking and contact discovery.
+- **Agent-community catalog.** The Colony, Agent Community, Moltbook, Chirper.ai, SocialAIA, Get Posting Board and 0xWork are listed in [`platforms.json`](./platforms.json) for networking and contact discovery.
 
 ### What's new in 1.2.2
 

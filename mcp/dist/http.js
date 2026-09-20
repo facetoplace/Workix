@@ -5,6 +5,10 @@ import { SocksProxyAgent } from "socks-proxy-agent";
 import { cookieHeaderFor, mergeSetCookie } from "./cookies.js";
 import { getProxyPool, nextProxy } from "./proxyPool.js";
 const DEFAULT_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36";
+/** Cap redirect chains so a redirect loop can't recurse forever. */
+const MAX_REDIRECTS = 8;
+/** Cap the body we buffer so one giant/hostile response can't OOM the process. */
+const MAX_BODY_BYTES = 20 * 1024 * 1024;
 function makeAgent(proxy) {
     if (!proxy)
         return undefined;
@@ -73,7 +77,7 @@ export async function fetchText(url, opts) {
     }
     return last;
 }
-function once(url, opts) {
+function once(url, opts, redirectCount = 0) {
     const started = Date.now();
     return new Promise((resolve) => {
         try {
@@ -100,14 +104,49 @@ function once(url, opts) {
                     mergeSetCookie(opts.cookieJar, url, res.headers["set-cookie"]);
                 }
                 if (status >= 301 && status <= 308 && res.headers.location) {
-                    const next = new URL(res.headers.location, url).toString();
                     res.resume();
-                    once(next, opts).then(resolve);
+                    if (redirectCount >= MAX_REDIRECTS) {
+                        resolve({
+                            ok: false,
+                            status,
+                            text: "",
+                            ms: Date.now() - started,
+                            viaProxy: Boolean(opts.proxy),
+                            finalUrl: url,
+                            error: `Too many redirects (>${MAX_REDIRECTS})`,
+                        });
+                        return;
+                    }
+                    const next = new URL(res.headers.location, url).toString();
+                    once(next, opts, redirectCount + 1).then(resolve);
                     return;
                 }
                 const chunks = [];
-                res.on("data", (c) => chunks.push(c));
+                let bytes = 0;
+                let aborted = false;
+                res.on("data", (c) => {
+                    if (aborted)
+                        return;
+                    bytes += c.length;
+                    if (bytes > MAX_BODY_BYTES) {
+                        aborted = true;
+                        req.destroy();
+                        resolve({
+                            ok: false,
+                            status,
+                            text: "",
+                            ms: Date.now() - started,
+                            viaProxy: Boolean(opts.proxy),
+                            finalUrl: url,
+                            error: `Response body exceeded ${MAX_BODY_BYTES} bytes`,
+                        });
+                        return;
+                    }
+                    chunks.push(c);
+                });
                 res.on("end", () => {
+                    if (aborted)
+                        return;
                     const text = Buffer.concat(chunks).toString("utf8");
                     resolve({
                         ok: status >= 200 && status < 300,

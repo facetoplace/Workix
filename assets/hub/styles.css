@@ -146,6 +146,203 @@ html, body {
 
 .wx-nav a:hover { color: #fff; }
 
+.wx-platforms-count {
+  color: var(--wx-accent);
+  font-size: .875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.wx-platforms-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: .75rem;
+}
+
+.wx-platforms-search {
+  flex: 1 1 18rem;
+}
+
+.wx-platforms-selects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+}
+
+.wx-platforms-selects label {
+  display: grid;
+  gap: .35rem;
+  min-width: 10rem;
+}
+
+.wx-platforms-label {
+  color: var(--wx-muted);
+  font-size: .75rem;
+}
+
+.wx-platform-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  transition: border-color .2s ease, transform .2s ease;
+}
+
+.wx-platform-card:hover {
+  border-color: color-mix(in srgb, var(--wx-accent-2) 50%, var(--wx-border));
+  transform: translateY(-1px);
+}
+
+.wx-platform-id {
+  color: var(--wx-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .75rem;
+  margin-top: .2rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wx-platform-status {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.wx-platform-heading {
+  align-items: center;
+  display: flex;
+  gap: .7rem;
+}
+
+.wx-platform-favicon {
+  background: #fff;
+  border-radius: .55rem;
+  flex: 0 0 32px;
+  height: 32px;
+  object-fit: contain;
+  padding: .25rem;
+  width: 32px;
+}
+
+.wx-platform-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+}
+
+.wx-platform-meta span {
+  border: 1px solid var(--wx-border);
+  border-radius: 999px;
+  color: #cbd5e1;
+  cursor: default;
+  font-size: .75rem;
+  padding: .2rem .5rem;
+}
+
+.wx-platform-note {
+  cursor: default;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+  overflow: hidden;
+  line-height: 1.45;
+}
+
+.wx-platform-link {
+  color: var(--wx-accent-2);
+  display: block;
+  font-size: .8125rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wx-platform-link:hover { color: #bae6fd; }
+
+.wx-platform-card-foot {
+  align-items: flex-end;
+  display: flex;
+  gap: .75rem;
+  justify-content: space-between;
+  margin-top: auto !important;
+}
+
+.wx-platform-automation {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: row;
+  gap: 7px;
+  margin-left: auto;
+  opacity: .6;
+  position: relative;
+  text-align: right;
+  transform: scale(.7) translate(27px, 19px);
+}
+
+.wx-platform-battery {
+  background: #1a2432;
+  border: 1px solid #3a4a60;
+  border-radius: 5px;
+  box-sizing: border-box;
+  height: 16px;
+  overflow: hidden;
+  padding: 2px;
+  position: relative;
+  width: 64px;
+}
+
+.wx-platform-battery::after {
+  background: #3a4a60;
+  border-radius: 0 2px 2px 0;
+  content: '';
+  height: 6px;
+  position: absolute;
+  right: -4px;
+  top: 4px;
+  width: 4px;
+}
+
+.wx-platform-battery-fill {
+  background: var(--wx-accent);
+  border-radius: 2px;
+  display: block;
+  height: 100%;
+  max-width: 100%;
+  min-width: 3px;
+  transition: width .25s ease;
+}
+
+.wx-platform-automation-percent {
+  color: #cbd5e1;
+  font-size: .75rem;
+  line-height: 1.1;
+}
+
+.wx-platform-automation.is-partial .wx-platform-battery-fill { background: #fcd34d; }
+.wx-platform-automation.is-manual .wx-platform-battery-fill { background: #fb7185; }
+.wx-platform-automation.is-high .wx-platform-automation-percent { color: var(--wx-accent); }
+.wx-platform-automation.is-partial .wx-platform-automation-percent { color: #fcd34d; }
+.wx-platform-automation.is-manual .wx-platform-automation-percent { color: #fb7185; }
+
+.wx-platforms-contribute {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.wx-platform-contribute-link {
+  color: var(--wx-accent-2);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color .15s ease;
+}
+
+.wx-platform-contribute-link:hover {
+  color: #7dd3fc;
+}
+
 .wx-nav-desktop {
   display: none;
   justify-self: center;
@@ -925,6 +1122,10 @@ html, body {
 .wx-badge.ok { border-color: rgba(110,231,183,.4); color: #6ee7b7; }
 .wx-badge.warn { border-color: rgba(251,191,36,.4); color: #fbbf24; }
 .wx-badge.bad { border-color: rgba(248,113,113,.4); color: #f87171; }
+
+span.wx-badge.ok {
+    margin-right: 6px;
+}
 
 .wx-nav a.active {
   color: #fff;

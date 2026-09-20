@@ -49,7 +49,7 @@
       }
     };
   </script>
-  <link rel="stylesheet" href="/hub/styles.css?v=0.1.66" />
+  <link rel="stylesheet" href="/hub/styles.css?v=0.1.75" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta20/dist/css/tabler-flags.min.css" />
   <style>
     /* Critical: prevent nav FOUC left of language switcher before styles.css */
@@ -120,6 +120,7 @@
         <nav class="wx-nav wx-nav-desktop" aria-label="Main">
           <a href="/#/catalog" :class="{active: route.name==='catalog'}" @click.prevent="goHome()">{{ t('nav_feed') }}</a>
           <a href="/#/mine" :class="{active: route.name==='mine'}" @click.prevent="navigate('mine')">{{ t('nav_mine') }}</a>
+          <a href="/#/platforms" :class="{active: route.name==='platforms'}" @click.prevent="navigate('platforms')">{{ t('nav_platforms') }}</a>
         </nav>
         <div class="wx-header-actions">
           <button v-if="pwaCanInstall" type="button" class="wx-btn wx-btn-ghost wx-pwa-install text-sm !py-1 !px-2" @click="installPwa">{{ t('pwa_install') }}</button>
@@ -222,6 +223,7 @@
       <nav class="wx-nav wx-nav-mobile" aria-label="Main">
         <a href="/#/catalog" :class="{active: route.name==='catalog'}" @click.prevent="goHome()">{{ t('nav_feed') }}</a>
         <a href="/#/mine" :class="{active: route.name==='mine'}" @click.prevent="navigate('mine')">{{ t('nav_mine') }}</a>
+        <a href="/#/platforms" :class="{active: route.name==='platforms'}" @click.prevent="navigate('platforms')">{{ t('nav_platforms') }}</a>
       </nav>
     </header>
 
@@ -1521,6 +1523,123 @@
         </div>
       </section>
 
+      <!-- MCP PLATFORMS -->
+      <section v-else-if="route.name==='platforms'" class="wx-platforms">
+        <div class="flex flex-wrap items-end justify-between gap-3 mb-6">
+          <div>
+            <h1 class="text-3xl font-semibold wx-hero-title">{{ t('platforms_title') }}</h1>
+            <p class="wx-muted mt-2">{{ t('platforms_sub') }}</p>
+          </div>
+          <div class="wx-platforms-count">{{ platformsFiltered.length }} / {{ platforms.length }}</div>
+        </div>
+
+        <div class="wx-card wx-platforms-filters p-4 mb-6">
+          <label class="wx-platforms-search">
+            <span class="sr-only">{{ t('platforms_search') }}</span>
+            <input v-model="platformQuery" type="search" class="wx-input" :placeholder="t('platforms_search')" />
+          </label>
+          <div class="wx-platforms-selects">
+            <label>
+              <span class="wx-platforms-label">{{ t('platforms_filter_status') }}</span>
+              <select v-model="platformStatus" class="wx-input">
+                <option value="all">{{ t('platforms_all') }}</option>
+                <option v-for="status in platformStatuses" :key="status" :value="status">{{ platformStatusLabel(status) }}</option>
+              </select>
+            </label>
+            <label>
+              <span class="wx-platforms-label">{{ t('platforms_filter_tier') }}</span>
+              <select v-model="platformTier" class="wx-input">
+                <option value="all">{{ t('platforms_all') }}</option>
+                <option v-for="tier in platformTiers" :key="tier" :value="tier">{{ platformTierLabel(tier) }}</option>
+              </select>
+            </label>
+            <label>
+              <span class="wx-platforms-label">{{ t('platforms_filter_sort') }}</span>
+              <select v-model="platformSort" class="wx-input">
+                <option value="catalog">{{ t('platforms_sort_catalog') }}</option>
+                <option value="automation_desc">{{ t('platforms_sort_automation_desc') }}</option>
+                <option value="automation_asc">{{ t('platforms_sort_automation_asc') }}</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div class="wx-card wx-platforms-contribute p-5 mb-6">
+          <div>
+            <h2 class="text-lg font-semibold">{{ t('platforms_contribute_title') }}</h2>
+            <p class="wx-muted text-sm mt-1">{{ t('platforms_contribute_body') }}</p>
+          </div>
+          <a
+            class="wx-btn wx-btn-primary shrink-0"
+            href="https://github.com/facetoplace/Workix/issues/new?template=platform-request.yml"
+            target="_blank"
+            rel="noopener"
+          >{{ t('platforms_contribute_cta') }}</a>
+          <a
+            class="wx-platform-contribute-link shrink-0"
+            href="https://github.com/facetoplace/Workix/edit/main/mcp/platforms.json"
+            target="_blank"
+            rel="noopener"
+          >{{ t('platforms_contribute_pr_cta') }}</a>
+          <a
+            class="wx-platform-contribute-link shrink-0"
+            href="https://github.com/facetoplace/Workix/edit/main/mcp/telegram-channels.example.json"
+            target="_blank"
+            rel="noopener"
+          >{{ t('platforms_contribute_telegram_cta') }}</a>
+        </div>
+
+        <div v-if="platformsError" class="wx-card p-5">
+          <p class="wx-muted">{{ platformsError }}</p>
+        </div>
+        <div v-else-if="!platformsFiltered.length" class="wx-card p-5">
+          <p class="wx-muted">{{ t('platforms_empty') }}</p>
+        </div>
+        <div v-else class="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <article v-for="platform in platformsFiltered" :key="platform.id" class="wx-card wx-platform-card p-5">
+            <div class="flex items-start justify-between gap-3">
+              <div class="wx-platform-heading min-w-0">
+                <img
+                  v-if="platformFavicon(platform)"
+                  class="wx-platform-favicon"
+                  :src="platformFavicon(platform)"
+                  :alt="''"
+                  width="32"
+                  height="32"
+                  loading="lazy"
+                  @error="$event.target.style.display='none'"
+                />
+                <div class="min-w-0">
+                <h2 class="text-lg font-semibold truncate">{{ platform.name || platform.id }}</h2>
+                <div class="wx-platform-id">{{ platform.id }}</div>
+                </div>
+              </div>
+              <span class="wx-badge wx-platform-status">{{ platformStatusLabel(platform.status) }}</span>
+            </div>
+            <div class="wx-platform-meta mt-4">
+              <span>{{ platformKindLabel(platform.kind) }}</span>
+              <span>{{ platform.region || 'global' }}</span>
+              <span>{{ platformAccessLabel(platform.access) }}</span>
+            </div>
+            <p v-if="platform.note" class="text-sm wx-muted mt-4 wx-platform-note">{{ platform.note }}</p>
+            <div class="wx-platform-card-foot mt-4">
+              <a v-if="platform.url" class="wx-platform-link" :href="platform.url" target="_blank" rel="noopener">{{ platform.url }}</a>
+              <div
+                class="wx-platform-automation"
+                :class="'is-' + platformAutomationLevel(platform).key"
+                :title="platformAutomationHint(platform)"
+                :aria-label="platformAutomationHint(platform)"
+              >
+                <div class="wx-platform-battery" role="img">
+                  <span class="wx-platform-battery-fill" :style="{ width: platformAutomationScore(platform) + '%' }"></span>
+                </div>
+                <strong class="wx-platform-automation-percent">{{ platformAutomationScore(platform) }}%</strong>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
       <!-- STARTUP FORM -->
       <section v-else-if="route.name==='startup-form'" class="max-w-2xl mx-auto w-full">
         <h1 class="text-2xl font-semibold mb-4">{{ route.slug ? t('edit_startup') : t('create_startup') }}</h1>
@@ -1932,13 +2051,13 @@
     >↑</button>
   </div>
 
-  <script data-cfasync="false" src="/hub/i18n.js?v=0.1.62"></script>
+  <script data-cfasync="false" src="/hub/i18n.js?v=0.1.67"></script>
   <script data-cfasync="false" src="/hub/stories.js?v=0.1.4"></script>
   <script data-cfasync="false" src="/hub/markdown.js?v=0.1.1"></script>
   <script data-cfasync="false" src="/hub/cv-pdf.js?v=0.1.6"></script>
   <script data-cfasync="false" src="/hub/mock-db.js?v=0.1.17"></script>
   <script data-cfasync="false" src="/hub/auth.js?v=0.1.16"></script>
   <script data-cfasync="false" src="/hub/api.js?v=0.1.36"></script>
-  <script data-cfasync="false" src="/hub/app.js?v=1.2.54"></script>
+  <script data-cfasync="false" src="/hub/app.js?v=1.2.58"></script>
 </body>
 </html>

@@ -569,7 +569,7 @@
     'api', 'hub', 'new', 'legacy', 'agent', 'partners', 'cases',
     'order', 'performer', 'go', 'p', 'feed', 'rss', 'sitemap', 'robots',
     'llms', 'openapi', 'openapi-v1', 'img', 'vendor', 'css', 'js',
-    'assets', 'static', 'mcp', 'catalog', 'onboarding', 'mine', 'profile',
+    'assets', 'static', 'mcp', 'catalog', 'onboarding', 'mine', 'platforms', 'profile',
     'prefs', 'notifications', 'auth', 'support', 'role', 'apply', 'project', 'startup',
     'index', 'favicon', 'apple-touch-icon', 'site', 'manifest', 'sw',
     'health', 'admin', 'socket.io', 'well-known',
@@ -662,6 +662,7 @@
     if (h === 'onboarding') return { name: 'onboarding' };
     if (h === 'publish-agent') return { name: 'publish-agent' };
     if (h === 'mine') return { name: 'mine' };
+    if (h === 'platforms') return { name: 'platforms' };
     if (h === 'profile') return { name: 'profile' };
     if (h === 'prefs' || h === 'notifications') return { name: 'prefs' };
     if (h === 'auth') return { name: 'auth' };
@@ -808,7 +809,7 @@
       const feedFacets = reactive({ orders: [], projects: [], performers: [] });
       const facetsLoaded = reactive({ orders: false, projects: false, performers: false });
       const online = ref(0);
-      // Today's presence, split by client kind (API: /stats/online)
+      // Current-month presence, split by client kind (API: /stats/online)
       const onlineHumans = ref(0);
       const onlineAgents = ref(0);
       /** Older API builds return only `online` — fall back to showing it as people. */
@@ -821,6 +822,12 @@
         online.value = Number(x.online != null ? x.online : humans + agents) || 0;
       }
       const mineStartups = ref([]);
+      const platforms = ref([]);
+      const platformQuery = ref('');
+      const platformStatus = ref('all');
+      const platformTier = ref('all');
+      const platformSort = ref('catalog');
+      const platformsError = ref('');
       const currentStartup = ref(null);
       const currentRole = ref(null);
       const currentPerformer = ref(null);
@@ -1078,6 +1085,99 @@
 
       function t(key) {
         return WorkixI18n.t(locale.value, key);
+      }
+
+      const platformStatuses = computed(() => [...new Set(platforms.value.map((p) => p.status).filter(Boolean))].sort());
+      const platformTiers = computed(() => [...new Set(platforms.value.map((p) => p.tier).filter(Boolean))].sort());
+      const platformsFiltered = computed(() => {
+        const query = String(platformQuery.value || '').trim().toLowerCase();
+        const rows = platforms.value.filter((platform) => {
+          if (platformStatus.value !== 'all' && platform.status !== platformStatus.value) return false;
+          if (platformTier.value !== 'all' && platform.tier !== platformTier.value) return false;
+          if (!query) return true;
+          return [platform.id, platform.name, platform.kind, platform.region, platform.access, platform.note]
+            .filter(Boolean)
+            .join(' ')
+            .toLowerCase()
+            .includes(query);
+        });
+        if (platformSort.value === 'automation_desc') {
+          return rows.slice().sort((a, b) => platformAutomationScore(b) - platformAutomationScore(a));
+        }
+        if (platformSort.value === 'automation_asc') {
+          return rows.slice().sort((a, b) => platformAutomationScore(a) - platformAutomationScore(b));
+        }
+        return rows;
+      });
+
+      function humanizePlatformValue(value) {
+        return String(value || '')
+          .replace(/_/g, ' ')
+          .replace(/\b\w/g, (char) => char.toUpperCase());
+      }
+      function platformStatusLabel(status) {
+        const key = `platform_status_${String(status || '').toLowerCase()}`;
+        const translated = t(key);
+        return translated === key ? humanizePlatformValue(status) : translated;
+      }
+      function platformTierLabel(tier) {
+        const key = `platform_tier_${String(tier || '').toLowerCase()}`;
+        const translated = t(key);
+        return translated === key ? humanizePlatformValue(tier) : translated;
+      }
+      function platformKindLabel(kind) {
+        const key = `platform_kind_${String(kind || '').toLowerCase()}`;
+        const translated = t(key);
+        return translated === key ? humanizePlatformValue(kind) : translated;
+      }
+      function platformAccessLabel(access) {
+        return humanizePlatformValue(access);
+      }
+      function platformFavicon(platform) {
+        try {
+          const url = new URL(String(platform && platform.url || ''));
+          if (!/^https?:$/.test(url.protocol) || !url.hostname) return '';
+          return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(url.hostname)}&sz=128&default=404`;
+        } catch (_) {
+          return '';
+        }
+      }
+      function platformAutomationScore(platform) {
+        const p = platform || {};
+        const accessScores = {
+          'official_mcp_api': 96,
+          'official_api_mcp': 94,
+          'mcp+rss': 92,
+          'mcp': 90,
+          'official_api': 86,
+          'public_api': 84,
+          'official_api_cli': 78,
+          'rss': 78,
+          'public_http': 74,
+          'unofficial_api': 68,
+          'public_html': 62,
+          'html': 58,
+          'tdlib_user': 45,
+          'browser_session': 34,
+          'browser': 18,
+        };
+        let score = accessScores[p.access] || 40;
+        if (['discovery_only', 'watch_pending', 'watch_browser', 'watch_low'].includes(p.status)) score -= 25;
+        if (p.status === 'upstream_broken') score -= 25;
+        if (['needs_proxy', 'needs_python', 'optional_tdlib'].includes(p.status)) score -= 8;
+        if (['credentials', 'creds', 'token', 'key', 'oauth'].includes(p.status)) score -= 6;
+        if (p.apply === 'browser') score -= 5;
+        if (['api', 'external_api', 'external_mcp_api', 'external_api_or_mcp'].includes(p.apply)) score += 3;
+        return Math.max(0, Math.min(100, Math.round(score)));
+      }
+      function platformAutomationLevel(platform) {
+        const score = platformAutomationScore(platform);
+        if (score >= 75) return { key: 'high', label: t('platform_automation_high') };
+        if (score >= 45) return { key: 'partial', label: t('platform_automation_partial') };
+        return { key: 'manual', label: t('platform_automation_manual') };
+      }
+      function platformAutomationHint(platform) {
+        return `${t('platform_automation_hint')}: ${platformAutomationScore(platform)}%`;
       }
 
       const slogans = computed(() => [
@@ -2122,6 +2222,20 @@
         mineStartups.value = s.items || [];
       }
 
+      async function loadPlatforms() {
+        platformsError.value = '';
+        try {
+          const response = await fetch('/mcp/platforms.json', { headers: { Accept: 'application/json' } });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const payload = await response.json();
+          platforms.value = Array.isArray(payload) ? payload : (payload.platforms || []);
+        } catch (error) {
+          platforms.value = [];
+          platformsError.value = t('platforms_load_error');
+          console.error('[platforms]', error);
+        }
+      }
+
       async function openStartup(slug) {
         routeError.value = null;
         currentStartup.value = null;
@@ -2520,6 +2634,7 @@
           const r = route.value;
           if (r.name === 'catalog') await loadCatalog();
           if (r.name === 'mine') await loadMine();
+          if (r.name === 'platforms') await loadPlatforms();
           if (r.name === 'startup') await openStartup(r.slug);
           if (r.name === 'go') await openGo(r.startupSlug, r.roleSlug);
           if (r.name === 'role') await openRole(r.id);
@@ -3575,7 +3690,8 @@
 
       return {
         locale, route, loading, toast, me, startups, roles, orders, performers, boardTags,
-        online, onlineHumans, onlineAgents, mineStartups,
+        online, onlineHumans, onlineAgents, mineStartups, platforms, platformQuery, platformStatus, platformTier, platformSort,
+        platformStatuses, platformTiers, platformsFiltered, platformsError,
         currentStartup, currentRole, currentPerformer, currentOrder, routeError, carousel, profile, prefs, q, onceKey, keyDraft,
         performerProjects, performerOrders, performerRoles,
         keyRotating, displayedAgentKey,
@@ -3604,6 +3720,8 @@
         publisherWallet, publisherWalletList, fromNow,
         rolesForStartup, goLegacyMvse, refreshMe, loadMine,
         setFeed, kindLabel, projectKind, formatBudget, budgetView, formatMoney, installPwa, refreshEmojis,
+        platformStatusLabel, platformTierLabel, platformKindLabel, platformAccessLabel, platformFavicon,
+        platformAutomationScore, platformAutomationLevel, platformAutomationHint,
         displayCurrency, setDisplayCurrency,
         toggleNotifyPanel, formatNotifyTime, openNotification, markAllNotificationsRead,
       };

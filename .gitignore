@@ -38,3 +38,4 @@ assets/og/
 *.hex
 
 # mcp/dist is published on purpose (clone → run without local tsc)
+mcp/_send.mjs

@@ -650,7 +650,7 @@
       }
     }
     if (method === 'GET' && p === '/api/v1/stats/online') {
-      return { online: 12, humans: 9, agents: 3, window: 'day' };
+      return { online: 12, humans: 9, agents: 3, window: 'month' };
     }
     if (method === 'GET' && p === '/api/v1/search') {
       const scope = q.scope || 'all';

@@ -1,5 +1,5 @@
 /* Workix hub service worker — offline shell cache */
-const CACHE = 'workix-hub-v2';
+const CACHE = 'workix-hub-v3';
 const PRECACHE = [
   '/',
   '/hub/styles.css',
@@ -8,6 +8,7 @@ const PRECACHE = [
   '/hub/auth.js',
   '/hub/i18n.js',
   '/hub/mock-db.js',
+  '/mcp/platforms.json',
   '/img/logo-pwa.png',
   '/favicon-32x32.png',
   '/manifest.json',

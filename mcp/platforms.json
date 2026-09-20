@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-25",
+  "updated": "2026-09-07",
   "platforms": [
     {
       "id": "startupium",
@@ -973,6 +973,26 @@
         "https://github.com/solfaia/socialaia-agent-connector"
       ],
       "note": "Human-agent collaboration network with delegated tasks, direct chat, ratings and public reputation. Use SocialAIA's connector/API; not a conventional vacancy board."
+    },
+    {
+      "id": "getpostingboard",
+      "name": "Get Posting Board",
+      "tier": "v2",
+      "kind": "agent_social",
+      "region": "global",
+      "audience": "any",
+      "access": "official_mcp_api",
+      "apply": "external_mcp_api",
+      "status": "discovery_only",
+      "integration": "external_mcp_api",
+      "surfaces": ["posts", "replies", "search", "agent_profiles", "votes", "pins"],
+      "url": "https://getpostingboard.dev",
+      "refs": [
+        "https://getpostingboard.dev/mcp",
+        "https://getpostingboard.dev/skill.md",
+        "https://getpostingboard.dev/b/guide"
+      ],
+      "note": "Agent-first public bulletin board with optional Streamable HTTP MCP at /mcp (OAuth 2.1 + PKCE/DCR). Agents can discover people, discussions and public findings, then post/reply/vote/pin through the external MCP. Not a structured vacancy feed; anonymous /b is a separate no-account route."
     },
     {
       "id": "0xwork",

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readFileSync } from "node:fs";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
@@ -9,6 +10,7 @@ import { runDraftProposal } from "./tools/draft.js";
 import { runOutreachList, runOutreachLog } from "./tools/outreach.js";
 import { runCheckpointGet, runCheckpointSet } from "./tools/checkpoint.js";
 import { runGetJob } from "./tools/get_job.js";
+import { runFeedSearch } from "./tools/feed.js";
 import { runSearch } from "./tools/search.js";
 import { runCollect, runDbSearch } from "./tools/collect.js";
 import { runStartupJobsRead } from "./tools/startup_jobs.js";
@@ -106,6 +108,24 @@ import {
 
 loadEnv();
 
+/**
+ * Real package version, read at runtime so MCP clients see the version they
+ * actually installed. Resolves to mcp/package.json both from dist/index.js
+ * (built) and src/index.ts (tsx dev), since both live one level below mcp/.
+ */
+function readPackageVersion(): string {
+  try {
+    const pkg = JSON.parse(
+      readFileSync(new URL("../package.json", import.meta.url), "utf8"),
+    ) as { version?: string };
+    return pkg.version || "0.0.0";
+  } catch {
+    return "0.0.0";
+  }
+}
+
+const MCP_VERSION = readPackageVersion();
+
 function textResult(data: unknown, opts?: { withFieldGuide?: boolean }) {
   const body = typeof data === "string" ? data : JSON.stringify(data, null, 2);
   const text = opts?.withFieldGuide ? `${HUB_FIELD_GUIDE}\n\n---\n${body}` : body;
@@ -120,7 +140,7 @@ function textResult(data: unknown, opts?: { withFieldGuide?: boolean }) {
 }
 
 const server = new McpServer(
-  { name: "workix", version: "1.0.0" },
+  { name: "workix", version: MCP_VERSION },
   {
     instructions: [
       "Workix MCP connects an AI agent to the Workix hub (https://workix.co) and to local freelance/job sources.",
@@ -234,6 +254,25 @@ server.tool(
     include_resumes: z.boolean().optional().describe("Keep candidate résumés (default: dropped)"),
   },
   async (args) => textResult(await runDbSearch(args)),
+);
+
+server.tool(
+  "workix_feed_search",
+  "Hosted aggregated feed search over the Workix backend (GET /api/v1/feed). Server-side aggregation — no local adapters, credentials, or network fan-out on the client; results are pre-collected and deduped. Public/read-only. Best for a fast, install-free scan of aggregated boards (freelance.ru, fl.ru, weblancer, kwork, freelancer, upwork, and the RSS sources). For credentialed live sources use workix_digest/workix_search — those stay local.",
+  {
+    q: z.string().optional().describe("Full-text query; empty returns the freshest items"),
+    source: z
+      .array(z.string())
+      .optional()
+      .describe('Restrict to platforms, e.g. ["freelance_ru","fl_ru","kwork"]'),
+    since: z
+      .string()
+      .optional()
+      .describe('Cutoff: "72h" / "7d" or an ISO date'),
+    limit: z.number().min(1).max(50).optional(),
+    offset: z.number().min(0).optional(),
+  },
+  async (args) => textResult(await runFeedSearch(args)),
 );
 
 server.tool(

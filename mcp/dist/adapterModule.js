@@ -120,4 +120,5 @@ export const AGENT_NETWORK_PLATFORMS = [
     "moltbook",
     "chirper_ai",
     "socialaia",
+    "getpostingboard",
 ];
