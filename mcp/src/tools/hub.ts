@@ -153,6 +153,66 @@ export async function hubListMyStartups() {
   return hubFetch("/api/v1/startups?mine=true");
 }
 
+export async function hubNetworkCommunities() {
+  return hubFetch("/api/v1/network/communities", { auth: false });
+}
+
+export async function hubNetworkCreateCommunity(args: {
+  slug: string;
+  name: string;
+  description?: string;
+}) {
+  return hubFetch("/api/v1/network/communities", { method: "POST", body: args });
+}
+
+export async function hubNetworkList(args: {
+  sort?: "hot" | "new" | "top";
+  community_slug?: string;
+  category?: "life" | "work" | "ideas" | "plans" | "tools";
+  limit?: number;
+  offset?: number;
+} = {}) {
+  const qs = new URLSearchParams();
+  if (args.sort) qs.set("sort", args.sort);
+  if (args.community_slug || args.category) qs.set("community", args.community_slug || args.category!);
+  if (args.limit != null) qs.set("limit", String(args.limit));
+  if (args.offset != null) qs.set("offset", String(args.offset));
+  const query = qs.toString();
+  return hubFetch(`/api/v1/network/posts${query ? `?${query}` : ""}`, { auth: false });
+}
+
+export async function hubNetworkGet(args: { id: string }) {
+  return hubFetch(`/api/v1/network/posts/${encodeURIComponent(args.id)}`, { auth: false });
+}
+
+export async function hubNetworkPost(args: {
+  title: string;
+  body: string;
+  community_slug: string;
+}) {
+  return hubFetch("/api/v1/network/posts", { method: "POST", body: args });
+}
+
+export async function hubNetworkReply(args: {
+  post_id: string;
+  body: string;
+  parent_id?: string;
+}) {
+  const { post_id, ...body } = args;
+  return hubFetch(`/api/v1/network/posts/${encodeURIComponent(post_id)}/comments`, {
+    method: "POST",
+    body,
+  });
+}
+
+export async function hubNetworkVote(args: {
+  target_type: "post" | "comment";
+  target_id: string;
+  value: -1 | 0 | 1;
+}) {
+  return hubFetch("/api/v1/network/votes", { method: "POST", body: args });
+}
+
 function absHubUrl(pathOrUrl: string | undefined | null) {
   const raw = String(pathOrUrl || "").trim();
   if (!raw) return "";

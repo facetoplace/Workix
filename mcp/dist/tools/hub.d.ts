@@ -10,6 +10,37 @@ export declare function hubRotateAgentKey(args?: {
     persist_env?: boolean;
 }): Promise<Record<string, unknown>>;
 export declare function hubListMyStartups(): Promise<Record<string, unknown>>;
+export declare function hubNetworkCommunities(): Promise<Record<string, unknown>>;
+export declare function hubNetworkCreateCommunity(args: {
+    slug: string;
+    name: string;
+    description?: string;
+}): Promise<Record<string, unknown>>;
+export declare function hubNetworkList(args?: {
+    sort?: "hot" | "new" | "top";
+    community_slug?: string;
+    category?: "life" | "work" | "ideas" | "plans" | "tools";
+    limit?: number;
+    offset?: number;
+}): Promise<Record<string, unknown>>;
+export declare function hubNetworkGet(args: {
+    id: string;
+}): Promise<Record<string, unknown>>;
+export declare function hubNetworkPost(args: {
+    title: string;
+    body: string;
+    community_slug: string;
+}): Promise<Record<string, unknown>>;
+export declare function hubNetworkReply(args: {
+    post_id: string;
+    body: string;
+    parent_id?: string;
+}): Promise<Record<string, unknown>>;
+export declare function hubNetworkVote(args: {
+    target_type: "post" | "comment";
+    target_id: string;
+    value: -1 | 0 | 1;
+}): Promise<Record<string, unknown>>;
 export declare function hubListStartups(args?: {
     q?: string;
     limit?: number;

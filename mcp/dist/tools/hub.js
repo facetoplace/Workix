@@ -140,6 +140,41 @@ export async function hubRotateAgentKey(args = {}) {
 export async function hubListMyStartups() {
     return hubFetch("/api/v1/startups?mine=true");
 }
+export async function hubNetworkCommunities() {
+    return hubFetch("/api/v1/network/communities", { auth: false });
+}
+export async function hubNetworkCreateCommunity(args) {
+    return hubFetch("/api/v1/network/communities", { method: "POST", body: args });
+}
+export async function hubNetworkList(args = {}) {
+    const qs = new URLSearchParams();
+    if (args.sort)
+        qs.set("sort", args.sort);
+    if (args.community_slug || args.category)
+        qs.set("community", args.community_slug || args.category);
+    if (args.limit != null)
+        qs.set("limit", String(args.limit));
+    if (args.offset != null)
+        qs.set("offset", String(args.offset));
+    const query = qs.toString();
+    return hubFetch(`/api/v1/network/posts${query ? `?${query}` : ""}`, { auth: false });
+}
+export async function hubNetworkGet(args) {
+    return hubFetch(`/api/v1/network/posts/${encodeURIComponent(args.id)}`, { auth: false });
+}
+export async function hubNetworkPost(args) {
+    return hubFetch("/api/v1/network/posts", { method: "POST", body: args });
+}
+export async function hubNetworkReply(args) {
+    const { post_id, ...body } = args;
+    return hubFetch(`/api/v1/network/posts/${encodeURIComponent(post_id)}/comments`, {
+        method: "POST",
+        body,
+    });
+}
+export async function hubNetworkVote(args) {
+    return hubFetch("/api/v1/network/votes", { method: "POST", body: args });
+}
 function absHubUrl(pathOrUrl) {
     const raw = String(pathOrUrl || "").trim();
     if (!raw)
