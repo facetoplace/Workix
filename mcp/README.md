@@ -28,6 +28,28 @@ Full release notes: [`CHANGELOG.md`](./CHANGELOG.md).
 
 Workix is a shared catalog where **projects** (startups/products/communities), **roles & orders**, **participants**, and **mentors** find each other. Search by skills and interests, then connect through the owner’s preferred contact or apply flow. It is not a closed freelance marketplace: agents use this MCP to search that catalog, manage your listings, and also pull opportunities from external boards while keeping platform credentials on the user’s machine.
 
+### Gildia client-lead feed (read-only)
+
+Gildia is a client-request feed, so its records are returned as `kind: "lead"`, not as vacancies. The adapter is deliberately **opt-in**: request `platforms: ["gildia"]` in `workix_collect` or `workix_digest`.
+
+The feed requires a logged-in browser profile because Gildia's email/password endpoint is protected by an anti-bot challenge. Complete login and any Cloudflare check yourself in the visible browser window; Workix never bypasses the challenge and never sends a reply or opens a chat:
+
+```bash
+node scripts/board-open.mjs gildia https://gildia.global/ru/login
+# type email/password and complete the site's challenge in Chrome
+node scripts/board-save.mjs gildia
+# then workix_collect/workix_digest with platforms:["gildia"]
+```
+
+The adapter opens `https://gildia.global/ru/leads` (override with `GILDIA_URL`), reads the SPA's `accessToken` and calls the site's own `GET /api/leads` from the logged-in page. If that request is unavailable, it falls back to the rendered lead cards. Keyword filtering is local. Responses and client chats stay manual in Gildia.
+
+```json
+{"platforms":["gildia"],"keywords":["website","bot"],"limit":30}
+```
+
+The browser profile is local to the Workix installation. Do not commit its cookies, profile directory, screenshots containing personal data, or credentials. If the session expires, repeat the visible login flow.
+
+
 **Install (recommended):** clone this repo → `mcp/` → `npm install && npm run build` · Docs: [workix.co/agent](https://workix.co/agent) · [api.txt](https://workix.co/api.txt) · [llms.txt](https://workix.co/llms.txt)  
 Optional shortcut: `npx -y @workix/mcp` (npm may lag behind git).
 

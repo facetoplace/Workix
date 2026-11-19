@@ -2,6 +2,20 @@
   "updated": "2026-09-07",
   "platforms": [
     {
+      "id": "gildia",
+      "name": "Gildia",
+      "tier": "v2",
+      "kind": "client_leads",
+      "region": "global",
+      "audience": "any",
+      "access": "browser_session",
+      "apply": "browser",
+      "status": "include_leads",
+      "url": "https://gildia.global/ru/leads",
+      "note": "Read-only lead ingest through the logged-in `gildia` browser profile. The adapter calls Gildia's own GET /api/leads with the SPA token and falls back to rendered cards; response/chat stays manual. Log in once: scripts/board-open.mjs gildia https://gildia.global/ru/login + board-save.mjs gildia. GILDIA_URL overrides the feed page.",
+      "refs": ["https://gildia.global/ru/leads", "https://gildia.global/ru/login"]
+    },
+    {
       "id": "startupium",
       "name": "Startupium",
       "tier": "v2",

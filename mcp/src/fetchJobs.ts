@@ -392,6 +392,17 @@ export async function refreshJobs(opts?: {
     note("avito", r);
     if (r.error && !softError(r.error)) errors.push(r.error);
   }
+  // Leads (kind=lead), not vacancies: Gildia client requests behind a login.
+  // Opt-in only: platforms:["gildia"] — never on a bare include_jobs/services.
+  if (platforms?.includes("gildia")) {
+    const { fetchGildiaJobs } = await import("./adapters/gildia.js");
+    const r = await cached("gildia", { keywords: opts?.keywords }, force, () =>
+      fetchGildiaJobs({ keywords: opts?.keywords }),
+    );
+    collected.push(...r.jobs);
+    note("gildia", r);
+    if (r.error && !softError(r.error)) errors.push(r.error);
+  }
 
   const modulesWanted: string[] = [];
   const wantKwork =
