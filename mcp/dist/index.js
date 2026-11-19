@@ -156,7 +156,7 @@ server.tool("workix_feed_search", "Hosted aggregated feed search over the Workix
     limit: z.number().min(1).max(50).optional(),
     offset: z.number().min(0).optional(),
 }, async (args) => textResult(await runFeedSearch(args)));
-server.tool("workix_get_job", "Full detail of a job / gig / lead card by id or URL (from workix_digest / workix_search). Returns title, description, budget, link and stored raw fields. NOTE: this is a Workix job/lead card, not a Workix Hub order — for a Hub order by sid use workix_get_hub_order. For watch capture (Fiverr etc.): url+platform+title stores a snapshot for draft/browser apply.", {
+server.tool("workix_get_job", "Get the full detail of an external-board job, gig or lead card from workix_digest/workix_search by its Workix job id or posting URL. Returns title, description, budget, link and stored raw fields. Use this for a board posting or captured watch card; do not use it for a Workix Hub order sid — use workix_get_hub_order for Hub orders.", {
     id: z.string().optional(),
     url: z.string().optional(),
     refresh: z.boolean().optional(),
@@ -360,8 +360,8 @@ server.tool("workix_dstore_get", "Full dStore card JSON by sid (get_app). Poll u
     url: z.string().optional().describe("https://dstore.one/{sid} or …/{sid}.json"),
 }, async (args) => textResult(await runDstoreGet(args)));
 server.tool("workix_dstore_list", "Public dStore collection JSON by list_ref (get_list).", { list_ref: z.string().min(1).describe("Public list id/code from share URL") }, async (args) => textResult(await runDstoreList(args)));
-server.tool("workix_dstore_quota", "dStore agent plan + remaining rate limits (quota_status). Optional DSTORE_API_KEY raises limits.", {}, async () => textResult(await runDstoreQuota()));
-server.tool("workix_dstore_info", "Tell users: dStore is inside Workix MCP — publish ready PWA/website with workix_dstore_publish. Also search/similar/quota mapping.", {}, async () => textResult(runDstoreInfo()));
+server.tool("workix_dstore_quota", "Read the live dStore agent plan, usage and remaining rate limits (quota_status). This does not search or publish apps. For what dStore is and how to use its tools, use workix_dstore_info. Optional DSTORE_API_KEY raises limits.", {}, async () => textResult(await runDstoreQuota()));
+server.tool("workix_dstore_info", "Explain dStore as the Workix product/PWA catalog and map its tools: publish, get, search, similar and list. This is static guidance, not the live plan/quota or current rate limits; use workix_dstore_quota for those.", {}, async () => textResult(runDstoreInfo()));
 server.tool("workix_upwork_auth_url", "URL OAuth Upwork + шаги. Нужны UPWORK_CLIENT_ID/SECRET.", {}, async () => textResult(await runUpworkAuthUrl()));
 server.tool("workix_upwork_exchange_code", "Обмен authorization code на access/refresh; пишет mcp/data/upwork-tokens.json.", { code: z.string() }, async (args) => textResult(await runUpworkExchangeCode(args)));
 server.tool("workix_prepare_browser_apply", "open_url + текст + checklist для cursor-ide-browser. НЕ отправляет сам.", {
@@ -476,7 +476,7 @@ server.tool("workix_hub_rotate_key", "Rotate hub agent API key (POST /me/agent-k
         .optional()
         .describe("Write WORKIX_AGENT_KEY to mcp/.env (default true). Still updates process.env."),
 }, async (args) => textResult(await hubRotateAgentKey(args)));
-server.tool("workix_list_my_startups", "List startups owned by the authenticated hub user.", {}, async () => textResult(await hubListMyStartups()));
+server.tool("workix_list_my_startups", "List startups/projects owned by the authenticated Hub user (read-only discovery). It does not edit anything. Use the returned slug with workix_update_startup to change one project.", {}, async () => textResult(await hubListMyStartups()));
 server.tool("workix_network_communities", "List public Workix idea-and-advice forum communities, including built-in and agent-created subtopics. No agent key is needed to read.", {}, async () => textResult(await hubNetworkCommunities()));
 server.tool("workix_network_create_community", "Create a public networking community on behalf of the user. Requires WORKIX_AGENT_KEY and the user's explicit authorization. Slug must be unique, 1–40 lowercase Latin letters, numbers, or hyphens. Each agent may create up to 20 communities.", {
     slug: z.string().min(1).max(40).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
@@ -551,7 +551,7 @@ server.tool("workix_create_startup", `Create a project card (products, startups,
     stage: zProjectStage.optional().describe("Product stage: idea | preseed | seed | mvp | growth | …"),
     status: zStatus.optional(),
 }, async (args) => textResult(await hubCreateStartup(args), { withFieldGuide: true }));
-server.tool("workix_update_startup", `Update own project by current slug. Pass newSlug to rename the public URL when free (e.g. neron-ai → neron). ${HUB_FIELD_GUIDE}`, {
+server.tool("workix_update_startup", `Update one existing startup/project owned by the current Hub user. Requires its current slug; pass newSlug to rename the public URL when free (e.g. neron-ai → neron). This edits a known project and does not list owned startups — use workix_list_my_startups first when the slug is unknown. ${HUB_FIELD_GUIDE}`, {
     slug: zSlug.describe("Current project slug (lookup key)"),
     newSlug: zSlug
         .optional()

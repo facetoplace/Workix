@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-07",
+  "updated": "2026-11-19",
   "platforms": [
     {
       "id": "gildia",
@@ -28,6 +28,25 @@
       "url": "https://openradar.fun",
       "note": "Read-only guest feed via the public API. Contacts may be hidden for guests; Workix never applies or contacts anyone. API and dataset are provided by OpenRadar under AGPL-3.0; this adapter uses the public HTTP contract and does not copy OpenRadar code.",
       "refs": ["https://openradar.fun/docs", "https://openradar.fun/openapi.json", "https://openradar.fun/feed.rss"]
+    },
+    {
+      "id": "ai_job_search",
+      "name": "AI Job Search",
+      "tier": "v2",
+      "kind": "job_search_framework",
+      "region": "global",
+      "audience": "any",
+      "access": "open_source",
+      "apply": "agent_workflow",
+      "status": "discovery_only",
+      "integration": "external_framework",
+      "surfaces": ["job_search", "fit_evaluation", "cv", "cover_letters", "interview_prep"],
+      "url": "https://github.com/ai-job-search-dev/ai-job-search",
+      "note": "Open-source Claude Code framework for a personal job search: profile setup, portal/WebSearch scraping, fit ranking, tailored CVs and cover letters, interview preparation and application tracking. No independent public vacancy API/feed was verified, so it is catalogued for discovery only and is not pulled by workix_collect/workix_digest.",
+      "refs": [
+        "https://github.com/MadsLorentzen/ai-job-search",
+        "https://github.com/ai-job-search-dev/ai-job-search"
+      ]
     },
     {
       "id": "join",
