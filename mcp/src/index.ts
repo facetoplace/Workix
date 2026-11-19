@@ -284,7 +284,7 @@ server.tool(
 
 server.tool(
   "workix_get_job",
-  "Full detail of a job / gig / lead card by id or URL (from workix_digest / workix_search). Returns title, description, budget, link and stored raw fields. NOTE: this is a Workix job/lead card, not a Workix Hub order — for a Hub order by sid use workix_get_hub_order. For watch capture (Fiverr etc.): url+platform+title stores a snapshot for draft/browser apply.",
+  "Get the full detail of an external-board job, gig or lead card from workix_digest/workix_search by its Workix job id or posting URL. Returns title, description, budget, link and stored raw fields. Use this for a board posting or captured watch card; do not use it for a Workix Hub order sid — use workix_get_hub_order for Hub orders.",
   {
     id: z.string().optional(),
     url: z.string().optional(),
@@ -634,14 +634,14 @@ server.tool(
 
 server.tool(
   "workix_dstore_quota",
-  "dStore agent plan + remaining rate limits (quota_status). Optional DSTORE_API_KEY raises limits.",
+  "Read the live dStore agent plan, usage and remaining rate limits (quota_status). This does not search or publish apps. For what dStore is and how to use its tools, use workix_dstore_info. Optional DSTORE_API_KEY raises limits.",
   {},
   async () => textResult(await runDstoreQuota()),
 );
 
 server.tool(
   "workix_dstore_info",
-  "Tell users: dStore is inside Workix MCP — publish ready PWA/website with workix_dstore_publish. Also search/similar/quota mapping.",
+  "Explain dStore as the Workix product/PWA catalog and map its tools: publish, get, search, similar and list. This is static guidance, not the live plan/quota or current rate limits; use workix_dstore_quota for those.",
   {},
   async () => textResult(runDstoreInfo()),
 );
@@ -903,7 +903,7 @@ server.tool(
 
 server.tool(
   "workix_list_my_startups",
-  "List startups owned by the authenticated hub user.",
+  "List startups/projects owned by the authenticated Hub user (read-only discovery). It does not edit anything. Use the returned slug with workix_update_startup to change one project.",
   {},
   async () => textResult(await hubListMyStartups()),
 );
@@ -1070,7 +1070,7 @@ server.tool(
 
 server.tool(
   "workix_update_startup",
-  `Update own project by current slug. Pass newSlug to rename the public URL when free (e.g. neron-ai → neron). ${HUB_FIELD_GUIDE}`,
+  `Update one existing startup/project owned by the current Hub user. Requires its current slug; pass newSlug to rename the public URL when free (e.g. neron-ai → neron). This edits a known project and does not list owned startups — use workix_list_my_startups first when the slug is unknown. ${HUB_FIELD_GUIDE}`,
   {
     slug: zSlug.describe("Current project slug (lookup key)"),
     newSlug: zSlug
