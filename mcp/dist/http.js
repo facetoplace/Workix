@@ -32,13 +32,21 @@ export async function fetchText(url, opts) {
         error: "no attempt",
     };
     if (opts?.proxy === false) {
-        return once(url, { headers: opts?.headers, timeoutMs, cookieJar: opts?.cookieJar });
+        return once(url, {
+            headers: opts?.headers,
+            timeoutMs,
+            method: opts?.method,
+            body: opts?.body,
+            cookieJar: opts?.cookieJar,
+        });
     }
     if (typeof opts?.proxy === "string") {
         return once(url, {
             headers: opts.headers,
             proxy: opts.proxy,
             timeoutMs,
+            method: opts.method,
+            body: opts.body,
             cookieJar: opts.cookieJar,
         });
     }
@@ -60,6 +68,8 @@ export async function fetchText(url, opts) {
             headers: opts?.headers,
             proxy: useProxy,
             timeoutMs,
+            method: opts?.method,
+            body: opts?.body,
             cookieJar: opts?.cookieJar,
         });
         if (last.ok)
@@ -88,12 +98,13 @@ function once(url, opts, redirectCount = 0) {
                 ? cookieHeaderFor(opts.cookieJar, url)
                 : undefined;
             const req = lib.request(url, {
-                method: "GET",
+                method: opts.method || "GET",
                 agent,
                 headers: {
                     "User-Agent": DEFAULT_UA,
                     Accept: "*/*",
                     "Accept-Language": "ru-RU,ru;q=0.9,en;q=0.8",
+                    ...(opts.body ? { "Content-Length": Buffer.byteLength(opts.body) } : {}),
                     ...(jarHeader ? { Cookie: jarHeader } : {}),
                     ...(opts.headers || {}),
                 },
@@ -182,7 +193,7 @@ function once(url, opts, redirectCount = 0) {
                     error: e.message,
                 });
             });
-            req.end();
+            req.end(opts.body);
         }
         catch (e) {
             resolve({
