@@ -14,6 +14,8 @@ export declare function refreshJobs(opts?: {
     freelancer_query?: string;
     /** Passed to adapters that support text filter (e.g. Dream Offer). */
     keywords?: string[];
+    /** Public Join.com company domains to pull vacancies from (each exact domain, e.g. "dfrost"). */
+    join_companies?: string[];
     /** Skip the shared cache and re-read every source from the network. */
     force_refresh?: boolean;
     /** Don't fold Telegram in — collect sweeps TG separately (see workix_collect). */

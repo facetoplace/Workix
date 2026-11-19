@@ -284,7 +284,7 @@ server.tool(
 
 server.tool(
   "workix_get_job",
-  "Полная карточка заказа по id или URL. Для watch (Fiverr и т.п.): url+platform+title — захват в store для draft/browser apply.",
+  "Full detail of a job / gig / lead card by id or URL (from workix_digest / workix_search). Returns title, description, budget, link and stored raw fields. NOTE: this is a Workix job/lead card, not a Workix Hub order — for a Hub order by sid use workix_get_hub_order. For watch capture (Fiverr etc.): url+platform+title stores a snapshot for draft/browser apply.",
   {
     id: z.string().optional(),
     url: z.string().optional(),

@@ -16,6 +16,35 @@
       "refs": ["https://gildia.global/ru/leads", "https://gildia.global/ru/login"]
     },
     {
+      "id": "openradar",
+      "name": "OpenRadar",
+      "tier": "v2",
+      "kind": "jobs_and_gigs",
+      "region": "global",
+      "audience": "any",
+      "access": "public_api",
+      "apply": "external",
+      "status": "include_jobs",
+      "url": "https://openradar.fun",
+      "note": "Read-only guest feed via the public API. Contacts may be hidden for guests; Workix never applies or contacts anyone. API and dataset are provided by OpenRadar under AGPL-3.0; this adapter uses the public HTTP contract and does not copy OpenRadar code.",
+      "refs": ["https://openradar.fun/docs", "https://openradar.fun/openapi.json", "https://openradar.fun/feed.rss"]
+    },
+    {
+      "id": "join",
+      "name": "Join.com",
+      "tier": "v2",
+      "kind": "jobs",
+      "region": "global",
+      "audience": "any",
+      "access": "public_graphql",
+      "apply": "external",
+      "status": "include_jobs",
+      "url": "https://join.com/jobs",
+      "note": "Read-only vacancy feed from Join's public candidate GraphQL (POST candidate-api/graphql). The query is keyed by a numeric companyId; pass a public company domain (e.g. dfrost) and the adapter resolves the id from the public company page. No login, apply or contact.",
+      "refs": ["https://join.com/jobs", "https://join.com/companies"]
+    },
+
+    {
       "id": "startupium",
       "name": "Startupium",
       "tier": "v2",

@@ -25,6 +25,7 @@ import { fetchJobSearchDbBoards } from "./adapters/jobsearchdb.js";
 import { fetchRssJobs } from "./adapters/rss.js";
 import { fetchTelegramJobs, telegramActivated } from "./adapters/telegram.js";
 import { fetchWantedlyJobs } from "./adapters/wantedly.js";
+import { fetchOpenRadarJobs } from "./adapters/openradar.js";
 import { dedupeJobs } from "./dedupe.js";
 import { pruneCache, readCache, writeCache } from "./fetchCache.js";
 import { getProxyPool } from "./proxyPool.js";
@@ -145,6 +146,8 @@ export async function refreshJobs(opts?: {
   freelancer_query?: string;
   /** Passed to adapters that support text filter (e.g. Dream Offer). */
   keywords?: string[];
+  /** Public Join.com company domains to pull vacancies from (each exact domain, e.g. "dfrost"). */
+  join_companies?: string[];
   /** Skip the shared cache and re-read every source from the network. */
   force_refresh?: boolean;
   /** Don't fold Telegram in — collect sweeps TG separately (see workix_collect). */
@@ -402,6 +405,34 @@ export async function refreshJobs(opts?: {
     collected.push(...r.jobs);
     note("gildia", r);
     if (r.error && !softError(r.error)) errors.push(r.error);
+  }
+  // OpenRadar is a public, guest-readable discovery feed. Keep it opt-in so
+  // foreign jobs/orders do not silently alter the default Workix scan.
+  if (platforms?.includes("openradar")) {
+    const r = await cached("openradar", { keywords: opts?.keywords }, force, () =>
+      fetchOpenRadarJobs({ keywords: opts?.keywords }),
+    );
+    collected.push(...r.jobs);
+    note("openradar", r);
+    if (r.error) errors.push(`openradar: ${r.error}`);
+  }
+  // Join.com is opt-in per public company domain: its public GraphQL feed is
+  // keyed by a numeric companyId, which we resolve from the company page.
+  if (platforms?.includes("join") && opts?.join_companies?.length) {
+    const { fetchJoinJobs, resolveJoinCompanyId } = await import("./adapters/join.js");
+    for (const domain of opts.join_companies.slice(0, 20)) {
+      const companyId = await resolveJoinCompanyId(domain);
+      if (!companyId) {
+        errors.push(`join: cannot resolve company "${domain}"`);
+        continue;
+      }
+      const r = await cached("join", { domain: domain.trim().toLowerCase() }, force, () =>
+        fetchJoinJobs({ companyId }),
+      );
+      collected.push(...r.jobs);
+      note("join", r);
+      if (r.error && !softError(r.error)) errors.push(`join: ${r.error}`);
+    }
   }
 
   const modulesWanted: string[] = [];

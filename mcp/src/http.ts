@@ -43,6 +43,8 @@ export async function fetchText(
     timeoutMs?: number;
     retries?: number;
     maxProxies?: number;
+    method?: "GET" | "POST";
+    body?: string;
     /** When false, never hit origin without PROXY_1 (RU boards / DDoS-Guard). Default true. */
     directFallback?: boolean;
     /** Persistent cookie jar name (see cookies.ts), e.g. "hh". Sends and refreshes it. */
@@ -63,7 +65,13 @@ export async function fetchText(
   };
 
   if (opts?.proxy === false) {
-    return once(url, { headers: opts?.headers, timeoutMs, cookieJar: opts?.cookieJar });
+    return once(url, {
+      headers: opts?.headers,
+      timeoutMs,
+      method: opts?.method,
+      body: opts?.body,
+      cookieJar: opts?.cookieJar,
+    });
   }
 
   if (typeof opts?.proxy === "string") {
@@ -71,6 +79,8 @@ export async function fetchText(
       headers: opts.headers,
       proxy: opts.proxy,
       timeoutMs,
+      method: opts.method,
+      body: opts.body,
       cookieJar: opts.cookieJar,
     });
   }
@@ -93,6 +103,8 @@ export async function fetchText(
       headers: opts?.headers,
       proxy: useProxy,
       timeoutMs,
+      method: opts?.method,
+      body: opts?.body,
       cookieJar: opts?.cookieJar,
     });
     if (last.ok) return last;
@@ -117,6 +129,8 @@ function once(
     headers?: Record<string, string>;
     proxy?: string;
     timeoutMs: number;
+    method?: "GET" | "POST";
+    body?: string;
     cookieJar?: string;
   },
   redirectCount = 0,
@@ -133,12 +147,13 @@ function once(
       const req = lib.request(
         url,
         {
-          method: "GET",
+          method: opts.method || "GET",
           agent,
           headers: {
             "User-Agent": DEFAULT_UA,
             Accept: "*/*",
             "Accept-Language": "ru-RU,ru;q=0.9,en;q=0.8",
+            ...(opts.body ? { "Content-Length": Buffer.byteLength(opts.body) } : {}),
             ...(jarHeader ? { Cookie: jarHeader } : {}),
             ...(opts.headers || {}),
           },
@@ -228,7 +243,7 @@ function once(
           error: e.message,
         });
       });
-      req.end();
+      req.end(opts.body);
     } catch (e) {
       resolve({
         ok: false,
@@ -248,6 +263,8 @@ export async function fetchJson<T = unknown>(
     headers?: Record<string, string>;
     proxy?: string | false;
     cookieJar?: string;
+    method?: "GET" | "POST";
+    body?: string;
   },
 ): Promise<{ data?: T; error?: string; status: number; ms: number }> {
   const res = await fetchText(url, opts);

@@ -48,6 +48,31 @@ The adapter opens `https://gildia.global/ru/leads` (override with `GILDIA_URL`),
 ```
 
 The browser profile is local to the Workix installation. Do not commit its cookies, profile directory, screenshots containing personal data, or credentials. If the session expires, repeat the visible login flow.
+### OpenRadar (issue #5)
+
+OpenRadar is available as a separate read-only source: use `platforms: ["openradar"]` with `workix_collect`, `workix_search`, or `workix_digest`. Workix calls the public guest endpoint `https://openradar.fun/api/leads` and normalizes jobs and freelance orders into the common `Job` shape. It does not use OpenRadar's remote MCP endpoint, submit applications, or contact authors.
+
+The adapter passes `keywords` as the API's full-text `q` filter. The underlying adapter also supports the documented `type`, `skill`, `budget`, `language`, `remote`, `workplace`, `direction`, `it`, `sort`, `limit`, and `page` parameters for callers that use it directly. Guest responses can omit contacts; any contact values returned by an upstream response are deliberately not copied into Workix cards or logs.
+
+OpenRadar's API and dataset are published under AGPL-3.0. The adapter is an independent HTTP client based on the public OpenAPI contract; it does not copy OpenRadar source code. Contacts, source visibility, freshness, and eligibility remain subject to OpenRadar's own access rules. Applications and messages stay manual.
+
+```json
+{"platforms":["openradar"],"keywords":["frontend","remote"],"limit":30}
+```
+
+### Join.com vacancies (issue #2, read-only)
+
+Join.com is available as a separate opt-in source: use `platforms: ["join"]` together with `join_companies: ["<public-domain>", …]` in `workix_collect` or `workix_digest`. Workix reads Join's public candidate GraphQL (`POST https://join.com/candidate-api/graphql`) and normalizes vacancies into the common `Job` shape.
+
+Join keys its jobs query by a numeric `companyId`, not by a company name, and it exposes no public "search by domain" field. For each domain passed in `join_companies`, the adapter first resolves the id from the company's public page (`https://join.com/companies/<domain>`) and then fetches that company's open positions. There is no login, no application and no contact with candidates or employers.
+
+```json
+{"platforms":["join"],"join_companies":["dfrost"],"limit":30}
+```
+
+Join's GraphQL schema is not covered by a published versioned contract; field names may change, in which case the adapter simply returns no rows instead of failing the whole scan.
+
+
 
 
 **Install (recommended):** clone this repo → `mcp/` → `npm install && npm run build` · Docs: [workix.co/agent](https://workix.co/agent) · [api.txt](https://workix.co/api.txt) · [llms.txt](https://workix.co/llms.txt)  
